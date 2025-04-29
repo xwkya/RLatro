@@ -1,0 +1,22 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Rlatro.Cli", "Rlatro.Cli\Rlatro.Cli.csproj", "{A12994F8-EC50-4FE2-BC20-8444BD580688}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Rlatro.Core", "Rlatro.Core\Rlatro.Core.csproj", "{28E8F741-4D43-4238-91B6-94525F332D00}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{A12994F8-EC50-4FE2-BC20-8444BD580688}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A12994F8-EC50-4FE2-BC20-8444BD580688}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A12994F8-EC50-4FE2-BC20-8444BD580688}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A12994F8-EC50-4FE2-BC20-8444BD580688}.Release|Any CPU.Build.0 = Release|Any CPU
+		{28E8F741-4D43-4238-91B6-94525F332D00}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{28E8F741-4D43-4238-91B6-94525F332D00}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{28E8F741-4D43-4238-91B6-94525F332D00}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{28E8F741-4D43-4238-91B6-94525F332D00}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
