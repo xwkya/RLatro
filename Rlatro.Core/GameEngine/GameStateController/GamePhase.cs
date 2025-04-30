@@ -1,13 +1,14 @@
-﻿namespace Balatro.Core.GameEngine
+﻿namespace Balatro.Core.GameEngine.StateController
 {
-    public enum GameStates
+    public enum GamePhase
     {
         Round,
         Shop,
         BlindSelection,
-        TarotPack,
+        ArcanaPack,
         JokerPack,
         PlanetPack,
         SpectralPack,
+        EvaluatingHand,
     }
 }

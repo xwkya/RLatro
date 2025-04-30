@@ -1,4 +1,4 @@
-﻿namespace Balatro.Core.CoreObjects.Card
+﻿namespace Balatro.Core.CoreObjects.CoreEnums
 {
     public enum Seal : byte
     {

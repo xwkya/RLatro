@@ -1,4 +1,6 @@
-﻿namespace Balatro.Core.CoreObjects.Card
+﻿using Balatro.Core.CoreObjects.CoreEnums;
+
+namespace Balatro.Core.CoreObjects.Cards.CardObject
 {
     public static class CardsConstants
     {

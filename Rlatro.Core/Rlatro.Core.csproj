@@ -7,4 +7,10 @@
         <RootNamespace>Balatro.Core</RootNamespace>
     </PropertyGroup>
 
+    <ItemGroup>
+      <Folder Include="CoreObjects\Cards\" />
+      <Folder Include="CoreObjects\Jokers\JokersContainer\" />
+      <Folder Include="CoreObjects\Jokers\JokerObject\" />
+    </ItemGroup>
+
 </Project>

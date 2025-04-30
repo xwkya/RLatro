@@ -1,24 +1,28 @@
-﻿using Balatro.Core.CoreObjects.CardContainer;
-using Balatro.Core.CoreObjects.CardContainer.DeckImplementation;
-using Balatro.Core.CoreObjects.Contracts.Factories;
+﻿using Balatro.Core.GameEngine.Contracts;
+using Balatro.Core.GameEngine.GameStateController;
+using Balatro.Core.GameEngine.GameStateController.PhaseActions;
+using Balatro.Core.GameEngine.GameStateController.PhaseStates;
 
 namespace Balatro.Core.GameEngine
 {
     public class GameController
     {
-        private Deck Deck;
-        private Hand Hand;
-        private DiscardPile DiscardPile;
+        private GameContext GameContext;
+        public IGamePhaseState GamePhaseState { get; private set; }
         
         private GameController()
         {
+            GameContext = new GameContext();
         }
 
-        public void NewGame(IDeckFactory deckFactory)
+        public void NewGame(IGameStateFactory gameStateFactory)
         {
-            Deck = deckFactory.CreateDeck();
-            Hand = new Hand(); // Empty hand
-            DiscardPile = new DiscardPile(); // Empty discard pile
+            GameContext = gameStateFactory.CreateGameState();
+        }
+
+        public void HandleAction(BasePlayerAction action)
+        {
+            GamePhaseState.HandleAction(GameContext, action);
         }
     }
 }

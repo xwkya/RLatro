@@ -1,4 +1,4 @@
-﻿using Balatro.Core.CoreObjects.CardContainer.DeckImplementation;
+﻿using Balatro.Core.CoreObjects.Cards.CardsContainer;
 
 namespace Balatro.Core.CoreObjects.Contracts.Factories
 {
