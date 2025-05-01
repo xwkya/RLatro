@@ -38,7 +38,7 @@ namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
                 _ => throw new ArgumentOutOfRangeException(nameof(roundAction), roundAction, null)
             };
         }
-        
+
         /// <summary>
         /// Draw cards until hand reaches the hand size.
         /// </summary>
@@ -56,7 +56,7 @@ namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
         {
             // Commit action
             Discards--;
-            
+
             ctx.Deck.MoveMany(cardIndexes, ctx.DiscardPile); // hand -> discard
             DrawCards(ctx);
             return false;
@@ -72,31 +72,36 @@ namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
 
             return Hands == 0 || ctx.Hand.Count == 0;
         }
-        
-        private bool ExecuteSellConsumable(GameContext context, byte consumableIndex)
+
+        private bool ExecuteSellConsumable(GameContext ctx, byte consumableIndex)
         {
-            var sellValue = context.ConsumableContainer.Consumables[consumableIndex].SellValue;
-            context.ConsumableContainer.RemoveConsumable(consumableIndex);
-            
-            context.PersistentState.Gold += sellValue;
+            var sellValue = ctx.ConsumableContainer.Consumables[consumableIndex].SellValue;
+            ctx.ConsumableContainer.RemoveConsumable(consumableIndex);
+
+            ctx.PersistentState.Gold += sellValue;
             return false;
-        }
-        
-        private bool ExecuteUseConsumable(GameContext context, RoundAction action)
-        {
-            var consumable = context.ConsumableContainer.Consumables[action.ConsumableIndex];
-            consumable.Effect.Apply(context, action.CardIndexes);
-            context.ConsumableContainer.RemoveConsumable(action.ConsumableIndex);
-            
-            return false;
-        }
-        
-        private bool ExecuteSellJoker(GameContext context, byte jokerIndex)
-        {
-            throw new NotImplementedException();
         }
 
-        private (int, int) ComputeHandScore(GameContext context)
+        private bool ExecuteUseConsumable(GameContext ctx, RoundAction action)
+        {
+            var consumable = ctx.ConsumableContainer.Consumables[action.ConsumableIndex];
+            consumable.ApplyEffect(ctx, action.CardIndexes);
+            ctx.ConsumableContainer.RemoveConsumable(action.ConsumableIndex);
+
+            return false;
+        }
+
+        private bool ExecuteSellJoker(GameContext ctx, byte jokerIndex)
+        {
+            var joker = ctx.JokerContainer.Jokers[jokerIndex];
+            var sellValue = ComputationHelpers.ComputeSellValue(ctx, joker.BaseSellValue, joker.BonusSellValue);
+            ctx.JokerContainer.RemoveJoker(ctx, jokerIndex);
+
+            ctx.PersistentState.Gold += sellValue;
+            return false;
+        }
+
+        private (int, int) ComputeHandScore(GameContext ctx)
         {
             return (0, 0);
         }
@@ -106,11 +111,14 @@ namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
             return action.ActionIntent switch
             {
                 RoundActionIntent.Discard => Discards > 0,
-                RoundActionIntent.SellConsumable => context.ConsumableContainer.Consumables.Count > action.ConsumableIndex,
-                RoundActionIntent.UseConsumable => context.ConsumableContainer.Consumables.Count > action.ConsumableIndex
-                && context.ConsumableContainer.Consumables[action.ConsumableIndex].IsUsable(context),
-                RoundActionIntent.Play => Hands > 0, // Should always be possible since if Hands == 0, the phase is over.
-                RoundActionIntent.SellJoker => throw new NotImplementedException(),
+                RoundActionIntent.SellConsumable => context.ConsumableContainer.Consumables.Count >
+                                                    action.ConsumableIndex,
+                RoundActionIntent.UseConsumable => context.ConsumableContainer.Consumables.Count >
+                                                   action.ConsumableIndex
+                                                   && context.ConsumableContainer.Consumables[action.ConsumableIndex]
+                                                       .IsUsable(context, action.CardIndexes),
+                RoundActionIntent.Play => Hands > 0, // Should always be possible, if Hands == 0 the game is over
+                RoundActionIntent.SellJoker => context.JokerContainer.Jokers.Count > action.JokerIndex,
                 _ => throw new ArgumentOutOfRangeException(nameof(action), action, null)
             };
         }

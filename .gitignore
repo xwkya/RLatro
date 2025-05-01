@@ -1,7 +1,2 @@
-bin/*
-obj/*
-/Rlatro.Cli/obj
-/Rlatro.Core/bin
-/Rlatro.Cli/bin
-/Rlatro.Core/obj
+Build/*
 /.idea/*

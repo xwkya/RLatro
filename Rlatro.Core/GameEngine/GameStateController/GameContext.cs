@@ -1,5 +1,6 @@
 ﻿using Balatro.Core.CoreObjects.Cards.CardsContainer;
 using Balatro.Core.CoreObjects.Consumables.ConsumablesContainer;
+using Balatro.Core.CoreObjects.Jokers.JokersContainer;
 using Balatro.Core.GameEngine.GameStateController.PersistentStates;
 
 namespace Balatro.Core.GameEngine.GameStateController
@@ -10,6 +11,7 @@ namespace Balatro.Core.GameEngine.GameStateController
         public Hand Hand { get; set; }
         public DiscardPile DiscardPile { get; set; }
         public PlayContainer PlayContainer { get; set; }
+        public JokerContainer JokerContainer { get; set; }
         public ConsumableContainer ConsumableContainer { get; set; }
         public PersistentState PersistentState { get; set; }
         public int Round { get; set; }

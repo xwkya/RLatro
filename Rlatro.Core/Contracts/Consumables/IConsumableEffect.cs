@@ -1,8 +1,8 @@
 ﻿using Balatro.Core.GameEngine.GameStateController;
 
-namespace Balatro.Core.CoreObjects.Contracts.Objects.Consumables
+namespace Balatro.Core.Contracts.Consumables
 {
-    public interface IEffect
+    public interface IConsumableEffect
     {
         void Apply(GameContext context, byte[] targetCards);
     }

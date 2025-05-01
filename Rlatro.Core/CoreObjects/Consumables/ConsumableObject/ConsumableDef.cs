@@ -1,4 +1,4 @@
-﻿using Balatro.Core.CoreObjects.Contracts.Objects.Consumables;
+﻿using Balatro.Core.Contracts.Consumables;
 
 namespace Balatro.Core.CoreObjects.Consumables.ConsumableObject
 {
@@ -6,7 +6,7 @@ namespace Balatro.Core.CoreObjects.Consumables.ConsumableObject
         ushort BaseSellValue,
         ushort BaseCost,
         IUsageCondition UsageCondition,
-        IEffect Effect)
+        IConsumableEffect ConsumableEffect)
     {
         public Consumable CreateInstance() => new(this);
     }

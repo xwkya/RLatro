@@ -1,6 +1,6 @@
 ﻿using Balatro.Core.CoreObjects.Cards.CardsContainer;
 
-namespace Balatro.Core.CoreObjects.Contracts.Factories
+namespace Balatro.Core.Contracts.Factories
 {
     public interface IDeckFactory
     {
