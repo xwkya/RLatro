@@ -37,10 +37,10 @@ namespace Balatro.Core.CoreObjects.Jokers.Joker
         {
         }
 
-        public int AddTriggers(
+        public byte AddTriggers(
             GameContext ctx,
             in CardView cardView,
-            byte cardPosition)
+            int cardPosition)
         {
             return 0;
         }

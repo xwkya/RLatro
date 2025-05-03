@@ -15,7 +15,8 @@ namespace Balatro.Core.GameEngine.GameStateController.PersistentStates
         {
             HandRank = rank,
             Chips = 10,
-            Mult = 2,
+            MultNumerator = 2,
+            MultDenominator = 1
         };
     }
 }

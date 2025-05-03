@@ -43,13 +43,13 @@ namespace Balatro.Core.CoreObjects.Cards.CardObject
         public static Card32 Create(uint raw) => new Card32(raw);
 
         // -- fast getters --
-        public Rank GetRank() => (Rank)((Raw & RankMask) >> RankShift);
-        public Suit GetSuit() => (Suit)((Raw & SuitMask) >> SuitShift);
-        public Enhancement GetEnh() => (Enhancement)((Raw & EnhMask) >> EnhShift);
-        public Seal GetSeal() => (Seal)((Raw & SealMask) >> SealShift);
-        public Edition GetEdition() => (Edition)((Raw & EditionMask) >> EditionShift);
-        public uint GetChipsUpgrade() => (Raw & ChipsUpgradeMask) >> ChipsUpgradeShift;
-        public uint GetTotalChipsValue() => (GetRank().GetRankChips() + GetChipsUpgrade());
+        public readonly Rank GetRank() => (Rank)((Raw & RankMask) >> RankShift);
+        public readonly Suit GetSuit() => (Suit)((Raw & SuitMask) >> SuitShift);
+        public readonly Enhancement GetEnh() => (Enhancement)((Raw & EnhMask) >> EnhShift);
+        public readonly Seal GetSeal() => (Seal)((Raw & SealMask) >> SealShift);
+        public readonly Edition GetEdition() => (Edition)((Raw & EditionMask) >> EditionShift);
+        public readonly uint GetChipsUpgrade() => (Raw & ChipsUpgradeMask) >> ChipsUpgradeShift;
+        public readonly uint GetTotalChipsValue() => (GetRank().GetRankChips() + GetChipsUpgrade());
 
         // -- in-place setters --
         public void SetRank(Rank r) => Raw = (Raw & ~RankMask) | (((uint)r & 0xF) << RankShift);

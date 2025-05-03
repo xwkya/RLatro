@@ -1,4 +1,6 @@
-﻿using Balatro.Core.CoreRules.CanonicalViews;
+﻿using Balatro.Core.CoreObjects.Cards.CardObject;
+using Balatro.Core.CoreObjects.CoreEnums;
+using Balatro.Core.CoreRules.CanonicalViews;
 using Balatro.Core.CoreRules.Scoring;
 using Balatro.Core.GameEngine.GameStateController.PhaseActions;
 using Balatro.Core.GameEngine.StateController;
@@ -133,17 +135,44 @@ namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
             // -- Count how many times the card will be triggered --
             Span<byte> countPlayedTriggers = stackalloc byte[ctx.PlayContainer.Count];
             
-            // 1 natural trigger TODO: Handle boss blinds that disable cards
+            // One natural trigger TODO: Handle boss blinds that disable cards
             countPlayedTriggers.Fill(1); 
             
-            // Count red seals
+            // Triggers from red seals + joker triggers
             for (var i = 0; i < ctx.PlayContainer.Count; i++)
             {
-                if ()
+                if (ctx.PlayContainer.Span[i].GetSeal() == Seal.Red)
+                {
+                    countPlayedTriggers[i] += 1;
+                }
+
+                foreach (var joker in ctx.JokerContainer.Jokers)
+                {
+                    countPlayedTriggers[i] += joker.AddTriggers(ctx, in playedCardViews[i], i);
+                }
             }
             
+            // Trigger all cards in hand
+            // TODO: If this is a performance bottleneck consider accessing the internal span directly
+            for (var i = 0; i < ctx.PlayContainer.Count; i++)
+            {
+                var cardToScore = ctx.PlayContainer.Span[i];
+                var cardView = playedCardViews[i];
+                var cardTriggers = countPlayedTriggers[i];
+                
+                for (var trigger = 0; trigger < cardTriggers; trigger++)
+                {
+                    
+                    
+                }
+            }
         }
 
+        private void TriggerCard(byte triggerCount, Card32 cardToScore)
+        {
+            
+        }
+        
         private bool IsActionPossible(GameContext context, RoundAction action)
         {
             return action.ActionIntent switch

@@ -17,11 +17,9 @@ namespace Balatro.Core.CoreObjects.Cards.CardsContainer
         }
         
         // Fast helpers
-        protected Span<Card32> Span => CollectionsMarshal.AsSpan(Cards);
+        public Span<Card32> Span => CollectionsMarshal.AsSpan(Cards);
         public int   Count      => Cards.Count;
         public bool  IsEmpty    => Cards.Count == 0;
-        public List<Card32> GetCards() => Cards;
-
 
         public void Add(Card32 c)
         {
