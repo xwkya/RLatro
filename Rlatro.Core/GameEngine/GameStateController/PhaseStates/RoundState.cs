@@ -1,4 +1,6 @@
-﻿using Balatro.Core.GameEngine.GameStateController.PhaseActions;
+﻿using Balatro.Core.CoreRules.CanonicalViews;
+using Balatro.Core.CoreRules.Scoring;
+using Balatro.Core.GameEngine.GameStateController.PhaseActions;
 using Balatro.Core.GameEngine.StateController;
 
 namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
@@ -101,9 +103,45 @@ namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
             return false;
         }
 
-        private (int, int) ComputeHandScore(GameContext ctx)
+        private ScoreContext ComputeHandScore(GameContext ctx)
         {
-            return (0, 0);
+            Span<byte> scoringCards = stackalloc byte[ctx.PlayContainer.Count];
+            Span<CardView> playedCardViews = stackalloc CardView[ctx.PlayContainer.Count];
+            Span<CardView> handCardViews = stackalloc CardView[ctx.Hand.Count];
+            
+            // Create card views for played cards
+            ctx.PlayContainer.FillCardViews(ctx, playedCardViews, true);
+            ctx.Hand.FillCardViews(ctx, handCardViews, false);
+            
+            var handRank = HandRankGetter.GetRank(
+                ctx.JokerContainer.FourFingers(),
+                ctx.JokerContainer.Shortcut(),
+                playedCardViews,
+                scoringCards);
+            
+            var scoreContext = ctx.PersistentState.GetHandScore(handRank);
+            
+            // On hand determined
+            foreach (var joker in ctx.JokerContainer.Jokers)
+            {
+                joker.OnHandDetermined(ctx, playedCardViews, ref scoreContext);
+            }
+            
+            // There is a chance the card view has changed (vampire can remove wild effect)
+            ctx.PlayContainer.FillCardViews(ctx, playedCardViews, true);
+            
+            // -- Count how many times the card will be triggered --
+            Span<byte> countPlayedTriggers = stackalloc byte[ctx.PlayContainer.Count];
+            
+            // 1 natural trigger TODO: Handle boss blinds that disable cards
+            countPlayedTriggers.Fill(1); 
+            
+            // Count red seals
+            for (var i = 0; i < ctx.PlayContainer.Count; i++)
+            {
+                if ()
+            }
+            
         }
 
         private bool IsActionPossible(GameContext context, RoundAction action)

@@ -15,7 +15,14 @@ namespace Balatro.Core.CoreObjects.Jokers.Joker
         public Edition Edition { get; set; }
         public ushort BonusSellValue { get; set; }
         public byte BaseSellValue { get; set; }
-
+        
+        /// <summary>
+        /// Effect applied on card scoring.
+        /// </summary>
+        /// <param name="ctx">The game context</param>
+        /// <param name="cardView">The card view itself</param>
+        /// <param name="card">The card reference (if the card needs to be changed by the joker)</param>
+        /// <param name="scoreCtx">The score context when the card is triggered</param>
         public void OnCardTriggerEffect(
             GameContext ctx,
             in CardView cardView,
@@ -30,8 +37,17 @@ namespace Balatro.Core.CoreObjects.Jokers.Joker
         {
         }
 
+        public int AddTriggers(
+            GameContext ctx,
+            in CardView cardView,
+            byte cardPosition)
+        {
+            return 0;
+        }
+
         public void OnHandDetermined(
             GameContext ctx,
+            ReadOnlySpan<CardView> playedCards,
             ref ScoreContext scoreCtx)
         {
         }

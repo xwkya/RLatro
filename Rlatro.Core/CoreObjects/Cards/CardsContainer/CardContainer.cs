@@ -1,6 +1,8 @@
 ﻿using System.Runtime.InteropServices;
 using System.Text;
 using Balatro.Core.CoreObjects.Cards.CardObject;
+using Balatro.Core.CoreRules.CanonicalViews;
+using Balatro.Core.GameEngine.GameStateController;
 
 namespace Balatro.Core.CoreObjects.Cards.CardsContainer
 {
@@ -18,6 +20,7 @@ namespace Balatro.Core.CoreObjects.Cards.CardsContainer
         protected Span<Card32> Span => CollectionsMarshal.AsSpan(Cards);
         public int   Count      => Cards.Count;
         public bool  IsEmpty    => Cards.Count == 0;
+        public List<Card32> GetCards() => Cards;
 
 
         public void Add(Card32 c)
@@ -110,6 +113,23 @@ namespace Balatro.Core.CoreObjects.Cards.CardsContainer
             foreach (ref readonly var c in Span)
                 sb.AppendLine(c.Representation());
             return sb.ToString();
+        }
+
+        public void FillCardViews(
+            GameContext ctx,
+            Span<CardView> cardViews,
+            bool inPlay)
+        {
+            var src = Span;
+            
+            // Throw if the buffer has not been initialized to fit exactly the container.
+            if (src.Length != Count)
+                throw new ArgumentOutOfRangeException(nameof(src), "CardContainer has a different number of cards than the destination buffer.");
+            
+            for (var i = src.Length; i > 0; i--)
+            {
+                cardViews[i] = CardView.Create(src[i], ctx);
+            }
         }
     }
 }

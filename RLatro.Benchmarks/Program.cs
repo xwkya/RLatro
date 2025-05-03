@@ -1,3 +1,16 @@
-﻿// See https://aka.ms/new-console-template for more information
+﻿using BenchmarkDotNet.Running;
+using RLatro.Benchmarks.CoreRules;
 
-Console.WriteLine("Hello, World!");
+namespace RLatro.Benchmarks
+{
+    public static class Program
+    {
+        public static void Main(string[] args)
+        {
+            Console.WriteLine("Starting benchmarks...");
+            var summary = BenchmarkRunner.Run<HandRankGetterBenchmarks>();
+
+            Console.WriteLine("Benchmarking complete.");
+        }
+    }
+}

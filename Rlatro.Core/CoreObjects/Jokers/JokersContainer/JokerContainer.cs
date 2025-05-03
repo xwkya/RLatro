@@ -27,5 +27,7 @@ namespace Balatro.Core.CoreObjects.Jokers.JokersContainer
             };
 
         public bool AllFaceCards() => false;
+        public bool FourFingers() => false;
+        public bool Shortcut() => false;
     }
 }

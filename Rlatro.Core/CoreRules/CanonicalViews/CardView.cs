@@ -6,6 +6,8 @@ namespace Balatro.Core.CoreRules.CanonicalViews
 {
     public readonly struct CardView
     {
+        private const byte Face = 1 << 0; // Is the card **CONSIDERED** a face card
+        
         /// <summary>
         /// The rank of the underlying <see cref="Card32"/>.
         /// Current Balatro rules do not modify from the original card.
@@ -25,27 +27,31 @@ namespace Balatro.Core.CoreRules.CanonicalViews
         /// var isFace = Face &amp; RuleFlags;
         /// </code>
         public byte RuleFlags { get; init; }
-
-        public const byte Face = 1 << 0;
-
-        public const byte InPlay = 1 << 1; // In hand on in play
-
-        public static CardView Create(Card32 card, GameContext ctx, bool inPlay)
+        
+        public static CardView Create(Card32 card, GameContext ctx)
         {
             return new CardView()
             {
                 Rank = card.GetRank(),
                 Suits = GetSuits(card, ctx),
-                RuleFlags = GetRuleFlag(
-                    inPlay: inPlay,
+                RuleFlags = CreateRuleFlags(
                     isFace: card.GetRank().IsNaturalFaceCard() || ctx.JokerContainer.AllFaceCards()),
             };
         }
+        
+        public static CardView Create(Rank rank, SuitMask suits)
+        {
+            return new CardView()
+            {
+                Rank = rank,
+                Suits = suits,
+                RuleFlags = CreateRuleFlags(rank.IsNaturalFaceCard()),
+            };
+        }
 
-        private static byte GetRuleFlag(bool inPlay, bool isFace)
+        private static byte CreateRuleFlags(bool isFace)
         {
             byte flags = 0;
-            if (inPlay) flags |= InPlay;
             if (isFace) flags |= Face;
             return flags;
         }

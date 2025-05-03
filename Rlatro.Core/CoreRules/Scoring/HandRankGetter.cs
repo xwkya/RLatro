@@ -16,13 +16,13 @@ namespace Balatro.Core.CoreRules.Scoring
             Span<byte> suitCnt = stackalloc byte[4]; // S H C D
 
             // pass 1 … count “how many cards could be spades, hearts…”
-            for (int i = 0; i < cards.Length; ++i)
+            for (int i = 0; i < cards.Length; i++)
             {
                 byte s = (byte)cards[i].Suits;
                 if ((s & (byte)SuitMask.Spade) != 0) suitCnt[0]++;
-                if ((s & (byte)SuitMask.Spade) != 0) suitCnt[1]++;
-                if ((s & (byte)SuitMask.Spade) != 0) suitCnt[2]++;
-                if ((s & (byte)SuitMask.Spade) != 0) suitCnt[3]++;
+                if ((s & (byte)SuitMask.Heart) != 0) suitCnt[1]++;
+                if ((s & (byte)SuitMask.Club) != 0) suitCnt[2]++;
+                if ((s & (byte)SuitMask.Diamond) != 0) suitCnt[3]++;
             }
 
             int need = fourFingers ? 4 : 5;
@@ -56,56 +56,83 @@ namespace Balatro.Core.CoreRules.Scoring
         private static bool TryStraight(ReadOnlySpan<CardView> cards,
             bool fourFingers,
             bool shortcut,
-            out int lowRank, // 0 = A low …  9 = 10-A
+            out int lowRank, // 0 = A-5 low …  9 = 10-A
             Span<byte> mark)
         {
             Span<ushort> rankMaskPerIdx = stackalloc ushort[cards.Length];
-            ushort ranks = 0; // presence bits (Ace low = bit 0, Ace high = bit 13)
+            ushort ranks = 0; // 14 Presence bits (1-Ace low, 2-2, .., 14-Ace high)
             for (int i = 0; i < cards.Length; ++i)
             {
-                int r = (int)cards[i].Rank; // 0-12
+                int r = (int)cards[i].Rank + 1; // 1-13
                 ranks |= (ushort)(1 << r);
-                if (r == 12) ranks |= 1; // Ace low duplicate
+                if (r == 13) ranks |= 1; // Ace low duplicate
                 rankMaskPerIdx[i] = (ushort)(1 << r);
             }
 
             int need = fourFingers ? 4 : 5;
+            int maxGap = shortcut ? 2 : 1;
+            int bestFoundCount = 0;
             lowRank = -1;
+            int highRank = -1;
 
             // try every possible start rank  (0 .. 9)
-            for (int s = 0; s <= 9; ++s)
+            for (int s = 0; s <= 10; s++)
             {
-                int found = 0, gaps = 0, last = -5;
-                for (int r = s; r < 13 && found < need; ++r)
+                int found = 0, last = s;
+                
+                // Check if we have a straight starting from s
+                for (int r = s; r <= 14 && found < 5; ++r)
                 {
-                    if ((ranks & (1 << r)) != 0)
+                    bool foundCard = (ranks & (1 << r)) != 0;
+                    
+                    if (!foundCard) 
                     {
-                        // rank exists
-                        if (last != -5) gaps += r - last - 1;
+                        if (r == s) break; // The first card is not present
+                        continue;
+                    }
+                    
+                    if (r == s) // The first card is present, keep looking
+                    {
                         last = r;
                         found++;
+                        continue;
                     }
+                    
+                    var gap = r - last;
+                    if (gap <= maxGap)
+                    {
+                        last = r;
+                        found++;
+                        continue;
+                    }
+
+                    break;
                 }
 
-                if (found >= need &&
-                    (!shortcut ? gaps == 0 : gaps <= (need - 1))) // gap rule
+                if (found >= need && found >= bestFoundCount)
                 {
+                    bestFoundCount = found;
                     lowRank = s;
-                    break;
+                    highRank = last;
                 }
             }
 
-            if (lowRank < 0) return false;
+            if (bestFoundCount < need) return false;
 
-            // mark: any card whose rank lies in [lowRank, … lowRank + 2*(need-1)]
+            // mark: any card whose rank lies between lowRank and highRank
             Clear(mark);
-            int highLimit = lowRank + 2 * (need - 1);
+
             for (int i = 0; i < cards.Length; ++i)
             {
-                int r = (int)cards[i].Rank;
-                if (r == 12 && lowRank == 0) r = -1; // treat Ace-low as rank -1 so A-2-3-4 (+gap) works
-                if (r >= lowRank && r <= highLimit)
+                var r = (int)cards[i].Rank + 1; // 1-13
+                if (r >= lowRank && r <= highRank)
                     mark[i] = 1;
+                
+                // Handle Ace low case
+                if (lowRank == 0 && r == 13)
+                {
+                    mark[i] = 1;
+                }
             }
 
             return true;
@@ -133,7 +160,7 @@ namespace Balatro.Core.CoreRules.Scoring
                 Clear(outIdx);
                 for (int i = 0; i < hand.Length; ++i)
                     if (straightIdx[i] == 1 || flushIdx[i] == 1)
-                        outIdx[i] = 1; // union, e.g. 4C in your example
+                        outIdx[i] = 1; // Work around since we can't use a bitwise OR on bytes
 
                 return HandRank.StraightFlush;
             }
@@ -285,67 +312,6 @@ namespace Balatro.Core.CoreRules.Scoring
                 if (r == rank1 && need1-- > 0) dst[i] = 1;
                 else if (r == rank2 && need2-- > 0) dst[i] = 1;
             }
-        }
-        
-        // Impl 1 -> TODO: DISCARD ONCE IMPL2 is tested
-
-        // pattern “0001 0001 0001 0001 0001” for 5 cards flush
-        private const int P_SPADES = 0b0001_0001_0001_0001_0001;
-        private const int P_HEARTS = P_SPADES << 1;
-        private const int P_CLUBS = P_SPADES << 2;
-        private const int P_DIAMONDS = P_SPADES << 3;
-
-        // pattern "11111" for 5 cards straight
-        private const int P_STRAIGHT = 0b11111;
-
-        /// <summary>
-        /// Checks for a standard poker flush in the hand.
-        /// </summary>
-        /// <param name="p"></param>
-        /// <returns></returns>
-        public static bool IsRegularFlush(ReadOnlySpan<CardView> p)
-        {
-            if (p.Length < 5) return false;
-
-            // Each suit is a 4-bit mask, and we have 5 cards.
-            // Lay out all suits in 4-bit lanes for a total of 
-            int packed = 0;
-            for (int i = 0; i < p.Length; i++)
-                packed |= ((int)p[i].Suits & 0b1111) << (4 * i);
-
-            // flush exists if every card has the same suit bit → AND pattern hit
-            return (packed & P_SPADES) == P_SPADES ||
-                   (packed & P_HEARTS) == P_HEARTS ||
-                   (packed & P_CLUBS) == P_CLUBS ||
-                   (packed & P_DIAMONDS) == P_DIAMONDS;
-        }
-
-        /// <summary>
-        /// Checks for a standard poker straight in the hand.
-        /// </summary>
-        /// <param name="p"></param>
-        /// <returns></returns>
-        public static bool IsRegularStraight(ReadOnlySpan<CardView> p)
-        {
-            if (p.Length < 5) return false;
-
-            // Rank is an enum with values going from 0 to 12.
-            // We lay out 1 bit for each rank in a 14-bit lane (to account for Ace high and low).
-            int packed = 0;
-            for (int i = 0; i < p.Length; i++)
-                packed |= 1 << ((byte)p[i].Rank + 1);
-
-            // If Ace is set also set the low Ace bit
-            packed |= (packed & (0b1 << 13)) >> 13;
-
-            // Check for 5 consecutive bits set in the packed representation.
-            for (int i = 0; i < 10; i++)
-            {
-                if ((packed & (P_STRAIGHT << i)) == (P_STRAIGHT << i))
-                    return true;
-            }
-
-            return false;
         }
     }
 }
