@@ -166,6 +166,8 @@ namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
                     
                 }
             }
+
+            return scoreContext;
         }
 
         private void TriggerCard(byte triggerCount, Card32 cardToScore)

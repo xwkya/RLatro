@@ -52,14 +52,6 @@ namespace Balatro.Core.CoreRules.Scoring
                     scoreCtx.AddChips(StoneEnhancementChips);
                     break;
                 case Enhancement.Lucky:
-                    if (Random.Shared. < LuckyEnhancementMultProbability)
-                    {
-                        scoreCtx.AddMult(LuckyEnhancementMult);
-                    }
-                    else if (Random.Shared.NextDouble() < LuckyEnhancementGoldProbability)
-                    {
-                        ctx.PersistentState.Gold += LuckyEnhancementGold;
-                    }
                     break;
             }
         }
@@ -123,6 +115,8 @@ namespace Balatro.Core.CoreRules.Scoring
                     TriggerCard(ctx, in cardView, ref cardToScore, ref scoreContext);
                 }
             }
+
+            return scoreContext;
         }
         
         private static void TriggerCard(
