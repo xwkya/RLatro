@@ -200,6 +200,8 @@ namespace Balatro.Core.CoreRules.Scoring
                 
                 ctx.PlayContainer.Span[i] = cardToScore; // update the card in the container
             }
+
+            return scoreContext;
         }
         
         /// <summary>
