@@ -5,14 +5,20 @@ namespace Balatro.Core.CoreRules.Scoring
 {
     public static class HandRankGetter
     {
-        // Impl 2
         private static void Clear(Span<byte> buf) => buf.Fill(0);
 
-        private static bool TryFlush(ReadOnlySpan<CardView> cards,
+        public static bool TryFlush(ReadOnlySpan<CardView> cards,
             bool fourFingers,
             out SuitMask suitPicked,
             Span<byte> mark)
         {
+            int need = fourFingers ? 4 : 5;
+            if (cards.Length < need)
+            {
+                suitPicked = SuitMask.None;
+                return false;
+            }
+            
             Span<byte> suitCnt = stackalloc byte[4]; // S H C D
 
             // pass 1 … count “how many cards could be spades, hearts…”
@@ -24,8 +30,7 @@ namespace Balatro.Core.CoreRules.Scoring
                 if ((s & (byte)SuitMask.Club) != 0) suitCnt[2]++;
                 if ((s & (byte)SuitMask.Diamond) != 0) suitCnt[3]++;
             }
-
-            int need = fourFingers ? 4 : 5;
+            
             int best = -1;
             for (int i = 0; i < 4; ++i)
                 if (suitCnt[i] >= need)
@@ -53,48 +58,46 @@ namespace Balatro.Core.CoreRules.Scoring
             return true;
         }
 
-        private static bool TryStraight(ReadOnlySpan<CardView> cards,
+        public static bool TryStraight(ReadOnlySpan<CardView> cards,
             bool fourFingers,
             bool shortcut,
             out int lowRank, // 0 = A-5 low …  9 = 10-A
             Span<byte> mark)
         {
-            Span<ushort> rankMaskPerIdx = stackalloc ushort[cards.Length];
-            ushort ranks = 0; // 14 Presence bits (1-Ace low, 2-2, .., 14-Ace high)
+            int need = fourFingers ? 4 : 5;
+            if (cards.Length < need)
+            {
+                lowRank = -1;
+                return false;
+            }   
+            
+            uint ranks = 0; // 14 Presence bits (1-Ace low, 2-2, .., 14-Ace high)
             for (int i = 0; i < cards.Length; ++i)
             {
                 int r = (int)cards[i].Rank + 1; // 1-13
-                ranks |= (ushort)(1 << r);
+                ranks |= (uint)1 << r;
                 if (r == 13) ranks |= 1; // Ace low duplicate
-                rankMaskPerIdx[i] = (ushort)(1 << r);
             }
 
-            int need = fourFingers ? 4 : 5;
             int maxGap = shortcut ? 2 : 1;
             int bestFoundCount = 0;
             lowRank = -1;
             int highRank = -1;
 
-            // try every possible start rank  (0 .. 9)
-            for (int s = 0; s <= 10; s++)
+            // try every possible start rank  (0 .. 10)
+            for (int s = 10; s >= 0; --s)
             {
-                int found = 0, last = s;
+                if ((ranks & (1 << s)) == 0) continue; // If no card is at s, skip
+                int found = 1;
+                int last = s;
                 
                 // Check if we have a straight starting from s
-                for (int r = s; r <= 14 && found < 5; ++r)
+                for (int r = s + 1; r <= 14 && found < 5; ++r)
                 {
                     bool foundCard = (ranks & (1 << r)) != 0;
                     
                     if (!foundCard) 
                     {
-                        if (r == s) break; // The first card is not present
-                        continue;
-                    }
-                    
-                    if (r == s) // The first card is present, keep looking
-                    {
-                        last = r;
-                        found++;
                         continue;
                     }
                     

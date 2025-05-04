@@ -9,168 +9,117 @@ namespace RLatro.Benchmarks.CoreRules
     public class HandRankGetterBenchmarks
     {
         // --- Hands Data (Define representative hands once) ---
-        // Using readonly static fields avoids recreating arrays repeatedly during benchmarks
+        private static readonly (CardView[] Hand, string Name) s_highCard = (new[]
+        {
+            CardView.Create(Rank.Two, SuitMask.Heart), CardView.Create(Rank.Queen, SuitMask.Heart)
+        }, "HighCard");
 
-        private static readonly CardView[] s_highCardHand = {
-            CardView.Create(Rank.Two, SuitMask.Heart),
-            CardView.Create(Rank.Four, SuitMask.Spade),
-            CardView.Create(Rank.Six, SuitMask.Club),
-            CardView.Create(Rank.Eight, SuitMask.Diamond),
-            CardView.Create(Rank.Queen, SuitMask.Heart)
-        };
+        private static readonly (CardView[] Hand, string Name) s_pair = (new[]
+        {
+            CardView.Create(Rank.Queen, SuitMask.Spade), CardView.Create(Rank.Two, SuitMask.Heart),
+            CardView.Create(Rank.Queen, SuitMask.Diamond)
+        }, "Pair");
 
-        private static readonly CardView[] s_pairHand = {
-            CardView.Create(Rank.Queen, SuitMask.Spade),
-            CardView.Create(Rank.Two, SuitMask.Heart),
-            CardView.Create(Rank.Eight, SuitMask.Club),
-            CardView.Create(Rank.Queen, SuitMask.Diamond),
-            CardView.Create(Rank.Four, SuitMask.Spade)
-        };
-
-        private static readonly CardView[] s_twoPairHand = {
-            CardView.Create(Rank.Ace, SuitMask.Spade),
-            CardView.Create(Rank.Six, SuitMask.Spade),
-            CardView.Create(Rank.Six, SuitMask.Heart),
-            CardView.Create(Rank.Ten, SuitMask.Club),
+        private static readonly (CardView[] Hand, string Name) s_twoPair = (new[]
+        {
+            CardView.Create(Rank.Ace, SuitMask.Spade), CardView.Create(Rank.Six, SuitMask.Spade),
+            CardView.Create(Rank.Six, SuitMask.Heart), CardView.Create(Rank.Ten, SuitMask.Club),
             CardView.Create(Rank.Ten, SuitMask.Diamond)
-        };
+        }, "TwoPair");
 
-        private static readonly CardView[] s_threeOfAKindHand = {
-            CardView.Create(Rank.Ace, SuitMask.Spade),
-            CardView.Create(Rank.Ace, SuitMask.Heart),
-            CardView.Create(Rank.Ace, SuitMask.Club),
-            CardView.Create(Rank.King, SuitMask.Diamond),
-            CardView.Create(Rank.Two, SuitMask.Spade)
-        };
+        private static readonly (CardView[] Hand, string Name) s_threeOfAKind = (new[]
+        {
+            CardView.Create(Rank.Ace, SuitMask.Spade), CardView.Create(Rank.Ace, SuitMask.Heart),
+            CardView.Create(Rank.Ace, SuitMask.Club), CardView.Create(Rank.King, SuitMask.Diamond),
+        }, "ThreeKind");
 
-        private static readonly CardView[] s_straightHand = {
-            CardView.Create(Rank.Two, SuitMask.Heart),
-            CardView.Create(Rank.Three, SuitMask.Spade),
-            CardView.Create(Rank.Four, SuitMask.Club),
-            CardView.Create(Rank.Five, SuitMask.Diamond),
+        private static readonly (CardView[] Hand, string Name) s_straight = (new[]
+        {
+            CardView.Create(Rank.Two, SuitMask.Heart), CardView.Create(Rank.Three, SuitMask.Spade),
+            CardView.Create(Rank.Four, SuitMask.Club), CardView.Create(Rank.Five, SuitMask.Diamond),
             CardView.Create(Rank.Six, SuitMask.Heart)
-        };
+        }, "Straight");
 
-        private static readonly CardView[] s_flushHand = {
-            CardView.Create(Rank.Ace, SuitMask.Heart),
-            CardView.Create(Rank.Jack, SuitMask.Heart),
-            CardView.Create(Rank.Five, SuitMask.Heart),
-            CardView.Create(Rank.Seven, SuitMask.Heart),
+        private static readonly (CardView[] Hand, string Name) s_flush = (new[]
+        {
+            CardView.Create(Rank.Ace, SuitMask.Heart), CardView.Create(Rank.Jack, SuitMask.Heart),
+            CardView.Create(Rank.Five, SuitMask.Heart), CardView.Create(Rank.Seven, SuitMask.Heart),
             CardView.Create(Rank.Queen, SuitMask.Heart)
-        };
+        }, "Flush");
 
-        private static readonly CardView[] s_fullHouseHand = {
-            CardView.Create(Rank.Ten, SuitMask.Spade),
-            CardView.Create(Rank.Ten, SuitMask.Heart),
-            CardView.Create(Rank.Ten, SuitMask.Club),
-            CardView.Create(Rank.King, SuitMask.Diamond),
+        private static readonly (CardView[] Hand, string Name) s_fullHouse = (new[]
+        {
+            CardView.Create(Rank.Ten, SuitMask.Spade), CardView.Create(Rank.Ten, SuitMask.Heart),
+            CardView.Create(Rank.Ten, SuitMask.Club), CardView.Create(Rank.King, SuitMask.Diamond),
             CardView.Create(Rank.King, SuitMask.Spade)
-        };
+        }, "FullHouse");
 
-        private static readonly CardView[] s_fourOfAKindHand = {
-            CardView.Create(Rank.Ten, SuitMask.Spade),
-            CardView.Create(Rank.Ten, SuitMask.Heart),
-            CardView.Create(Rank.Ten, SuitMask.Club),
-            CardView.Create(Rank.Ten, SuitMask.Diamond),
+        private static readonly (CardView[] Hand, string Name) s_fourOfAKind = (new[]
+        {
+            CardView.Create(Rank.Ten, SuitMask.Spade), CardView.Create(Rank.Ten, SuitMask.Heart),
+            CardView.Create(Rank.Ten, SuitMask.Club), CardView.Create(Rank.Ten, SuitMask.Diamond),
             CardView.Create(Rank.King, SuitMask.Spade)
-        };
-        
-        private static readonly CardView[] s_fiveOfAKindHand = {
-            CardView.Create(Rank.Two, SuitMask.Spade),
-            CardView.Create(Rank.Two, SuitMask.Heart),
-            CardView.Create(Rank.Two, SuitMask.Club),
-            CardView.Create(Rank.Two, SuitMask.Diamond),
+        }, "FourKind");
+
+        private static readonly (CardView[] Hand, string Name) s_fiveOfAKind = (new[]
+        {
+            CardView.Create(Rank.Two, SuitMask.Spade), CardView.Create(Rank.Two, SuitMask.Heart),
+            CardView.Create(Rank.Two, SuitMask.Club), CardView.Create(Rank.Two, SuitMask.Diamond),
             CardView.Create(Rank.Two, SuitMask.All)
-        };
+        }, "FiveKind"); // Assumes a wild card view
 
-        private static readonly CardView[] s_straightFlushHand = {
-            CardView.Create(Rank.Two, SuitMask.Heart),
-            CardView.Create(Rank.Three, SuitMask.Heart),
-            CardView.Create(Rank.Four, SuitMask.Heart),
-            CardView.Create(Rank.Five, SuitMask.Heart),
+        private static readonly (CardView[] Hand, string Name) s_straightFlush = (new[]
+        {
+            CardView.Create(Rank.Two, SuitMask.Heart), CardView.Create(Rank.Three, SuitMask.Heart),
+            CardView.Create(Rank.Four, SuitMask.Heart), CardView.Create(Rank.Five, SuitMask.Heart),
             CardView.Create(Rank.Six, SuitMask.Heart)
-        };
-        
+        }, "StraightFlush");
+
+        // --- Data Source for Benchmarks ---
+        // Provides the different hands to the benchmark methods
+        public IEnumerable<(CardView[] Hand, string Name)> HandsDataSource()
+        {
+            yield return s_highCard;
+            yield return s_pair;
+            yield return s_twoPair;
+            yield return s_threeOfAKind;
+            yield return s_straight;
+            yield return s_flush;
+            yield return s_fullHouse;
+            yield return s_fourOfAKind;
+            yield return s_fiveOfAKind;
+            yield return s_straightFlush;
+        }
+
         // --- Parameters ---
-        // BenchmarkDotNet will run each benchmark method for each combination of these parameters
-
-        [Params(false, true)]
-        public bool FourFingers { get; set; }
-
-        [Params(false, true)]
-        public bool Shortcut { get; set; }
+        private const bool FourFingers = false;
+        private const bool Shortcut = true;
 
         // --- Benchmarks ---
-        // Each method is a benchmark that will be run by BenchmarkDotNet
-
-        [Benchmark(Description = "High Card")]
-        public HandRank BenchmarkHighCard()
+        [Benchmark(Description = "TryFlush")]
+        [ArgumentsSource(nameof(HandsDataSource))] // Get data from our source
+        public bool BenchmarkTryFlush((CardView[] Hand, string Name) data)
         {
-            Span<byte> flags = stackalloc byte[s_highCardHand.Length];
-            return HandRankGetter.GetRank(FourFingers, Shortcut, s_highCardHand, flags);
+            // stackalloc is fine here as hand length is known within the iteration
+            Span<byte> flags = stackalloc byte[data.Hand.Length];
+            // We return the result to prevent dead code elimination
+            return HandRankGetter.TryFlush(data.Hand, FourFingers, out _, flags);
         }
 
-        [Benchmark(Description = "Pair")]
-        public HandRank BenchmarkPair()
+        [Benchmark(Description = "TryStraight")]
+        [ArgumentsSource(nameof(HandsDataSource))]
+        public bool BenchmarkTryStraight((CardView[] Hand, string Name) data)
         {
-            Span<byte> flags = stackalloc byte[s_pairHand.Length];
-            return HandRankGetter.GetRank(FourFingers, Shortcut, s_pairHand, flags);
+            Span<byte> flags = stackalloc byte[data.Hand.Length];
+            return HandRankGetter.TryStraight(data.Hand, FourFingers, Shortcut, out _, flags);
         }
 
-        [Benchmark(Description = "Two Pair")]
-        public HandRank BenchmarkTwoPair()
+        [Benchmark(Description = "GetRank")]
+        [ArgumentsSource(nameof(HandsDataSource))]
+        public HandRank BenchmarkGetRank((CardView[] Hand, string Name) data)
         {
-            Span<byte> flags = stackalloc byte[s_twoPairHand.Length];
-            return HandRankGetter.GetRank(FourFingers, Shortcut, s_twoPairHand, flags);
-        }
-
-        [Benchmark(Description = "Three of a Kind")]
-        public HandRank BenchmarkThreeOfAKind()
-        {
-            Span<byte> flags = stackalloc byte[s_threeOfAKindHand.Length];
-            return HandRankGetter.GetRank(FourFingers, Shortcut, s_threeOfAKindHand, flags);
-        }
-
-        [Benchmark(Description = "Straight")]
-        public HandRank BenchmarkStraight()
-        {
-            Span<byte> flags = stackalloc byte[s_straightHand.Length];
-            return HandRankGetter.GetRank(FourFingers, Shortcut, s_straightHand, flags);
-        }
-
-        [Benchmark(Description = "Flush")]
-        public HandRank BenchmarkFlush()
-        {
-            Span<byte> flags = stackalloc byte[s_flushHand.Length];
-            return HandRankGetter.GetRank(FourFingers, Shortcut, s_flushHand, flags);
-        }
-
-        [Benchmark(Description = "Full House")]
-        public HandRank BenchmarkFullHouse()
-        {
-            Span<byte> flags = stackalloc byte[s_fullHouseHand.Length];
-            return HandRankGetter.GetRank(FourFingers, Shortcut, s_fullHouseHand, flags);
-        }
-
-        [Benchmark(Description = "Four of a Kind")]
-        public HandRank BenchmarkFourOfAKind()
-        {
-            Span<byte> flags = stackalloc byte[s_fourOfAKindHand.Length];
-            return HandRankGetter.GetRank(FourFingers, Shortcut, s_fourOfAKindHand, flags);
-        }
-        
-        [Benchmark(Description = "Five of a Kind")]
-        public HandRank BenchmarkFiveOfAKind()
-        {
-            Span<byte> flags = stackalloc byte[s_fiveOfAKindHand.Length];
-            return HandRankGetter.GetRank(FourFingers, Shortcut, s_fiveOfAKindHand, flags);
-        }
-
-        [Benchmark(Description = "Straight Flush")]
-        public HandRank BenchmarkStraightFlush()
-        {
-            Span<byte> flags = stackalloc byte[s_straightFlushHand.Length];
-            return HandRankGetter.GetRank(FourFingers, Shortcut, s_straightFlushHand, flags);
+            Span<byte> flags = stackalloc byte[data.Hand.Length];
+            return HandRankGetter.GetRank(FourFingers, Shortcut, data.Hand, flags);
         }
     }
 }
