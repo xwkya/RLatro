@@ -101,24 +101,24 @@ namespace RLatro.Benchmarks.CoreRules
         public bool BenchmarkTryFlush((CardView[] Hand, string Name) data)
         {
             // stackalloc is fine here as hand length is known within the iteration
-            Span<byte> flags = stackalloc byte[data.Hand.Length];
+            Span<int> flags = stackalloc int[data.Hand.Length];
             // We return the result to prevent dead code elimination
-            return HandRankGetter.TryFlush(data.Hand, FourFingers, out _, flags);
+            return HandRankGetter.TryFlush(data.Hand, FourFingers, flags);
         }
 
         [Benchmark(Description = "TryStraight")]
         [ArgumentsSource(nameof(HandsDataSource))]
         public bool BenchmarkTryStraight((CardView[] Hand, string Name) data)
         {
-            Span<byte> flags = stackalloc byte[data.Hand.Length];
-            return HandRankGetter.TryStraight(data.Hand, FourFingers, Shortcut, out _, flags);
+            Span<int> flags = stackalloc int[data.Hand.Length];
+            return HandRankGetter.TryStraight(data.Hand, FourFingers, Shortcut, flags);
         }
 
         [Benchmark(Description = "GetRank")]
         [ArgumentsSource(nameof(HandsDataSource))]
         public HandRank BenchmarkGetRank((CardView[] Hand, string Name) data)
         {
-            Span<byte> flags = stackalloc byte[data.Hand.Length];
+            Span<int> flags = stackalloc int[data.Hand.Length];
             return HandRankGetter.GetRank(FourFingers, Shortcut, data.Hand, flags);
         }
     }

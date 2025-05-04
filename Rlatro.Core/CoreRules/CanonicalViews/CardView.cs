@@ -7,6 +7,7 @@ namespace Balatro.Core.CoreRules.CanonicalViews
     public readonly struct CardView
     {
         private const byte Face = 1 << 0; // Is the card **CONSIDERED** a face card
+        private const byte RedSeal = 1 << 1;
         
         /// <summary>
         /// The rank of the underlying <see cref="Card32"/>.
@@ -15,7 +16,7 @@ namespace Balatro.Core.CoreRules.CanonicalViews
         public Rank Rank { get; init; }
 
         /// <summary>
-        /// A bitmask of the suits of the underlying <see cref="Card32"/>.
+        /// A bitmask of the suits of the underlying <see cref="Card64"/>.
         /// Some jokers or effects can affect the suit of the card (possibly consider it as all suits).
         /// </summary>
         public SuitMask Suits { get; init; }
@@ -28,14 +29,18 @@ namespace Balatro.Core.CoreRules.CanonicalViews
         /// </code>
         public byte RuleFlags { get; init; }
         
-        public static CardView Create(Card32 card, GameContext ctx)
+        public bool IsFace => (RuleFlags & Face) != 0;
+        public bool IsRedSeal => (RuleFlags & RedSeal) != 0;
+        
+        public static CardView Create(Card64 card, GameContext ctx)
         {
             return new CardView()
             {
                 Rank = card.GetRank(),
                 Suits = GetSuits(card, ctx),
                 RuleFlags = CreateRuleFlags(
-                    isFace: card.GetRank().IsNaturalFaceCard() || ctx.JokerContainer.AllFaceCards()),
+                    isFace: card.GetRank().IsNaturalFaceCard() || ctx.JokerContainer.AllFaceCards(),
+                    redSeal: card.GetSeal() == Seal.Red)
             };
         }
         
@@ -45,18 +50,19 @@ namespace Balatro.Core.CoreRules.CanonicalViews
             {
                 Rank = rank,
                 Suits = suits,
-                RuleFlags = CreateRuleFlags(rank.IsNaturalFaceCard()),
+                RuleFlags = CreateRuleFlags(rank.IsNaturalFaceCard(), redSeal: false),
             };
         }
 
-        private static byte CreateRuleFlags(bool isFace)
+        private static byte CreateRuleFlags(bool isFace, bool redSeal)
         {
             byte flags = 0;
             if (isFace) flags |= Face;
+            if (redSeal) flags |= RedSeal;
             return flags;
         }
 
-        private static SuitMask GetSuits(Card32 card, GameContext ctx)
+        private static SuitMask GetSuits(Card64 card, GameContext ctx)
         {
             if (card.GetEnh() == Enhancement.Wild) return SuitMask.All;
             return (ctx.JokerContainer.GetJokersSuitChange(card.GetSuit()));

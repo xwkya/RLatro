@@ -8,6 +8,6 @@ namespace Balatro.Core.CoreObjects.Consumables.ConsumableObject
         IUsageCondition UsageCondition,
         IConsumableEffect ConsumableEffect)
     {
-        public Consumable CreateInstance() => new(this);
+        public Consumable CreateInstance(uint id) => new(id, this);
     }
 }

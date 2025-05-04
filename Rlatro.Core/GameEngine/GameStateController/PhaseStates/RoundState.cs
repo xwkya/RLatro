@@ -70,7 +70,7 @@ namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
         {
             Hands--;
             ctx.Hand.MoveMany(cardIndexes, ctx.PlayContainer); // hand -> play
-            ComputeHandScore(ctx);
+            var scoreContext = ScoringCalculation.EvaluateHand(ctx);
             ctx.Hand.MoveMany(cardIndexes, ctx.DiscardPile); // hand -> discard
             DrawCards(ctx);
 
@@ -103,74 +103,6 @@ namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
 
             ctx.PersistentState.Gold += sellValue;
             return false;
-        }
-
-        private ScoreContext ComputeHandScore(GameContext ctx)
-        {
-            Span<byte> scoringCards = stackalloc byte[ctx.PlayContainer.Count];
-            Span<CardView> playedCardViews = stackalloc CardView[ctx.PlayContainer.Count];
-            Span<CardView> handCardViews = stackalloc CardView[ctx.Hand.Count];
-            
-            // Create card views for played cards
-            ctx.PlayContainer.FillCardViews(ctx, playedCardViews, true);
-            ctx.Hand.FillCardViews(ctx, handCardViews, false);
-            
-            var handRank = HandRankGetter.GetRank(
-                ctx.JokerContainer.FourFingers(),
-                ctx.JokerContainer.Shortcut(),
-                playedCardViews,
-                scoringCards);
-            
-            var scoreContext = ctx.PersistentState.GetHandScore(handRank);
-            
-            // On hand determined
-            foreach (var joker in ctx.JokerContainer.Jokers)
-            {
-                joker.OnHandDetermined(ctx, playedCardViews, ref scoreContext);
-            }
-            
-            // There is a chance the card view has changed (vampire can remove wild effect)
-            ctx.PlayContainer.FillCardViews(ctx, playedCardViews, true);
-            
-            // -- Count how many times the card will be triggered --
-            Span<byte> countPlayedTriggers = stackalloc byte[ctx.PlayContainer.Count];
-            
-            // One natural trigger TODO: Handle boss blinds that disable cards
-            countPlayedTriggers.Fill(1); 
-            
-            // Triggers from red seals + joker triggers
-            for (var i = 0; i < ctx.PlayContainer.Count; i++)
-            {
-                if (ctx.PlayContainer.Span[i].GetSeal() == Seal.Red)
-                {
-                    countPlayedTriggers[i] += 1;
-                }
-
-                foreach (var joker in ctx.JokerContainer.Jokers)
-                {
-                    countPlayedTriggers[i] += joker.AddTriggers(ctx, in playedCardViews[i], i);
-                }
-            }
-            
-            // Trigger all cards in hand
-            // TODO: If this is a performance bottleneck consider accessing the internal span directly
-            for (var i = 0; i < ctx.PlayContainer.Count; i++)
-            {
-                var cardToScore = ctx.PlayContainer.Span[i];
-                var cardView = playedCardViews[i];
-                var cardTriggers = countPlayedTriggers[i];
-                
-                for (var trigger = 0; trigger < cardTriggers; trigger++)
-                {
-                    
-                    
-                }
-            }
-        }
-
-        private void TriggerCard(byte triggerCount, Card32 cardToScore)
-        {
-            
         }
         
         private bool IsActionPossible(GameContext context, RoundAction action)

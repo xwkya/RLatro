@@ -8,13 +8,27 @@ namespace Balatro.Core.CoreObjects.Jokers.Joker
 {
     public abstract class JokerObject
     {
-        // private readonly JokerRule Rule;
+        public uint Id { get; private set; }
+            
         public uint Scaling { get; set; } // Scaling counter, each joker can use this however they want.
-        public Suit Suit { get; set; } // Whatever suit the joker is targeting.
-        public Rank Rank { get; set; } // Whatever rank the joker is targeting.
+        public SuitMask Suit { get; set; } // Whatever suit the joker is targeting.
+        public Rank? Rank { get; set; } // Whatever rank the joker is targeting.
         public Edition Edition { get; set; }
-        public ushort BonusSellValue { get; set; }
-        public byte BaseSellValue { get; set; }
+        public int BonusSellValue { get; set; }
+        public abstract int BaseSellValue { get; }
+        
+        public JokerObject(uint id, Edition edition = Edition.None)
+        {
+            Id = id;
+            Scaling = 0;
+            Suit = SuitMask.None;
+            Rank = null;
+            Edition = edition;
+            BonusSellValue = 0;
+        }
+        
+        public abstract bool HasOnPlayedCardTriggerEffect { get; }
+        public abstract bool HasOnHeldInHandTriggerEffect { get; }
         
         /// <summary>
         /// Effect applied on card scoring.
@@ -23,12 +37,23 @@ namespace Balatro.Core.CoreObjects.Jokers.Joker
         /// <param name="cardView">The card view itself</param>
         /// <param name="card">The card reference (if the card needs to be changed by the joker)</param>
         /// <param name="scoreCtx">The score context when the card is triggered</param>
-        public void OnCardTriggerEffect(
+        /// <returns>The Card64 in case it was modified during the scoring</returns>
+        public Card64 OnPlayedCardTriggerEffect(
             GameContext ctx,
-            in CardView cardView,
-            ref Card32 card,
+            CardView cardView,
+            Card64 card,
             ref ScoreContext scoreCtx)
         {
+            return card;
+        }
+        
+        public Card64 OnHeldInHandTriggerEffect(
+            GameContext ctx,
+            CardView cardView,
+            Card64 card,
+            ref ScoreContext scoreCtx)
+        {
+            return card;
         }
 
         public void OnCardTriggerDone(
@@ -37,10 +62,17 @@ namespace Balatro.Core.CoreObjects.Jokers.Joker
         {
         }
 
-        public byte AddTriggers(
+        public byte AddPlayedCardTriggers(
             GameContext ctx,
-            in CardView cardView,
+            CardView cardView,
             int cardPosition)
+        {
+            return 0;
+        }
+        
+        public byte AddHeldInHandTriggers(
+            GameContext ctx,
+            CardView cardView)
         {
             return 0;
         }

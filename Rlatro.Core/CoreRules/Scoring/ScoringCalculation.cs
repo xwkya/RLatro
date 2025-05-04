@@ -38,35 +38,37 @@ namespace Balatro.Core.CoreRules.Scoring
         private const float LuckyEnhancementMultProbability = 0.2f;     // 1 in 5
         private const float LuckyEnhancementGoldProbability = 1f / 15f; // 1 in 15
         
-        private static void TriggerEnhancement(GameContext ctx, Enhancement enhancement, ref ScoreContext scoreCtx)
-        {
-            switch (enhancement)
-            {
-                case Enhancement.Bonus:
-                    scoreCtx.AddChips(BonusEnhancementChips);
-                    break;
-                case Enhancement.Mult:
-                    scoreCtx.AddMult(MultEnhancementValue);
-                    break;
-                case Enhancement.Stone:
-                    scoreCtx.AddChips(StoneEnhancementChips);
-                    break;
-                case Enhancement.Lucky:
-                    if (Random.Shared. < LuckyEnhancementMultProbability)
-                    {
-                        scoreCtx.AddMult(LuckyEnhancementMult);
-                    }
-                    else if (Random.Shared.NextDouble() < LuckyEnhancementGoldProbability)
-                    {
-                        ctx.PersistentState.Gold += LuckyEnhancementGold;
-                    }
-                    break;
-            }
-        }
+        // TODO: Write this method once RNG is ready
+        // private static void TriggerEnhancement(GameContext ctx, Enhancement enhancement, ref ScoreContext scoreCtx)
+        // {
+        //     switch (enhancement)
+        //     {
+        //         case Enhancement.Bonus:
+        //             scoreCtx.AddChips(BonusEnhancementChips);
+        //             break;
+        //         case Enhancement.Mult:
+        //             scoreCtx.AddMult(MultEnhancementValue);
+        //             break;
+        //         case Enhancement.Stone:
+        //             scoreCtx.AddChips(StoneEnhancementChips);
+        //             break;
+        //         TODO: Use Rng controller from Lua
+        //         case Enhancement.Lucky:
+        //             if (Random.Shared. < LuckyEnhancementMultProbability)
+        //             {
+        //                 scoreCtx.AddMult(LuckyEnhancementMult);
+        //             }
+        //             else if (Random.Shared.NextDouble() < LuckyEnhancementGoldProbability)
+        //             {
+        //                 ctx.PersistentState.Gold += LuckyEnhancementGold;
+        //             }
+        //             break;
+        //     }
+        // }
         
-        public static ScoreContext ComputeHandScore(GameContext ctx)
+        public static ScoreContext EvaluateHand(GameContext ctx)
         {
-            Span<byte> scoringCards = stackalloc byte[ctx.PlayContainer.Count];
+            Span<int> scoringCards = stackalloc int[ctx.PlayContainer.Count];
             Span<CardView> playedCardViews = stackalloc CardView[ctx.PlayContainer.Count];
             Span<CardView> handCardViews = stackalloc CardView[ctx.Hand.Count];
             
@@ -91,55 +93,167 @@ namespace Balatro.Core.CoreRules.Scoring
             // There is a chance the card view has changed (vampire can remove wild effect)
             ctx.PlayContainer.FillCardViews(ctx, playedCardViews, true);
             
-            // -- Count how many times the card will be triggered --
-            Span<byte> countPlayedTriggers = stackalloc byte[ctx.PlayContainer.Count];
+            // Trigger played cards
+            TriggerPlayedCards(ctx, playedCardViews, scoringCards, ref scoreContext);
             
-            // One natural trigger TODO: Handle boss blinds that disable cards
-            countPlayedTriggers.Fill(1); 
+            // Trigger cards held in hand
+            TriggerHandCards(ctx, handCardViews, ref scoreContext);
+            
+            // Compute joker post trigger effects
+            ComputeJokerPostTriggerEffects(ctx, ref scoreContext);
+            
+            return scoreContext;
+        }
+
+        private static int CountCardTriggers(
+            GameContext ctx,
+            bool inPlay,
+            int cardIndex,
+            CardView cardView)
+        {
+            // TODO: Handle boss blinds that disable cards here
+            var totalTriggers = 1;
+            if (cardView.IsRedSeal)
+            {
+                totalTriggers += 1;
+            }
+
+            foreach (var joker in ctx.JokerContainer.Jokers)
+            {
+                if (inPlay)
+                {
+                    totalTriggers += joker.AddPlayedCardTriggers(ctx, cardView, cardIndex);
+                }
+                else
+                {
+                    totalTriggers += joker.AddHeldInHandTriggers(ctx, cardView);
+                }
+            }
+
+            return totalTriggers;
+        }
+        
+        private static void TriggerHandCards(
+            GameContext ctx,
+            ReadOnlySpan<CardView> handCardViews,
+            ref ScoreContext scoreCtx)
+        {
+            // Count how many times the card will be triggered
+            Span<int> countPlayedTriggers = stackalloc int[ctx.PlayContainer.Count];
+            
+            countPlayedTriggers.Fill(0); 
+            
+            // Triggers from red seals + joker triggers
+            for (var i = 0; i < ctx.Hand.Count; i++)
+            {
+                countPlayedTriggers[i] = CountCardTriggers(ctx, false, i, handCardViews[i]);
+            }
+            
+            // Trigger all cards in hand
+            for (var i = 0; i < ctx.Hand.Count; i++)
+            {
+                var cardToScore = ctx.Hand.Span[i];
+                var cardView = handCardViews[i];
+                var cardTriggers = countPlayedTriggers[i];
+                
+                for (var trigger = 0; trigger < cardTriggers; trigger++)
+                {
+                    cardToScore = TriggerSingleHandCard(ctx, cardView, cardToScore, ref scoreCtx);
+                }
+                
+                ctx.Hand.Span[i] = cardToScore; // update the card in the container
+            }
+        }
+
+        private static void TriggerPlayedCards(
+            GameContext ctx,
+            ReadOnlySpan<CardView> playedCardViews,
+            ReadOnlySpan<int> scoringCards,
+            ref ScoreContext scoreCtx)
+        {
+            // Count how many times the card will be triggered
+            Span<int> countPlayedTriggers = stackalloc int[ctx.PlayContainer.Count];
+            
+            countPlayedTriggers.Fill(0); 
             
             // Triggers from red seals + joker triggers
             for (var i = 0; i < ctx.PlayContainer.Count; i++)
             {
-                if (ctx.PlayContainer.Span[i].GetSeal() == Seal.Red)
-                {
-                    countPlayedTriggers[i] += 1;
-                }
+                if (scoringCards[i] == 0) continue;
 
-                foreach (var joker in ctx.JokerContainer.Jokers)
-                {
-                    countPlayedTriggers[i] += joker.AddTriggers(ctx, in playedCardViews[i], i);
-                }
+                countPlayedTriggers[i] = CountCardTriggers(ctx, true, i, playedCardViews[i]);
             }
             
-            // Trigger all cards in hand TODO: If this is a performance bottleneck consider accessing the internal span directly
+            // Trigger all cards in play if it counts for scoring
             for (var i = 0; i < ctx.PlayContainer.Count; i++)
             {
+                if (scoringCards[i] == 0) continue;
+                
                 var cardToScore = ctx.PlayContainer.Span[i];
                 var cardView = playedCardViews[i];
                 var cardTriggers = countPlayedTriggers[i];
                 
                 for (var trigger = 0; trigger < cardTriggers; trigger++)
                 {
-                    TriggerCard(ctx, in cardView, ref cardToScore, ref scoreContext);
+                    cardToScore = TriggerSinglePlayedCard(ctx, cardView, cardToScore, ref scoreCtx);
                 }
+                
+                ctx.PlayContainer.Span[i] = cardToScore; // update the card in the container
             }
         }
         
-        private static void TriggerCard(
+        /// <summary>
+        /// Single trigger of a card in play
+        /// </summary>
+        private static Card64 TriggerSinglePlayedCard(
             GameContext ctx,
-            in CardView cardView,
-            ref Card32 card,
+            CardView cardView,
+            Card64 card,
             ref ScoreContext scoreCtx)
         {
+            // Natural effects
+            TriggerCardNaturalEffects(card, ref scoreCtx);
             
+            // Trigger enhancement
+            TriggerCardEnhancement(card, ref scoreCtx);
+            
+            // Trigger edition
+            TriggerEdition(card.GetEdition(), ref scoreCtx);
+            
+            // Trigger joker effects
             foreach (var joker in ctx.JokerContainer.Jokers)
             {
-                joker.OnCardTriggerEffect(ctx, cardView, ref card, ref scoreCtx);
+                if (joker.HasOnPlayedCardTriggerEffect)
+                    card = joker.OnPlayedCardTriggerEffect(ctx, cardView, card, ref scoreCtx);
             }
+
+            return card;
+        }
+        
+        /// <summary>
+        /// Single trigger of a card in hand (enhancement + joker effects only)
+        /// </summary>
+        private static Card64 TriggerSingleHandCard(
+            GameContext ctx,
+            CardView cardView,
+            Card64 card,
+            ref ScoreContext scoreCtx)
+        {
+            // Enhancement
+            TriggerHandCardEnhancement(card, ref scoreCtx);
+            
+            // Trigger jokers
+            foreach (var joker in ctx.JokerContainer.Jokers)
+            {
+                if (joker.HasOnHeldInHandTriggerEffect)
+                    card = joker.OnHeldInHandTriggerEffect(ctx, cardView, card, ref scoreCtx);
+            }
+
+            return card;
         }
 
         private static void TriggerCardNaturalEffects(
-            in Card32 card,
+            Card64 card,
             ref ScoreContext scoreCtx)
         {
             var cardChips = card.GetTotalChipsValue();
@@ -147,7 +261,7 @@ namespace Balatro.Core.CoreRules.Scoring
         }
 
         private static void TriggerCardEnhancement(
-            in Card32 card,
+            Card64 card,
             ref ScoreContext scoreCtx)
         {
             var enhancement = card.GetEnh();
@@ -158,23 +272,29 @@ namespace Balatro.Core.CoreRules.Scoring
                     break;
             }
         }
-        
-        private static void TriggerEdition(
-            in Card32 card,
+
+        private static void TriggerHandCardEnhancement(
+            Card64 card,
+            ref ScoreContext scoreContext)
+        {
+            var enhancement = card.GetEnh();
+            switch (enhancement)
+            {
+                case Enhancement.Steel:
+                    scoreContext.TimesMult(3, 2);
+                    break;
+            }
+        }
+
+        private static void ComputeJokerPostTriggerEffects(
+            GameContext ctx,
             ref ScoreContext scoreCtx)
         {
-            var edition = card.GetEdition();
-            switch (edition)
+            foreach (var joker in ctx.JokerContainer.Jokers)
             {
-                case Edition.Foil:
-                    scoreCtx.AddChips(FoilChips);
-                    break;
-                case Edition.Holo:
-                    scoreCtx.AddMult(HoloMult);
-                    break;
-                case Edition.Poly:
-                    scoreCtx.TimesMult(PolychromeMultNumerator, PolychromeMultDenominator);
-                    break;
+                var jokerEdition = joker.Edition;
+                TriggerEdition(jokerEdition, ref scoreCtx);
+                joker.OnCardTriggerDone(ctx, ref scoreCtx);
             }
         }
     }

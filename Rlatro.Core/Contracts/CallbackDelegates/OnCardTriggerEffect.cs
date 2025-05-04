@@ -6,6 +6,6 @@ namespace Balatro.Core.Contracts.CallbackDelegates
 {
     public delegate void OnCardTriggerEffect(
         GameContext ctx,
-        ref Card32 card,
+        ref Card64 card,
         ref ScoreContext scoreCtx);
 }

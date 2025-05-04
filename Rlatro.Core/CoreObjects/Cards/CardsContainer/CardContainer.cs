@@ -8,7 +8,7 @@ namespace Balatro.Core.CoreObjects.Cards.CardsContainer
 {
     public abstract class CardContainer
     {
-        protected readonly List<Card32> Cards = [];
+        protected readonly List<Card64> Cards = [];
         public ushort Capacity { get; set; }
 
         protected CardContainer(ushort capacity)
@@ -17,11 +17,11 @@ namespace Balatro.Core.CoreObjects.Cards.CardsContainer
         }
         
         // Fast helpers
-        public Span<Card32> Span => CollectionsMarshal.AsSpan(Cards);
+        public Span<Card64> Span => CollectionsMarshal.AsSpan(Cards);
         public int   Count      => Cards.Count;
         public bool  IsEmpty    => Cards.Count == 0;
 
-        public void Add(Card32 c)
+        public void Add(Card64 c)
         {
             if (Cards.Count < Capacity)
             {
@@ -33,7 +33,7 @@ namespace Balatro.Core.CoreObjects.Cards.CardsContainer
             }
         }
 
-        public void AddMany(ReadOnlySpan<Card32> cards)
+        public void AddMany(ReadOnlySpan<Card64> cards)
         {
             foreach (var c in cards)
             {
@@ -45,7 +45,7 @@ namespace Balatro.Core.CoreObjects.Cards.CardsContainer
         /// Will transform a card by creating a copy of it.
         /// Probably faster than exposing a reference and mutating it since card is 4Bytes.
         /// </summary>
-        public void TransformCard(Func<Card32, Card32> transform, int index)
+        public void TransformCard(Func<Card64, Card64> transform, int index)
         {
             Span[index] = transform(Span[index]);
         }

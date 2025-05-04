@@ -11,7 +11,7 @@ namespace RLatro.Test.CoreRules
             out int numberOfCardsFlagged,
             params CardView[] cards)
         {
-            Span<byte> flags = stackalloc byte[cards.Length];
+            Span<int> flags = stackalloc int[cards.Length];
             var hand = HandRankGetter.GetRank(fourFingers, shortcut, cards, flags);
             numberOfCardsFlagged = 0;
             for (int i = 0; i < cards.Length; i++)

@@ -11,7 +11,7 @@ namespace Balatro.Core.Contracts.Jokers
         public byte BasePrice { get; set; }
         public virtual bool OnTriggerApplies(GameContext ctx, in CardView cardView, JokerObject inst) => false;
 
-        public virtual void OnCardTriggerEffect(GameContext ctx, in Card32 card, ref ScoreContext scoreCtx, JokerObject inst)
+        public virtual void OnCardTriggerEffect(GameContext ctx, in Card64 card, ref ScoreContext scoreCtx, JokerObject inst)
         {
         }
 

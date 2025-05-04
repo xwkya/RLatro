@@ -7,6 +7,7 @@ namespace Balatro.Core.CoreObjects.Consumables.ConsumableObject
     {
         public ConsumableDef Definition { get; }
         private ushort BonusValue { get; set; }
+        public uint Id { get; private set; }
         
         public ushort BaseSellValue => Definition.BaseSellValue;
         public IConsumableEffect ConsumableEffect => Definition.ConsumableEffect;
@@ -21,8 +22,9 @@ namespace Balatro.Core.CoreObjects.Consumables.ConsumableObject
         {
             ConsumableEffect.Apply(context, targetCards);
         }
-        public Consumable(ConsumableDef def, bool isNegative = false)
+        public Consumable(uint id, ConsumableDef def, bool isNegative = false)
         {
+            Id = id;
             Definition = def;
             BonusValue = 0;
             IsNegative = isNegative;

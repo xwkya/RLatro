@@ -4,7 +4,7 @@ namespace Balatro.Core.GameEngine
 {
     public static class ComputationHelpers
     {
-        public static ushort ComputeSellValue(GameContext ctx, byte baseSellValue, ushort bonusValue) =>
+        public static ushort ComputeSellValue(GameContext ctx, int baseSellValue, int bonusValue) =>
             (ushort)(baseSellValue + bonusValue);
     }
 }

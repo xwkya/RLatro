@@ -5,17 +5,16 @@ namespace Balatro.Core.CoreRules.Scoring
 {
     public static class HandRankGetter
     {
-        private static void Clear(Span<byte> buf) => buf.Fill(0);
+        private static void Clear(Span<int> buf) => buf.Fill(0);
 
         public static bool TryFlush(ReadOnlySpan<CardView> cards,
             bool fourFingers,
-            out SuitMask suitPicked,
-            Span<byte> mark)
+            Span<int> mark)
         {
+            SuitMask suitPicked = SuitMask.None;
             int need = fourFingers ? 4 : 5;
             if (cards.Length < need)
             {
-                suitPicked = SuitMask.None;
                 return false;
             }
             
@@ -61,13 +60,12 @@ namespace Balatro.Core.CoreRules.Scoring
         public static bool TryStraight(ReadOnlySpan<CardView> cards,
             bool fourFingers,
             bool shortcut,
-            out int lowRank, // 0 = A-5 low …  9 = 10-A
-            Span<byte> mark)
+            Span<int> mark)
         {
             int need = fourFingers ? 4 : 5;
+            int lowRank = -1;
             if (cards.Length < need)
             {
-                lowRank = -1;
                 return false;
             }   
             
@@ -144,18 +142,18 @@ namespace Balatro.Core.CoreRules.Scoring
         public static HandRank GetRank(bool fourFingers,
             bool shortcut,
             ReadOnlySpan<CardView> hand,
-            Span<byte> outIdx)
+            Span<int> outIdx)
         {
             // cache-local counts of each rank for kinds & pairs detection
-            Span<byte> cnt = stackalloc byte[13];
+            Span<int> cnt = stackalloc int[13];
             foreach (ref readonly var c in hand) cnt[(byte)c.Rank]++;
 
             // Detect straights and flushes
-            Span<byte> straightIdx = stackalloc byte[hand.Length];
-            Span<byte> flushIdx = stackalloc byte[hand.Length];
+            Span<int> straightIdx = stackalloc int[hand.Length];
+            Span<int> flushIdx = stackalloc int[hand.Length];
 
-            bool hasStraight = TryStraight(hand, fourFingers, shortcut, out int low, straightIdx);
-            bool hasFlush = TryFlush(hand, fourFingers, out SuitMask flushSuit, flushIdx);
+            bool hasStraight = TryStraight(hand, fourFingers, shortcut, straightIdx);
+            bool hasFlush = TryFlush(hand, fourFingers, flushIdx);
 
             // 1. “combined condition” hands
             if (hasStraight && hasFlush)
@@ -277,7 +275,7 @@ namespace Balatro.Core.CoreRules.Scoring
         // Marks *all* cards whose Rank == targetRank
         private static void MarkSame(ReadOnlySpan<CardView> hand,
             int targetRank,
-            Span<byte> dst)
+            Span<int> dst)
         {
             Clear(dst);
             for (int i = 0; i < hand.Length; ++i)
@@ -289,7 +287,7 @@ namespace Balatro.Core.CoreRules.Scoring
         private static void MarkFullHouse(ReadOnlySpan<CardView> hand,
             int rankA, // three-of-a-kind
             int rankB, // pair
-            Span<byte> dst)
+            Span<int> dst)
         {
             Clear(dst);
             int needA = 3, needB = 2;
@@ -305,7 +303,7 @@ namespace Balatro.Core.CoreRules.Scoring
         private static void MarkTwoPair(ReadOnlySpan<CardView> hand,
             int rank1,
             int rank2,
-            Span<byte> dst)
+            Span<int> dst)
         {
             Clear(dst);
             int need1 = 2, need2 = 2;
