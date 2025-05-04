@@ -1,7 +1,4 @@
-﻿using Balatro.Core.CoreObjects.Cards.CardObject;
-using Balatro.Core.CoreObjects.CoreEnums;
-using Balatro.Core.CoreRules.CanonicalViews;
-using Balatro.Core.CoreRules.Scoring;
+﻿using Balatro.Core.CoreRules.Scoring;
 using Balatro.Core.GameEngine.GameStateController.PhaseActions;
 using Balatro.Core.GameEngine.StateController;
 
@@ -13,32 +10,41 @@ namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
     public record RoundState : IGamePhaseState
     {
         public GamePhase Phase => GamePhase.Round;
-        public byte Hands { get; set; }
-        public byte Discards { get; set; }
-        public byte HandSize { get; set; }
-        public uint CurrentChipsScore { get; set; } // TODO: This will be a problem for hands above 4T chips
+        public int Hands { get; set; }
+        public int Discards { get; set; }
+        private int HandSize => GameContext.GetHandSize();
+        public GameContext GameContext { get; set; }
+        public uint CurrentChipsScore { get; set; }  // TODO: This will be a problem for hands above 4T chips
         public uint CurrentChipsRequirement { get; set; }
         public bool IsPhaseOver => (CurrentChipsScore >= CurrentChipsRequirement) || (Hands == 0) || (HandSize <= 0);
 
-        public bool HandleAction(GameContext context, BasePlayerAction action)
+        public RoundState(GameContext ctx)
+        {
+            GameContext = ctx;
+            CurrentChipsScore = 0;
+            Hands = GameContext.GetHands();
+            Discards = GameContext.GetDiscards();
+        }
+        
+        public bool HandleAction(BasePlayerAction action)
         {
             if (action is not RoundAction roundAction)
             {
                 throw new ArgumentException($"Action {action} is not a RoundAction.");
             }
 
-            if (!IsActionPossible(context, roundAction))
+            if (!IsActionPossible(GameContext, roundAction))
             {
                 throw new InvalidOperationException($"Action {roundAction} is not possible in the current state.");
             }
 
             return roundAction.ActionIntent switch
             {
-                RoundActionIntent.Play => ExecutePlay(context, roundAction.CardIndexes),
-                RoundActionIntent.Discard => ExecuteDiscard(context, roundAction.CardIndexes),
-                RoundActionIntent.SellConsumable => ExecuteSellConsumable(context, roundAction.ConsumableIndex),
-                RoundActionIntent.UseConsumable => ExecuteUseConsumable(context, roundAction),
-                RoundActionIntent.SellJoker => ExecuteSellJoker(context, roundAction.JokerIndex),
+                RoundActionIntent.Play => ExecutePlay(roundAction.CardIndexes),
+                RoundActionIntent.Discard => ExecuteDiscard(roundAction.CardIndexes),
+                RoundActionIntent.SellConsumable => ExecuteSellConsumable(roundAction.ConsumableIndex),
+                RoundActionIntent.UseConsumable => ExecuteUseConsumable(roundAction),
+                RoundActionIntent.SellJoker => ExecuteSellJoker(roundAction.JokerIndex),
                 _ => throw new ArgumentOutOfRangeException(nameof(roundAction), roundAction, null)
             };
         }
@@ -46,62 +52,62 @@ namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
         /// <summary>
         /// Draw cards until hand reaches the hand size.
         /// </summary>
-        private void DrawCards(GameContext ctx)
+        private void DrawCards()
         {
-            int need = HandSize - ctx.Hand.Count;
+            int need = GameContext.GetHandSize() - GameContext.Hand.Count;
             if (need > 0)
             {
-                int draw = Math.Min(need, ctx.Deck.Count);
-                ctx.Deck.DrawTopTo(draw, ctx.Hand);
+                int draw = Math.Min(need, GameContext.Deck.Count);
+                GameContext.Deck.DrawTopTo(draw, GameContext.Hand);
             }
         }
 
-        private bool ExecuteDiscard(GameContext ctx, ReadOnlySpan<byte> cardIndexes)
+        private bool ExecuteDiscard(ReadOnlySpan<byte> cardIndexes)
         {
             // Commit action
             Discards--;
-
-            ctx.Deck.MoveMany(cardIndexes, ctx.DiscardPile); // hand -> discard
-            DrawCards(ctx);
+            GameContext.Deck.MoveMany(cardIndexes, GameContext.DiscardPile); // hand -> discard
+            DrawCards();
             return false;
         }
 
-        private bool ExecutePlay(GameContext ctx, ReadOnlySpan<byte> cardIndexes)
+        private bool ExecutePlay(ReadOnlySpan<byte> cardIndexes)
         {
             Hands--;
-            ctx.Hand.MoveMany(cardIndexes, ctx.PlayContainer); // hand -> play
-            var scoreContext = ScoringCalculation.EvaluateHand(ctx);
-            ctx.Hand.MoveMany(cardIndexes, ctx.DiscardPile); // hand -> discard
-            DrawCards(ctx);
+            GameContext.Hand.MoveMany(cardIndexes, GameContext.PlayContainer); // hand -> play
+            var scoreContext = ScoringCalculation.EvaluateHand(GameContext);
+            CurrentChipsScore += scoreContext.Chips * scoreContext.MultNumerator / scoreContext.MultDenominator;
+            GameContext.Hand.MoveMany(cardIndexes, GameContext.DiscardPile); // hand -> discard
+            DrawCards();
 
-            return Hands == 0 || ctx.Hand.Count == 0;
+            return Hands == 0 || GameContext.Hand.Count == 0;
         }
 
-        private bool ExecuteSellConsumable(GameContext ctx, byte consumableIndex)
+        private bool ExecuteSellConsumable(byte consumableIndex)
         {
-            var sellValue = ctx.ConsumableContainer.Consumables[consumableIndex].SellValue;
-            ctx.ConsumableContainer.RemoveConsumable(consumableIndex);
+            var sellValue = GameContext.ConsumableContainer.Consumables[consumableIndex].SellValue;
+            GameContext.ConsumableContainer.RemoveConsumable(consumableIndex);
 
-            ctx.PersistentState.Gold += sellValue;
+            GameContext.PersistentState.Gold += sellValue;
             return false;
         }
 
-        private bool ExecuteUseConsumable(GameContext ctx, RoundAction action)
+        private bool ExecuteUseConsumable(RoundAction action)
         {
-            var consumable = ctx.ConsumableContainer.Consumables[action.ConsumableIndex];
-            consumable.ApplyEffect(ctx, action.CardIndexes);
-            ctx.ConsumableContainer.RemoveConsumable(action.ConsumableIndex);
+            var consumable = GameContext.ConsumableContainer.Consumables[action.ConsumableIndex];
+            consumable.ApplyEffect(GameContext, action.CardIndexes);
+            GameContext.ConsumableContainer.RemoveConsumable(action.ConsumableIndex);
 
             return false;
         }
 
-        private bool ExecuteSellJoker(GameContext ctx, byte jokerIndex)
+        private bool ExecuteSellJoker(byte jokerIndex)
         {
-            var joker = ctx.JokerContainer.Jokers[jokerIndex];
-            var sellValue = ComputationHelpers.ComputeSellValue(ctx, joker.BaseSellValue, joker.BonusSellValue);
-            ctx.JokerContainer.RemoveJoker(ctx, jokerIndex);
+            var joker = GameContext.JokerContainer.Jokers[jokerIndex];
+            var sellValue = ComputationHelpers.ComputeSellValue(GameContext, joker.BaseSellValue, joker.BonusSellValue);
+            GameContext.JokerContainer.RemoveJoker(GameContext, jokerIndex);
 
-            ctx.PersistentState.Gold += sellValue;
+            GameContext.PersistentState.Gold += sellValue;
             return false;
         }
         

@@ -9,7 +9,7 @@ namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
         public byte ArcanaPackSize;
         public byte NumberOfChoices;
         public bool IsPhaseOver { get; private set; }
-        public bool HandleAction(GameContext context, BasePlayerAction action)
+        public bool HandleAction(BasePlayerAction action)
         {
             throw new NotImplementedException();
         }

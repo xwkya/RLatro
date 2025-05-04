@@ -20,7 +20,7 @@ namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
 
         public bool IsPhaseOver { get; }
         
-        public bool HandleAction(GameContext context, BasePlayerAction action)
+        public bool HandleAction(BasePlayerAction action)
         {
             throw new NotImplementedException();
         }

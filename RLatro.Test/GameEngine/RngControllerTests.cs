@@ -3,7 +3,7 @@
 namespace RLatro.Test.GameEngine
 {
     [TestFixture]
-    public sealed class LuaRandomTests
+    public sealed class RngControllerTests
     {
         /// <summary>
         /// Random numbers generated in lua: 84, 89, 12, 46, 76

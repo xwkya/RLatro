@@ -2,6 +2,7 @@
 using Balatro.Core.CoreObjects.CoreEnums;
 using Balatro.Core.CoreRules.CanonicalViews;
 using Balatro.Core.GameEngine.GameStateController;
+using Balatro.Core.GameEngine.PseudoRng;
 
 namespace Balatro.Core.CoreRules.Scoring
 {
@@ -31,6 +32,7 @@ namespace Balatro.Core.CoreRules.Scoring
         
         // Enhancement bonuses
         private const uint BonusEnhancementChips = 30;
+        private const uint GlassEnhancementMult = 2;
         private const uint MultEnhancementValue = 4;
         private const uint StoneEnhancementChips = 50;
         private const uint LuckyEnhancementMult = 20;
@@ -38,33 +40,34 @@ namespace Balatro.Core.CoreRules.Scoring
         private const float LuckyEnhancementMultProbability = 0.2f;     // 1 in 5
         private const float LuckyEnhancementGoldProbability = 1f / 15f; // 1 in 15
         
-        // TODO: Write this method once RNG is ready
-        // private static void TriggerEnhancement(GameContext ctx, Enhancement enhancement, ref ScoreContext scoreCtx)
-        // {
-        //     switch (enhancement)
-        //     {
-        //         case Enhancement.Bonus:
-        //             scoreCtx.AddChips(BonusEnhancementChips);
-        //             break;
-        //         case Enhancement.Mult:
-        //             scoreCtx.AddMult(MultEnhancementValue);
-        //             break;
-        //         case Enhancement.Stone:
-        //             scoreCtx.AddChips(StoneEnhancementChips);
-        //             break;
-        //         TODO: Use Rng controller from Lua
-        //         case Enhancement.Lucky:
-        //             if (Random.Shared. < LuckyEnhancementMultProbability)
-        //             {
-        //                 scoreCtx.AddMult(LuckyEnhancementMult);
-        //             }
-        //             else if (Random.Shared.NextDouble() < LuckyEnhancementGoldProbability)
-        //             {
-        //                 ctx.PersistentState.Gold += LuckyEnhancementGold;
-        //             }
-        //             break;
-        //     }
-        // }
+        private static void TriggerEnhancement(GameContext ctx, Enhancement enhancement, ref ScoreContext scoreCtx)
+        {
+            switch (enhancement)
+            {
+                case Enhancement.Bonus:
+                    scoreCtx.AddChips(BonusEnhancementChips);
+                    break;
+                case Enhancement.Mult:
+                    scoreCtx.AddMult(MultEnhancementValue);
+                    break;
+                case Enhancement.Stone:
+                    scoreCtx.AddChips(StoneEnhancementChips);
+                    break;
+                case Enhancement.Lucky:
+                    if (ctx.RngController.ProbabilityCheck(LuckyEnhancementMultProbability, RngActionType.LuckyCardMult))
+                    {
+                        scoreCtx.AddMult(LuckyEnhancementMult);
+                    }
+                    if (ctx.RngController.ProbabilityCheck(LuckyEnhancementGoldProbability, RngActionType.LuckyCardMoney))
+                    {
+                        ctx.PersistentState.Gold += LuckyEnhancementGold;
+                    }
+                    break;
+                case Enhancement.Glass:
+                    scoreCtx.TimesMult(GlassEnhancementMult, 1);
+                    break;
+            }
+        }
         
         public static ScoreContext EvaluateHand(GameContext ctx)
         {
@@ -200,8 +203,6 @@ namespace Balatro.Core.CoreRules.Scoring
                 
                 ctx.PlayContainer.Span[i] = cardToScore; // update the card in the container
             }
-
-            return scoreContext;
         }
         
         /// <summary>

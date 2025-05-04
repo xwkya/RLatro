@@ -15,14 +15,14 @@ namespace Balatro.Core.GameEngine
             GameContext = new GameContext();
         }
 
-        public void NewGame(IGameStateFactory gameStateFactory)
+        public void NewGame(IGameContextFactory gameContextFactory)
         {
-            GameContext = gameStateFactory.CreateGameState();
+            GameContext = gameContextFactory.CreateGameContext();
         }
 
         public void HandleAction(BasePlayerAction action)
         {
-            GamePhaseState.HandleAction(GameContext, action);
+            GamePhaseState.HandleAction(action);
         }
     }
 }

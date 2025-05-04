@@ -7,8 +7,8 @@ namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
     {
         GamePhase Phase { get; }
         bool IsPhaseOver { get; }
-        bool HandleAction(GameContext context, BasePlayerAction action);
-        void OnEnterPhase(GameContext context) {}
-        void OnExitPhase(GameContext context) {}
+        bool HandleAction(BasePlayerAction action);
+        void OnEnterPhase() {}
+        void OnExitPhase() {}
     }
 }

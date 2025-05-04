@@ -42,13 +42,11 @@ namespace Balatro.Core.GameEngine.PseudoRng
         public void Seed(ulong loSeed, ulong hiSeed = 0)
         {
             /*  Lua’s layout after math.randomseed(a,b):
-
                     s[0] = a
-                    s[1] = 0xFF        (avoids the all-zero pit-fall)
+                    s[1] = 0xFF 
                     s[2] = b
                     s[3] = 0
-
-                Then “burn” 16 outputs to fully diffuse the seed.
+                    burn first 16 outputs to get the state into a
             */
             s[0] = loSeed;
             s[1] = 0xFF;

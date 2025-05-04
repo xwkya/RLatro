@@ -2,8 +2,8 @@
 
 namespace Balatro.Core.GameEngine.Contracts
 {
-    public interface IGameStateFactory
+    public interface IGameContextFactory
     {
-        public GameContext CreateGameState();
+        public GameContext CreateGameContext();
     }
 }
