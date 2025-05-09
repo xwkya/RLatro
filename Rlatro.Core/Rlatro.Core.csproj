@@ -7,8 +7,4 @@
         <RootNamespace>Balatro.Core</RootNamespace>
     </PropertyGroup>
 
-    <ItemGroup>
-      <Folder Include="ObjectsImplementations\GameContext\" />
-    </ItemGroup>
-
 </Project>

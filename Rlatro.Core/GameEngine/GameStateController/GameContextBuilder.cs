@@ -7,6 +7,7 @@ using Balatro.Core.CoreObjects.Consumables.ConsumablesContainer;
 using Balatro.Core.CoreObjects.Jokers.Joker;
 using Balatro.Core.CoreObjects.Jokers.JokersContainer;
 using Balatro.Core.GameEngine.Contracts;
+using Balatro.Core.GameEngine.GameStateController.EventBus;
 using Balatro.Core.GameEngine.GameStateController.PersistentStates;
 using Balatro.Core.GameEngine.PseudoRng;
 
@@ -21,16 +22,22 @@ namespace Balatro.Core.GameEngine.GameStateController
         
         public static GameContextBuilder Create(string seed)
         {
+            var gameEventBus = new GameEventBus();
+            var handTracker = new HandTracker(gameEventBus);
+            
             var persistentState = new PersistentState()
             {
                 Discards = 4,
                 Hands = 4,
                 Gold = 10,
-                HandSize = 8
+                HandSize = 8,
+                HandTracker = handTracker,
+                JokerSlots = 5,
             };
 
             var gameContext = new GameContext()
             {
+                GameEventBus = gameEventBus,
                 JokerContainer = new JokerContainer(),
                 ConsumableContainer = new ConsumableContainer(),
                 DiscardPile = new DiscardPile(),
@@ -38,7 +45,7 @@ namespace Balatro.Core.GameEngine.GameStateController
                 Hand = new Hand((ushort)persistentState.HandSize),
                 Round = 1,
                 Deck = new Deck(),
-                PersistentState = new PersistentState(),
+                PersistentState = persistentState,
                 RngController = new RngController(seed),
                 ObjectsFactory = new CoreObjectsFactory(),
             };
@@ -52,12 +59,19 @@ namespace Balatro.Core.GameEngine.GameStateController
         public GameContextBuilder WithDeck(IDeckFactory deckFactory)
         {
             GameContext.Deck = deckFactory.CreateDeck(GameContext.ObjectsFactory);
+            GameContext.PersistentState.JokerSlots = deckFactory.JokerSlots();
             return this;
         }
 
         public GameContextBuilder WithJoker(JokerObject joker)
         {
             GameContext.JokerContainer.Jokers.Add(joker);
+            return this;
+        }
+        
+        public GameContextBuilder WithJokers(List<JokerObject> jokers)
+        {
+            GameContext.JokerContainer.Jokers.AddRange(jokers);
             return this;
         }
 

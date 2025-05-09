@@ -2,6 +2,7 @@
 using Balatro.Core.CoreObjects.Jokers.Joker;
 using Balatro.Core.CoreRules.CanonicalViews;
 using Balatro.Core.GameEngine.GameStateController;
+using Balatro.Core.ObjectsImplementations.Jokers;
 
 namespace Balatro.Core.CoreObjects.Jokers.JokersContainer
 {
@@ -27,7 +28,7 @@ namespace Balatro.Core.CoreObjects.Jokers.JokersContainer
             };
 
         public bool AllFaceCards() => false;
-        public bool FourFingers() => false;
+        public bool FourFingers() => Jokers.Any(j => j is FourFingers);
         public bool Shortcut() => false;
     }
 }

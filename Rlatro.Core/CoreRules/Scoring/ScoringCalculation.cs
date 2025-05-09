@@ -36,38 +36,9 @@ namespace Balatro.Core.CoreRules.Scoring
         private const uint MultEnhancementValue = 4;
         private const uint StoneEnhancementChips = 50;
         private const uint LuckyEnhancementMult = 20;
-        private const uint LuckyEnhancementGold = 20;
+        private const int LuckyEnhancementGold = 20;
         private const float LuckyEnhancementMultProbability = 0.2f;     // 1 in 5
         private const float LuckyEnhancementGoldProbability = 1f / 15f; // 1 in 15
-        
-        private static void TriggerEnhancement(GameContext ctx, Enhancement enhancement, ref ScoreContext scoreCtx)
-        {
-            switch (enhancement)
-            {
-                case Enhancement.Bonus:
-                    scoreCtx.AddChips(BonusEnhancementChips);
-                    break;
-                case Enhancement.Mult:
-                    scoreCtx.AddMult(MultEnhancementValue);
-                    break;
-                case Enhancement.Stone:
-                    scoreCtx.AddChips(StoneEnhancementChips);
-                    break;
-                case Enhancement.Lucky:
-                    if (ctx.RngController.ProbabilityCheck(LuckyEnhancementMultProbability, RngActionType.LuckyCardMult))
-                    {
-                        scoreCtx.AddMult(LuckyEnhancementMult);
-                    }
-                    if (ctx.RngController.ProbabilityCheck(LuckyEnhancementGoldProbability, RngActionType.LuckyCardMoney))
-                    {
-                        ctx.PersistentState.Gold += LuckyEnhancementGold;
-                    }
-                    break;
-                case Enhancement.Glass:
-                    scoreCtx.TimesMult(GlassEnhancementMult, 1);
-                    break;
-            }
-        }
         
         public static ScoreContext EvaluateHand(GameContext ctx)
         {
@@ -218,7 +189,7 @@ namespace Balatro.Core.CoreRules.Scoring
             TriggerCardNaturalEffects(card, ref scoreCtx);
             
             // Trigger enhancement
-            TriggerCardEnhancement(card, ref scoreCtx);
+            TriggerCardEnhancement(ctx, card.GetEnh(), ref scoreCtx);
             
             // Trigger edition
             TriggerEdition(card.GetEdition(), ref scoreCtx);
@@ -262,16 +233,32 @@ namespace Balatro.Core.CoreRules.Scoring
             var cardChips = card.GetTotalChipsValue();
             scoreCtx.AddChips(cardChips);
         }
-
-        private static void TriggerCardEnhancement(
-            Card64 card,
-            ref ScoreContext scoreCtx)
+        
+        private static void TriggerCardEnhancement(GameContext ctx, Enhancement enhancement, ref ScoreContext scoreCtx)
         {
-            var enhancement = card.GetEnh();
             switch (enhancement)
             {
                 case Enhancement.Bonus:
-                    scoreCtx.AddChips(100);
+                    scoreCtx.AddChips(BonusEnhancementChips);
+                    break;
+                case Enhancement.Mult:
+                    scoreCtx.AddMult(MultEnhancementValue);
+                    break;
+                case Enhancement.Stone:
+                    scoreCtx.AddChips(StoneEnhancementChips);
+                    break;
+                case Enhancement.Lucky:
+                    if (ctx.RngController.ProbabilityCheck(LuckyEnhancementMultProbability, RngActionType.LuckyCardMult))
+                    {
+                        scoreCtx.AddMult(LuckyEnhancementMult);
+                    }
+                    if (ctx.RngController.ProbabilityCheck(LuckyEnhancementGoldProbability, RngActionType.LuckyCardMoney))
+                    {
+                        ctx.PersistentState.Gold += LuckyEnhancementGold;
+                    }
+                    break;
+                case Enhancement.Glass:
+                    scoreCtx.TimesMult(GlassEnhancementMult, 1);
                     break;
             }
         }
@@ -296,8 +283,8 @@ namespace Balatro.Core.CoreRules.Scoring
             foreach (var joker in ctx.JokerContainer.Jokers)
             {
                 var jokerEdition = joker.Edition;
-                TriggerEdition(jokerEdition, ref scoreCtx);
                 joker.OnCardTriggerDone(ctx, ref scoreCtx);
+                TriggerEdition(jokerEdition, ref scoreCtx);
             }
         }
     }

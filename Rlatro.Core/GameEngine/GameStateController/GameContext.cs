@@ -2,6 +2,7 @@
 using Balatro.Core.CoreObjects.Cards.CardsContainer;
 using Balatro.Core.CoreObjects.Consumables.ConsumablesContainer;
 using Balatro.Core.CoreObjects.Jokers.JokersContainer;
+using Balatro.Core.GameEngine.GameStateController.EventBus;
 using Balatro.Core.GameEngine.GameStateController.PersistentStates;
 using Balatro.Core.GameEngine.PseudoRng;
 
@@ -18,6 +19,7 @@ namespace Balatro.Core.GameEngine.GameStateController
         public JokerContainer JokerContainer { get; set; }
         public ConsumableContainer ConsumableContainer { get; set; }
         public PersistentState PersistentState { get; set; }
+        public GameEventBus GameEventBus { get; set; }
         public int Round { get; set; }
         public int Ante => Round / 3;
 
@@ -26,7 +28,7 @@ namespace Balatro.Core.GameEngine.GameStateController
             return PersistentState.HandSize;
         }
 
-        public uint GetCurrentGold()
+        public int GetCurrentGold()
         {
             return PersistentState.Gold;
         }

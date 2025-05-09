@@ -15,7 +15,8 @@ namespace Balatro.Core.CoreObjects.Jokers.Joker
         public Rank? Rank { get; set; } // Whatever rank the joker is targeting.
         public Edition Edition { get; set; }
         public int BonusSellValue { get; set; }
-        public abstract int BaseSellValue { get; }
+        public abstract int BasePrice { get; }
+        public int BaseSellValue => BasePrice / 2;
         
         public JokerObject(uint id, Edition edition = Edition.None)
         {
@@ -26,7 +27,7 @@ namespace Balatro.Core.CoreObjects.Jokers.Joker
             Edition = edition;
             BonusSellValue = 0;
         }
-        
+
         public abstract bool HasOnPlayedCardTriggerEffect { get; }
         public abstract bool HasOnHeldInHandTriggerEffect { get; }
         
@@ -38,7 +39,7 @@ namespace Balatro.Core.CoreObjects.Jokers.Joker
         /// <param name="card">The card reference (if the card needs to be changed by the joker)</param>
         /// <param name="scoreCtx">The score context when the card is triggered</param>
         /// <returns>The Card64 in case it was modified during the scoring</returns>
-        public Card64 OnPlayedCardTriggerEffect(
+        public virtual Card64 OnPlayedCardTriggerEffect(
             GameContext ctx,
             CardView cardView,
             Card64 card,
@@ -47,7 +48,7 @@ namespace Balatro.Core.CoreObjects.Jokers.Joker
             return card;
         }
         
-        public Card64 OnHeldInHandTriggerEffect(
+        public virtual Card64 OnHeldInHandTriggerEffect(
             GameContext ctx,
             CardView cardView,
             Card64 card,
@@ -55,14 +56,14 @@ namespace Balatro.Core.CoreObjects.Jokers.Joker
         {
             return card;
         }
-
-        public void OnCardTriggerDone(
+        
+        public virtual void OnCardTriggerDone(
             GameContext ctx,
             ref ScoreContext scoreCtx)
         {
         }
 
-        public byte AddPlayedCardTriggers(
+        public virtual byte AddPlayedCardTriggers(
             GameContext ctx,
             CardView cardView,
             int cardPosition)
@@ -70,30 +71,30 @@ namespace Balatro.Core.CoreObjects.Jokers.Joker
             return 0;
         }
         
-        public byte AddHeldInHandTriggers(
+        public virtual byte AddHeldInHandTriggers(
             GameContext ctx,
             CardView cardView)
         {
             return 0;
         }
 
-        public void OnHandDetermined(
+        public virtual void OnHandDetermined(
             GameContext ctx,
             ReadOnlySpan<CardView> playedCards,
             ref ScoreContext scoreCtx)
         {
         }
 
-        public void OnRoundEnd(
+        public virtual void OnRoundEnd(
             GameContext ctx)
         {
         }
 
-        public void OnBuy(GameContext ctx)
+        public virtual void OnBuy(GameContext ctx)
         {
         }
 
-        public void OnRemove(GameContext ctx)
+        public virtual void OnRemove(GameContext ctx)
         {
         }
     }

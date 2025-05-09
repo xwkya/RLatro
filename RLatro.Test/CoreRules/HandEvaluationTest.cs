@@ -1,9 +1,11 @@
 ﻿using Balatro.Core.CoreObjects.Cards.CardObject;
 using Balatro.Core.CoreObjects.CoreEnums;
+using Balatro.Core.CoreObjects.Jokers.Joker;
 using Balatro.Core.GameEngine.GameStateController;
 using Balatro.Core.GameEngine.GameStateController.PhaseActions;
 using Balatro.Core.GameEngine.GameStateController.PhaseStates;
 using Balatro.Core.ObjectsImplementations.Decks;
+using Balatro.Core.ObjectsImplementations.Jokers;
 
 namespace RLatro.Test.CoreRules
 {
@@ -12,33 +14,105 @@ namespace RLatro.Test.CoreRules
     {
         private GameContext GameContext { get; set; }
         private RoundState RoundState { get; set; }
-        [SetUp]
-        public void SetUp()
-        {
-            var seed = "ABCDEF";
-            var contextBuilder = GameContextBuilder.Create(seed);
-            contextBuilder.WithDeck(new DefaultDeckFactory());
-            contextBuilder.WithHand(
-            [
-                Card64.Create(100, Rank.Ace, Suit.Club, Enhancement.Glass),
-                Card64.Create(100, Rank.King, Suit.Club),
-                Card64.Create(100, Rank.Queen, Suit.Club),
-                Card64.Create(100, Rank.Jack, Suit.Club),
-                Card64.Create(100, Rank.Ten, Suit.Club),
-            ]);
-
-            GameContext = contextBuilder.CreateGameContext();
-            RoundState = new RoundState(GameContext);
-        }
         
         [Test]
-        public void ScoreStraight()
+        public void ScoreStraightFlushWithGlass()
         {
             RoundState.HandleAction(new RoundAction()
             {
                 ActionIntent = RoundActionIntent.Play,
                 CardIndexes = [0, 1, 2, 3, 4],
             });
+        
+            // Straight flush lvl 1: 8 * 100
+            // With hand + glass: 16 * 151 = 2416
+            Assert.That(RoundState.CurrentChipsScore, Is.EqualTo(2416));
         }
+        
+        public void SetUpTestState(IEnumerable<Card64> hand, IEnumerable<JokerObject> jokers)
+        {
+            var seed = "ABCDEF";
+            var contextBuilder = GameContextBuilder.Create(seed);
+            contextBuilder.WithDeck(new DefaultDeckFactory());
+            contextBuilder.WithHand(hand.ToList());
+            foreach (var j in jokers)
+            {
+                contextBuilder.WithJoker(j);
+            }
+
+            GameContext = contextBuilder.CreateGameContext();
+            RoundState = new RoundState(GameContext);
+        }
+        
+        [TestCaseSource(nameof(HandTestData))]
+        public void TestWholeHand(Card64[] cards, JokerObject[] jokers, int expectedScore)
+        {
+            SetUpTestState(cards.ToList(), jokers.ToList());
+            RoundState.HandleAction(new RoundAction()
+            {
+                ActionIntent = RoundActionIntent.Play,
+                CardIndexes = Enumerable.Range(0, int.Min(cards.Length, 5)).Select(i => (byte)i).ToArray(),
+            });
+
+            Assert.That(RoundState.CurrentChipsScore, Is.EqualTo(expectedScore));
+        }
+        
+        private static IEnumerable<TestCaseData> HandTestData()
+        {
+            yield return new TestCaseData(FullHouse, SomeJokers, 7260)
+                .SetName("FullHouse with SomeJokers expecting 7260");
+            
+            yield return new TestCaseData(FullHouse2, SomeJokers, 31536)
+                .SetName("Full house 2 with SomeJokers expecting 21024");
+            
+            yield return new TestCaseData(FullHouseWithSteelInHand, SomeJokers, 249581)
+                .SetName("Full house with steel in hand expecting 249581");
+        }
+
+        #region Hands
+
+        private static readonly Card64[] FullHouse =
+        [
+            Card64.Create(100, Rank.Nine, Suit.Club),
+            Card64.Create(100, Rank.Nine, Suit.Club),
+            Card64.Create(100, Rank.Queen, Suit.Heart, Enhancement.Mult),
+            Card64.Create(100, Rank.Queen, Suit.Heart, Enhancement.Mult),
+            Card64.Create(100, Rank.Queen, Suit.Heart, Enhancement.Mult)
+        ];
+        
+        private static readonly Card64[] FullHouse2 =
+        [
+            Card64.Create(100, Rank.Ace, Suit.Spade, Enhancement.None, Seal.Red, Edition.Holo),
+            Card64.Create(101, Rank.King, Suit.Heart, Enhancement.None, Seal.Red, Edition.Holo),
+            Card64.Create(102, Rank.Ace, Suit.Spade, Enhancement.None, Seal.Red, Edition.Holo),
+            Card64.Create(103, Rank.King, Suit.Heart, Enhancement.None, Seal.Red, Edition.Holo),
+            Card64.Create(104, Rank.King, Suit.Club, Enhancement.None, Seal.Red, Edition.Holo),
+        ];
+        
+        private static readonly Card64[] FullHouseWithSteelInHand = 
+        [
+            Card64.Create(100, Rank.Ace, Suit.Spade, Enhancement.None, Seal.Red, Edition.Holo),
+            Card64.Create(101, Rank.King, Suit.Heart, Enhancement.None, Seal.Red, Edition.Holo),
+            Card64.Create(102, Rank.Ace, Suit.Spade, Enhancement.None, Seal.Red, Edition.Holo),
+            Card64.Create(103, Rank.King, Suit.Club, Enhancement.None, Seal.Red, Edition.Holo),
+            Card64.Create(104, Rank.King, Suit.Heart, Enhancement.None, Seal.Red, Edition.Poly),
+            Card64.Create(105, Rank.Nine, Suit.Club, Enhancement.Steel, Seal.Red),
+            Card64.Create(105, Rank.Nine, Suit.Club, Enhancement.Steel, Seal.Red),
+        ];
+
+        #endregion
+        
+        #region Jokers
+
+        private static readonly JokerObject[] SomeJokers =
+        [
+            new JollyJoker(100),
+            new Joker(100),
+            new ZanyJoker(100, Edition.Poly),
+            new GluttonousJoker(100),
+            new LustyJoker(100)
+        ];
+
+        #endregion
     }
 }

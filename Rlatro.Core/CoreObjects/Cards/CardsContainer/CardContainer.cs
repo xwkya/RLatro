@@ -67,29 +67,24 @@ namespace Balatro.Core.CoreObjects.Cards.CardsContainer
             Cards.RemoveAt(index);
         }
         
-        /// <remarks>
-        /// Accepts any <see cref="ReadOnlySpan{T}"/> of indices
-        /// (int, byte, short… whatever).  Sorts into a stackalloc buffer if not ordered by descending
-        /// </remarks>
-        public void MoveMany<T>(ReadOnlySpan<T> indices, CardContainer target)
-            where T : unmanaged, IConvertible
+        public void MoveMany(ReadOnlySpan<byte> indices, CardContainer target)
         {
             if (indices.IsEmpty) return;
-
+            
+            foreach (byte i in indices)
+                target.Add(Cards[i]);
+            
             // ensure descending order so RemoveAt doesn't re-index earlier picks
             Span<int> tmp = indices.Length <= 32
                 ? stackalloc int[indices.Length]
                 : new int[indices.Length];
-
+            
             for (int i = 0; i < indices.Length; i++)
-                tmp[i] = Convert.ToInt32(indices[i]);
-
+                tmp[i] = indices[i];
+            
             tmp.Sort();
             tmp.Reverse();
-
-            foreach (int i in tmp)
-                target.Add(Cards[i]);
-
+            
             RemoveSortedDescending(tmp);
         }
         
@@ -124,7 +119,7 @@ namespace Balatro.Core.CoreObjects.Cards.CardsContainer
             if (src.Length != Count)
                 throw new ArgumentOutOfRangeException(nameof(src), "CardContainer has a different number of cards than the destination buffer.");
             
-            for (var i = src.Length; i > 0; i--)
+            for (var i = 0; i < src.Length; i++)
             {
                 cardViews[i] = CardView.Create(src[i], ctx);
             }

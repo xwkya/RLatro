@@ -8,28 +8,30 @@
         SellConsumable,
         SellJoker,
     }
-
-    public static class RoundActionExtensions
-    {
-        public static bool IsParameterlessAction(this RoundActionIntent actionIntent)
-        {
-            return actionIntent == RoundActionIntent.Play || actionIntent == RoundActionIntent.Discard || actionIntent == RoundActionIntent.UseConsumable;
-        }
-    }
     
     /// <summary>
     /// A round action is an action that can be performed during a round.
-    /// There are two types of actions:
-    /// <list type="bullet">
-    /// <item>Actions on objects: Highlight cards, Sell Consumable, Sell Joker, Use Consumable (they will target highlighted cards)</item>
-    /// <item>Parameterless actions: Play, Discard</item>
-    /// </list>
     /// </summary>
     public sealed class RoundAction : BasePlayerAction
     {
+        /// <summary>
+        /// Defines the intent of the action
+        /// </summary>
         public RoundActionIntent ActionIntent { get; init; }
+        
+        /// <summary>
+        /// Defines the indexes of the cards that the intent targets
+        /// </summary>
         public byte[] CardIndexes { get; init; }
+        
+        /// <summary>
+        /// Defines the index of the consumable if the action is to use or sell a consumable
+        /// </summary>
         public byte ConsumableIndex { get; init; }
+        
+        /// <summary>
+        /// Defines the index of the joker if the action is to sell a joker
+        /// </summary>
         public byte JokerIndex { get; init; }
     }
 }

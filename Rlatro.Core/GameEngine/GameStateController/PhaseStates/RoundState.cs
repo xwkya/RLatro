@@ -33,10 +33,7 @@ namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
                 throw new ArgumentException($"Action {action} is not a RoundAction.");
             }
 
-            if (!IsActionPossible(GameContext, roundAction))
-            {
-                throw new InvalidOperationException($"Action {roundAction} is not possible in the current state.");
-            }
+            ValidatePossibleAction(GameContext, roundAction);
 
             return roundAction.ActionIntent switch
             {
@@ -77,10 +74,10 @@ namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
             GameContext.Hand.MoveMany(cardIndexes, GameContext.PlayContainer); // hand -> play
             var scoreContext = ScoringCalculation.EvaluateHand(GameContext);
             CurrentChipsScore += scoreContext.Chips * scoreContext.MultNumerator / scoreContext.MultDenominator;
-            GameContext.Hand.MoveMany(cardIndexes, GameContext.DiscardPile); // hand -> discard
+            GameContext.PlayContainer.MoveMany(cardIndexes, GameContext.DiscardPile); // play -> discard
             DrawCards();
 
-            return Hands == 0 || GameContext.Hand.Count == 0;
+            return Hands == 0 || GameContext.Hand.Count == 0 || CurrentChipsScore >= CurrentChipsRequirement;
         }
 
         private bool ExecuteSellConsumable(byte consumableIndex)
@@ -88,7 +85,7 @@ namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
             var sellValue = GameContext.ConsumableContainer.Consumables[consumableIndex].SellValue;
             GameContext.ConsumableContainer.RemoveConsumable(consumableIndex);
 
-            GameContext.PersistentState.Gold += sellValue;
+            GameContext.PersistentState.Gold += (int)sellValue;
             return false;
         }
 
@@ -111,21 +108,43 @@ namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
             return false;
         }
         
-        private bool IsActionPossible(GameContext context, RoundAction action)
+        private void ValidatePossibleAction(GameContext context, RoundAction action)
         {
-            return action.ActionIntent switch
+            switch (action.ActionIntent)
             {
-                RoundActionIntent.Discard => Discards > 0,
-                RoundActionIntent.SellConsumable => context.ConsumableContainer.Consumables.Count >
-                                                    action.ConsumableIndex,
-                RoundActionIntent.UseConsumable => context.ConsumableContainer.Consumables.Count >
-                                                   action.ConsumableIndex
-                                                   && context.ConsumableContainer.Consumables[action.ConsumableIndex]
-                                                       .IsUsable(context, action.CardIndexes),
-                RoundActionIntent.Play => Hands > 0, // Should always be possible, if Hands == 0 the game is over
-                RoundActionIntent.SellJoker => context.JokerContainer.Jokers.Count > action.JokerIndex,
-                _ => throw new ArgumentOutOfRangeException(nameof(action), action, null)
-            };
+                case RoundActionIntent.Discard:
+                    if (Discards <= 0)
+                    {
+                        throw new InvalidOperationException("No discards left.");
+                    }
+                    break;
+                case RoundActionIntent.SellConsumable:
+                    if (context.ConsumableContainer.Consumables.Count <= action.ConsumableIndex)
+                    {
+                        throw new ArgumentOutOfRangeException(nameof(action.ConsumableIndex), action.ConsumableIndex, "Cannot sell consumable");
+                    }
+                    break;
+                case RoundActionIntent.UseConsumable:
+                    if (context.ConsumableContainer.Consumables.Count <= action.ConsumableIndex)
+                    {
+                        throw new ArgumentOutOfRangeException(nameof(action.ConsumableIndex), action.ConsumableIndex, "Cannot use consumable");
+                    }
+                    break;
+                case RoundActionIntent.Play:
+                    if (Hands <= 0)
+                    {
+                        throw new InvalidOperationException("No hands left.");
+                    }
+                    break;
+                case RoundActionIntent.SellJoker:
+                    if (context.JokerContainer.Jokers.Count <= action.JokerIndex)
+                    {
+                        throw new ArgumentOutOfRangeException(nameof(action.JokerIndex), action.JokerIndex, "Cannot sell joker");
+                    }
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(action.ActionIntent), action.ActionIntent, null);
+            }
         }
     }
 }
