@@ -8,7 +8,9 @@
         WheelOfFortune,
         GrosMichel,
         Cavendish,
-        SpaceJoker
+        SpaceJoker,
+        GetSingleVoucher,
+        GetTagVouchers,
     }
     
     static class RngActionTypeExt
@@ -23,13 +25,7 @@
             { RngActionType.Cavendish , "cavendish"},
             { RngActionType.SpaceJoker, "space"}
         };
-        public static string Key(this RngActionType a) => a switch
-        {
-            RngActionType.LuckyCardMoney => "lucky_money",
-            RngActionType.LuckyCardMult  => "lucky_mult",
-            RngActionType.Shuffle        => "shuffle",
-            RngActionType.WheelOfFortune => "wheel_of_fortune",
-            _ => throw new ArgumentOutOfRangeException(nameof(a))
-        };
+
+        public static string Key(this RngActionType a) => a.ToString();
     }
 }

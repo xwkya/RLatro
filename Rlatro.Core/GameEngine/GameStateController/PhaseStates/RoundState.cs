@@ -12,11 +12,10 @@ namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
         public GamePhase Phase => GamePhase.Round;
         public int Hands { get; set; }
         public int Discards { get; set; }
-        private int HandSize => GameContext.GetHandSize();
         public GameContext GameContext { get; set; }
         public uint CurrentChipsScore { get; set; }  // TODO: This will be a problem for hands above 4T chips
         public uint CurrentChipsRequirement { get; set; }
-        public bool IsPhaseOver => (CurrentChipsScore >= CurrentChipsRequirement) || (Hands == 0) || (HandSize <= 0);
+        public bool IsPhaseOver => (CurrentChipsScore >= CurrentChipsRequirement) || (Hands == 0) || (GameContext.GetHandSize() <= 0);
 
         public RoundState(GameContext ctx)
         {
@@ -30,10 +29,10 @@ namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
         {
             if (action is not RoundAction roundAction)
             {
-                throw new ArgumentException($"Action {action} is not a RoundAction.");
+                throw new ArgumentException($"Action {action} is not a {nameof(RoundAction)}.");
             }
 
-            ValidatePossibleAction(GameContext, roundAction);
+            ValidatePossibleAction(roundAction);
 
             return roundAction.ActionIntent switch
             {
@@ -108,7 +107,7 @@ namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
             return false;
         }
         
-        private void ValidatePossibleAction(GameContext context, RoundAction action)
+        private void ValidatePossibleAction(RoundAction action)
         {
             switch (action.ActionIntent)
             {
@@ -119,13 +118,13 @@ namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
                     }
                     break;
                 case RoundActionIntent.SellConsumable:
-                    if (context.ConsumableContainer.Consumables.Count <= action.ConsumableIndex)
+                    if (GameContext.ConsumableContainer.Consumables.Count <= action.ConsumableIndex)
                     {
                         throw new ArgumentOutOfRangeException(nameof(action.ConsumableIndex), action.ConsumableIndex, "Cannot sell consumable");
                     }
                     break;
                 case RoundActionIntent.UseConsumable:
-                    if (context.ConsumableContainer.Consumables.Count <= action.ConsumableIndex)
+                    if (GameContext.ConsumableContainer.Consumables.Count <= action.ConsumableIndex)
                     {
                         throw new ArgumentOutOfRangeException(nameof(action.ConsumableIndex), action.ConsumableIndex, "Cannot use consumable");
                     }
@@ -137,7 +136,7 @@ namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
                     }
                     break;
                 case RoundActionIntent.SellJoker:
-                    if (context.JokerContainer.Jokers.Count <= action.JokerIndex)
+                    if (GameContext.JokerContainer.Jokers.Count <= action.JokerIndex)
                     {
                         throw new ArgumentOutOfRangeException(nameof(action.JokerIndex), action.JokerIndex, "Cannot sell joker");
                     }

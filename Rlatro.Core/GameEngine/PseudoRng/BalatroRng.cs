@@ -1,12 +1,6 @@
-﻿using System.Text;
-
+﻿
 namespace Balatro.Core.GameEngine.PseudoRng
 {
-    public interface ISortId
-    {
-        int? SortId { get; }
-    }
-
     /// <summary>
     /// Copy of the Balatro’s pseudorandom helpers.
     /// </summary>
@@ -14,16 +8,14 @@ namespace Balatro.Core.GameEngine.PseudoRng
     {
         public BalatroRng(string gameSeed)
         {
-            _seedString = gameSeed;
-            _hashedSeed = Pseudohash(gameSeed);
+            GameSeed = gameSeed;
+            InitializeLuaRandoms();
         }
 
-        readonly double _hashedSeed;
-        readonly string _seedString;
+        readonly string GameSeed;
 
-        // per-key rolling values   (Lua: G.GAME.pseudorandom)
-        readonly Dictionary<string, double> _table = new();
-
+        // per-key LuaRandom
+        readonly Dictionary<string, LuaRandom> KeyToRandomTable = new();
 
         // -- PUBLIC API --
         // -- doubles --
@@ -37,98 +29,72 @@ namespace Balatro.Core.GameEngine.PseudoRng
         public int NextInt(RngActionType a, int min, int max)
             => NextInt(a.Key(), min, max);
 
-        // -- shuffle --
-        public void Shuffle<T>(IList<T> list, string key)
+        /// <summary>
+        /// shuffle index span in place assuming indexes is 0, 1, 2,
+        /// </summary>
+        /// <param name="indexes">Indexes to shuffle </param>
+        /// <param name="keys">Keys to sort the array</param>
+        /// <param name="key">Action type</param>
+        /// <exception cref="ArgumentException"></exception>
+        public void Shuffle(in Span<int> indexes, uint[] keys, RngActionType key)
         {
-            var rng = RawRng(key);
-
-            if (list.Count > 0 && list[0] is ISortId)
-                list = list.Cast<ISortId>()
-                    .OrderBy(e => e.SortId ?? 1)
-                    .Cast<T>().ToList(); // stable pre-sort
-
-            for (int i = list.Count - 1; i >= 1; --i)
+            if (indexes.Length != keys.Length)
             {
-                int j = (int)rng.Next((ulong)(i + 1)) - 1; // Lua is 1-based
-                (list[i], list[j]) = (list[j], list[i]);
+                throw new ArgumentException("list and keys Spans must have the same length.");
+            }
+
+            int n = indexes.Length;
+            if (n == 0)
+            {
+                return; // Nothing to do for an empty list
+            }
+            
+            // Sort the indexes based on the keys
+            indexes.Sort((indexA, indexB) => keys[indexA].CompareTo(keys[indexB]));
+            
+            // Perform Fisher-Yates shuffle on the sorted indexes
+            var rng = RawRng(key.ToString());
+            for (int i = indexes.Length - 1; i >= 1; --i)
+            {
+                int j = (int)rng.Next((ulong)i + 1) - 1; // To reproduce the Lua behavior (1 based)
+                (indexes[i], indexes[j]) = (indexes[j], indexes[i]);
             }
         }
         
-        /// <summary>
-        /// Convenience method to feed in <see cref="RngActionType"/> instead of a string.
-        /// </summary>
-        public void Shuffle<T>(IList<T> list, RngActionType a) => Shuffle(list, a.Key());
-
-        // -- random element --
-        public (V value, K key) RandomElement<K, V>(IDictionary<K, V> dict, string key)
+        
+        public void Shuffle(in Span<int> indexes, RngActionType key)
         {
-            var rng = RawRng(key);
-            var ordered = dict.First().Value is ISortId
-                ? dict.OrderBy(kv => ((ISortId)kv.Value!).SortId ?? int.MaxValue).ToArray()
-                : dict.OrderBy(kv => kv.Key).ToArray();
-
-            var pick = ordered[(int)rng.Next((ulong)ordered.Length)];
-            return (pick.Value, pick.Key);
-        }
-
-        public (V value, K key) RandomElement<K, V>(IDictionary<K, V> dict, RngActionType a)
-            => RandomElement(dict, a.Key());
-
-        // -- random string --
-        public string RandomString(int length, string key)
-        {
-            var rng = RawRng(key);
-            var sb = new StringBuilder(length);
-            for (int i = 0; i < length; ++i)
+            // Perform Fisher-Yates shuffle on the sorted indexes
+            var rng = RawRng(key.ToString());
+            for (int i = indexes.Length - 1; i >= 1; --i)
             {
-                double g = rng.NextDouble();
-                int c = g > 0.7 ? RandIn(rng, '1', '9')
-                    : g > 0.45 ? RandIn(rng, 'A', 'N')
-                    : RandIn(rng, 'P', 'Z');
-                sb.Append((char)c);
+                int j = (int)rng.Next((ulong)i + 1) - 1; // To reproduce the Lua behavior (1 based)
+                (indexes[i], indexes[j]) = (indexes[j], indexes[i]);
             }
-
-            return sb.ToString().ToUpperInvariant();
-
-            static int RandIn(LuaRandom r, char lo, char hi)
-                => (int)r.Next((ulong)lo, (ulong)hi);
         }
 
-        public string RandomString(int length, RngActionType a)
-            => RandomString(length, a.Key());
-
-
-        // -- INTERNALS --
+        private void InitializeLuaRandoms()
+        {
+            foreach (var action in Enum.GetValues<RngActionType>())
+            {
+                var key = $"{GameSeed}_{action.Key()}";
+                
+                if (!KeyToRandomTable.ContainsKey(key))
+                {
+                    KeyToRandomTable[key] = new LuaRandom((ulong)key.GetHashCode());
+                }
+            }
+        }
+        
         private LuaRandom RawRng(string key)
         {
-            double seed01 = Pseudoseed(key);
-            ulong lo = (ulong)(seed01 * ulong.MaxValue);
-            return new LuaRandom(lo); // hi part 0
-        }
-
-        private double Pseudoseed(string key)
-        {
-            if (!_table.TryGetValue(key, out double x))
-                x = Pseudohash(key + _seedString);
-
-            x = Math.Abs(Trim((2.134453429141 + x * 1.72431234) % 1));
-            _table[key] = x;
-            return (x + _hashedSeed) / 2;
-        }
-
-        // Balatro’s pseudohash
-        private static double Pseudohash(string str)
-        {
-            double num = 1.0;
-            for (int i = str.Length - 1; i >= 0; --i)
+            var gameKey = $"{GameSeed}_{key}";
+            if (!KeyToRandomTable.ContainsKey(key))
             {
-                num = (1.1239285023 / num) * str[i] * Math.PI + Math.PI * (i + 1);
-                num %= 1.0;
+                KeyToRandomTable[key] = new LuaRandom((ulong)gameKey.GetHashCode());
             }
 
-            return num;
+            return KeyToRandomTable[key];
         }
-
-        private static double Trim(double d) => double.Parse(d.ToString("0.#############"));
     }
 }

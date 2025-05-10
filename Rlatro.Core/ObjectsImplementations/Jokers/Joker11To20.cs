@@ -145,7 +145,7 @@ namespace Balatro.Core.ObjectsImplementations.Jokers
 
         public override void OnCardTriggerDone(GameContext ctx, ref ScoreContext scoreCtx)
         {
-            var emptySlots = ctx.PersistentState.JokerSlots -
+            var emptySlots = ctx.JokerContainer.Slots -
                              ctx.JokerContainer.Jokers.Count(j => j is not JokerStencil);
             
             scoreCtx.TimesMult((uint)emptySlots, 1);

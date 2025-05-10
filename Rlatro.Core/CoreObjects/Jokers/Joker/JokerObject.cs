@@ -1,12 +1,14 @@
-﻿using Balatro.Core.CoreObjects.Cards.CardObject;
+﻿using Balatro.Core.Contracts.Shop;
+using Balatro.Core.CoreObjects.Cards.CardObject;
 using Balatro.Core.CoreObjects.CoreEnums;
+using Balatro.Core.CoreObjects.Shop.ShopObjects;
 using Balatro.Core.CoreRules.CanonicalViews;
 using Balatro.Core.CoreRules.Scoring;
 using Balatro.Core.GameEngine.GameStateController;
 
 namespace Balatro.Core.CoreObjects.Jokers.Joker
 {
-    public abstract class JokerObject
+    public abstract class JokerObject : IShopObject
     {
         public uint Id { get; private set; }
             
@@ -97,5 +99,8 @@ namespace Balatro.Core.CoreObjects.Jokers.Joker
         public virtual void OnRemove(GameContext ctx)
         {
         }
+
+        public int BaseCost => BasePrice;
+        public ShopItemType ItemType => ShopItemType.Joker;
     }
 }

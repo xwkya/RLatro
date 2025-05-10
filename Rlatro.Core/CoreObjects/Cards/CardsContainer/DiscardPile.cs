@@ -2,8 +2,5 @@
 {
     public class DiscardPile : CardContainer
     {
-        public DiscardPile() : base(ushort.MaxValue)
-        {
-        }
     }
 }

@@ -14,5 +14,10 @@
         {
             return BalatroRng.NextDouble(actionType) < probability * Modifier;
         }
+
+        public void GetShuffle(in Span<int> memoryToShuffle, RngActionType actionType)
+        {
+            BalatroRng.Shuffle(in memoryToShuffle, actionType);
+        }
     }
 }

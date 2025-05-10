@@ -1,13 +1,8 @@
-﻿using System.Runtime.InteropServices;
-
+﻿
 namespace Balatro.Core.CoreObjects.Cards.CardsContainer
 {
     public class Deck : CardContainer
     {
-        public Deck() : base(ushort.MaxValue)
-        {
-        }
-
         /// <summary>
         /// Randomly permutes the order of <see cref="Cards"/> in-place.
         /// Zero allocation shuffling.

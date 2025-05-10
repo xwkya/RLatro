@@ -13,7 +13,7 @@ namespace Balatro.Core.GameEngine.GameStateController.PersistentStates
         public int Mult { get; set; }
     }
 
-    public class HandTracker
+    public class HandTracker : IEventBusSubscriber
     {
         private static readonly Dictionary<HandRank, (int mult, int chips)> Scaling = new()
         {
@@ -49,7 +49,12 @@ namespace Balatro.Core.GameEngine.GameStateController.PersistentStates
 
         private Dictionary<HandRank, HandStatistics> HandsStatistics { get; init; }
         
-        public HandTracker(GameEventBus eventBus)
+        public void Subscribe(GameEventBus eventBus)
+        {
+            eventBus.SubscribeToHandPlayed(OnHandPlayed);
+        }
+        
+        public HandTracker()
         {
             HandsStatistics = new Dictionary<HandRank, HandStatistics>();
             foreach (var handRank in Enum.GetValues(typeof(HandRank)).Cast<HandRank>())
@@ -62,8 +67,6 @@ namespace Balatro.Core.GameEngine.GameStateController.PersistentStates
                     Mult = InitialValues[handRank].mult,
                 };
             }
-            
-            eventBus.SubscribeToHandPlayed(OnHandPlayed);
         }
 
         public ScoreContext GetHandScore(HandRank rank)
@@ -77,7 +80,7 @@ namespace Balatro.Core.GameEngine.GameStateController.PersistentStates
             };
         }
 
-        private void OnHandPlayed(Span<CardView> playedCardsViews, HandRank handRank)
+        private void OnHandPlayed(ReadOnlySpan<CardView> playedCardsViews, HandRank handRank)
         {
             if (HandsStatistics.TryGetValue(handRank, out var handStatistics))
             {

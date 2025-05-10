@@ -2,8 +2,5 @@
 {
     public class Hand : CardContainer
     {
-        public Hand(ushort capacity) : base(capacity)
-        {
-        }
     }
 }

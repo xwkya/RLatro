@@ -9,12 +9,6 @@ namespace Balatro.Core.CoreObjects.Cards.CardsContainer
     public abstract class CardContainer
     {
         protected readonly List<Card64> Cards = [];
-        public ushort Capacity { get; set; }
-
-        protected CardContainer(ushort capacity)
-        {
-            Capacity = capacity;
-        }
         
         // Fast helpers
         public Span<Card64> Span => CollectionsMarshal.AsSpan(Cards);
@@ -23,14 +17,7 @@ namespace Balatro.Core.CoreObjects.Cards.CardsContainer
 
         public void Add(Card64 c)
         {
-            if (Cards.Count < Capacity)
-            {
-                Cards.Add(c);
-            }
-            else
-            {
-                throw new InvalidOperationException("Container is full");
-            }
+            Cards.Add(c);
         }
 
         public void AddMany(ReadOnlySpan<Card64> cards)

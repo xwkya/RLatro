@@ -6,6 +6,7 @@ using Balatro.Core.CoreObjects.Cards.CardsContainer;
 using Balatro.Core.CoreObjects.Consumables.ConsumablesContainer;
 using Balatro.Core.CoreObjects.Jokers.Joker;
 using Balatro.Core.CoreObjects.Jokers.JokersContainer;
+using Balatro.Core.CoreObjects.Vouchers;
 using Balatro.Core.GameEngine.Contracts;
 using Balatro.Core.GameEngine.GameStateController.EventBus;
 using Balatro.Core.GameEngine.GameStateController.PersistentStates;
@@ -23,7 +24,8 @@ namespace Balatro.Core.GameEngine.GameStateController
         public static GameContextBuilder Create(string seed)
         {
             var gameEventBus = new GameEventBus();
-            var handTracker = new HandTracker(gameEventBus);
+            var handTracker = new HandTracker();
+            var voucherPool = new VoucherPool();
             
             var persistentState = new PersistentState()
             {
@@ -32,18 +34,23 @@ namespace Balatro.Core.GameEngine.GameStateController
                 Gold = 10,
                 HandSize = 8,
                 HandTracker = handTracker,
-                JokerSlots = 5,
+                Round = 1,
             };
+            
+            // Wire up the event bus
+            handTracker.Subscribe(gameEventBus);
+            voucherPool.Subscribe(gameEventBus);
+            persistentState.Subscribe(gameEventBus);
 
             var gameContext = new GameContext()
             {
                 GameEventBus = gameEventBus,
+                VoucherPool = voucherPool,
                 JokerContainer = new JokerContainer(),
                 ConsumableContainer = new ConsumableContainer(),
                 DiscardPile = new DiscardPile(),
                 PlayContainer = new PlayContainer(),
-                Hand = new Hand((ushort)persistentState.HandSize),
-                Round = 1,
+                Hand = new Hand(),
                 Deck = new Deck(),
                 PersistentState = persistentState,
                 RngController = new RngController(seed),
@@ -59,7 +66,7 @@ namespace Balatro.Core.GameEngine.GameStateController
         public GameContextBuilder WithDeck(IDeckFactory deckFactory)
         {
             GameContext.Deck = deckFactory.CreateDeck(GameContext.ObjectsFactory);
-            GameContext.PersistentState.JokerSlots = deckFactory.JokerSlots();
+            GameContext.JokerContainer.Slots = deckFactory.JokerSlots();
             return this;
         }
 
