@@ -2,7 +2,7 @@
 {
     public class RngController
     {
-        private float Modifier = 1;
+        private float ProbabilitiesModifier = 1;
         private BalatroRng BalatroRng { get; set; }
 
         public RngController(string seed)
@@ -12,7 +12,7 @@
 
         public bool ProbabilityCheck(float probability, RngActionType actionType)
         {
-            return BalatroRng.NextDouble(actionType) < probability * Modifier;
+            return BalatroRng.NextDouble(actionType) < probability * ProbabilitiesModifier;
         }
 
         public void GetShuffle(in Span<int> memoryToShuffle, RngActionType actionType)

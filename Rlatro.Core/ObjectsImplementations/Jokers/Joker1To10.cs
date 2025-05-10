@@ -7,6 +7,7 @@ using Balatro.Core.GameEngine.GameStateController;
 
 namespace Balatro.Core.ObjectsImplementations.Jokers
 {
+    [JokerStaticDescription(JokerRarity.Common, 1, Description = "Adds +4 mult")]
     public class Joker : JokerObject
     {
         public Joker(uint id, Edition edition = Edition.None) : base(id, edition)
@@ -24,7 +25,8 @@ namespace Balatro.Core.ObjectsImplementations.Jokers
             scoreCtx.AddMult(MultBonus);
         }
     }
-
+    
+    [JokerStaticDescription(JokerRarity.Uncommon, order: 2, Description = "Played Diamonds give +3 Mult.")]
     public class GreedyJoker : JokerObject
     {
         public GreedyJoker(uint id, Edition edition = Edition.None) : base(id, edition)

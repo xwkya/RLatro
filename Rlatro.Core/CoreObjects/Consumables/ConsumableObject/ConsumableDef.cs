@@ -8,6 +8,7 @@ namespace Balatro.Core.CoreObjects.Consumables.ConsumableObject
         Tarot,
         Spectral
     }
+    
     public sealed record ConsumableDef(
         ushort BaseCost,
         IUsageCondition UsageCondition,

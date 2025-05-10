@@ -61,7 +61,7 @@ namespace Balatro.Core.GameEngine.GameStateController.PersistentStates
             {
                 HandsStatistics[handRank] = new HandStatistics
                 {
-                    PlayedCount = 1,
+                    PlayedCount = 0,
                     Level = 1,
                     Chips = InitialValues[handRank].chips,
                     Mult = InitialValues[handRank].mult,

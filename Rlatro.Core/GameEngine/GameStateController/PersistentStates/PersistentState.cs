@@ -16,6 +16,7 @@ namespace Balatro.Core.GameEngine.GameStateController.PersistentStates
         public int Round { get; set; }
         public int StartingRollPrice { get; set; } = 5;
         public int Ante => Round / 3;
+        public AppearanceRates AppearanceRates { get; set; } = new AppearanceRates();
         
         public HandTracker HandTracker { get; set; }
 
