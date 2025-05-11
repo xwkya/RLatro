@@ -1,4 +1,6 @@
-﻿using Balatro.Core.CoreRules.Scoring;
+﻿using Balatro.Core.CoreObjects.Cards.CardObject;
+using Balatro.Core.CoreRules.CanonicalViews;
+using Balatro.Core.CoreRules.Scoring;
 using Balatro.Core.GameEngine.GameStateController.PhaseActions;
 using Balatro.Core.GameEngine.StateController;
 
@@ -62,7 +64,15 @@ namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
         {
             // Commit action
             Discards--;
+            
+            // Create the card view of the discarded cards
+            Span<CardView> discardedCardViews = stackalloc CardView[GameContext.Hand.Count];
+            GameContext.Hand.FillCardViews(GameContext, discardedCardViews, cardIndexes);
+            
+            // Execute and publish the event
+            GameContext.GameEventBus.PublishHandDiscarded(discardedCardViews);
             GameContext.Deck.MoveMany(cardIndexes, GameContext.DiscardPile); // hand -> discard
+            
             DrawCards();
             return false;
         }
@@ -78,13 +88,16 @@ namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
 
             return Hands == 0 || GameContext.Hand.Count == 0 || CurrentChipsScore >= CurrentChipsRequirement;
         }
-
+        
+        
         private bool ExecuteSellConsumable(byte consumableIndex)
         {
             var sellValue = GameContext.ConsumableContainer.Consumables[consumableIndex].SellValue;
+            
+            GameContext.GameEventBus.PublishConsumableRemovedFromContext(consumableIndex);
             GameContext.ConsumableContainer.RemoveConsumable(consumableIndex);
 
-            GameContext.PersistentState.Gold += (int)sellValue;
+            GameContext.PersistentState.Gold += sellValue;
             return false;
         }
 
@@ -92,6 +105,8 @@ namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
         {
             var consumable = GameContext.ConsumableContainer.Consumables[action.ConsumableIndex];
             consumable.Apply(GameContext, action.CardIndexes);
+            
+            GameContext.GameEventBus.PublishConsumableRemovedFromContext(consumable.StaticId);
             GameContext.ConsumableContainer.RemoveConsumable(action.ConsumableIndex);
 
             return false;
@@ -101,6 +116,8 @@ namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
         {
             var joker = GameContext.JokerContainer.Jokers[jokerIndex];
             var sellValue = ComputationHelpers.ComputeSellValue(GameContext, joker.BaseSellValue, joker.BonusSellValue);
+            
+            GameContext.GameEventBus.PublishJokerRemovedFromContext(joker.StaticId);
             GameContext.JokerContainer.RemoveJoker(GameContext, jokerIndex);
 
             GameContext.PersistentState.Gold += sellValue;

@@ -111,5 +111,16 @@ namespace Balatro.Core.CoreObjects.Cards.CardsContainer
                 cardViews[i] = CardView.Create(src[i], ctx);
             }
         }
+
+        public void FillCardViews(
+            GameContext ctx,
+            Span<CardView> cardViews,
+            ReadOnlySpan<byte> cardIndexes)
+        {
+            for (var i = 0; i < cardIndexes.Length; i++)
+            {
+                cardViews[i] = CardView.Create(Span[cardIndexes[i]], ctx);
+            }
+        }
     }
 }

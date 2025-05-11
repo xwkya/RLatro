@@ -64,6 +64,9 @@ namespace Balatro.Core.CoreRules.Scoring
                 joker.OnHandDetermined(ctx, playedCardViews, ref scoreContext);
             }
             
+            // Publish the event
+            ctx.GameEventBus.PublishHandPlayed(playedCardViews, handRank);
+            
             // There is a chance the card view has changed (vampire can remove wild effect)
             ctx.PlayContainer.FillCardViews(ctx, playedCardViews, true);
             

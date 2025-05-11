@@ -77,7 +77,22 @@ namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
         {
             var joker = GameContext.JokerContainer.Jokers[jokerIndex];
             var sellValue = ComputationHelpers.ComputeSellValue(GameContext, joker.BaseSellValue, joker.BonusSellValue);
+            
+            // Remove the joker from the game context and the joker container
+            GameContext.GameEventBus.PublishJokerRemovedFromContext(joker.StaticId);
             GameContext.JokerContainer.RemoveJoker(GameContext, jokerIndex);
+        
+            // Add the sell value to the player's gold
+            GameContext.PersistentState.Gold += sellValue;
+            return false;
+        }
+        
+        private bool ExecuteSellConsumable(byte consumableIndex)
+        {
+            var sellValue = GameContext.ConsumableContainer.Consumables[consumableIndex].SellValue;
+            
+            GameContext.GameEventBus.PublishConsumableRemovedFromContext(consumableIndex);
+            GameContext.ConsumableContainer.RemoveConsumable(consumableIndex);
 
             GameContext.PersistentState.Gold += sellValue;
             return false;

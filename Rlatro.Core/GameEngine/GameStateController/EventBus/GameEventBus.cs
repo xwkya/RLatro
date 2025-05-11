@@ -6,7 +6,7 @@ using Balatro.Core.CoreRules.CanonicalViews;
 namespace Balatro.Core.GameEngine.GameStateController.EventBus
 {
     public delegate void OnHandPlayed(ReadOnlySpan<CardView> playedCardsViews, HandRank handRank);
-    public delegate void OnHandDiscarded(ReadOnlySpan<CardView> discardedCardsViews, HandRank handRank);
+    public delegate void OnHandDiscarded(ReadOnlySpan<CardView> discardedCardsViews);
     public delegate void OnBlindSelected();
     public delegate void OnVoucherBought(VoucherType voucherType);
     public delegate void OnJokerAddedToContext(int staticId);
@@ -60,9 +60,9 @@ namespace Balatro.Core.GameEngine.GameStateController.EventBus
             OnHandDiscarded -= onHandDiscarded;
         }
 
-        public void PublishHandDiscarded(Span<CardView> discardedCardsViews, HandRank handRank)
+        public void PublishHandDiscarded(Span<CardView> discardedCardsViews)
         {
-            OnHandDiscarded?.Invoke(discardedCardsViews, handRank);
+            OnHandDiscarded?.Invoke(discardedCardsViews);
         }
 
         #endregion
