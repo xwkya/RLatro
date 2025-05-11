@@ -1,4 +1,5 @@
 ﻿using Balatro.Core.CoreObjects.Shop.ShopContainers;
+using Balatro.Core.CoreObjects.Shop.ShopObjects;
 using Balatro.Core.GameEngine.GameStateController.PhaseActions;
 using Balatro.Core.GameEngine.StateController;
 
@@ -42,9 +43,9 @@ namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
             switch (shopAction.ActionIntent)
             {
                 case ShopActionIntent.Roll:
-                    return ExecuteRoll(shopAction);
+                    return ExecuteRoll();
                 case ShopActionIntent.BuyFromShop:
-                    return ExecuteBuyFromShop(shopAction);
+                    //return ExecuteBuyFromShop(shopAction);
                 case ShopActionIntent.SellJoker:
                     return ExecuteSellJoker(shopAction.JokerIndex);
                 case ShopActionIntent.BuyVoucher:
@@ -54,8 +55,9 @@ namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
             }
         }
         
-        private bool ExecuteRoll(ShopAction action)
+        private bool ExecuteRoll()
         {
+            // Book-keep the roll prices
             if (NumberOfFreeRolls > 0)
             {
                 NumberOfFreeRolls--;
@@ -64,7 +66,10 @@ namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
             GameContext.PersistentState.Gold -= (GameContext.PersistentState.StartingRollPrice + NumberOfRollsPaidThisTurn);
             NumberOfRollsPaidThisTurn++;
             
-            // TODO: Implement roll logic
+            // Perform the roll
+            ShopContainer.ClearItems(GameContext);
+            FillShopContainer();
+            
             return false;
         }
         
@@ -90,7 +95,11 @@ namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
 
         private void FillShopContainer()
         {
-            
+            for (int i = 0; i < ShopContainer.Capacity; i++)
+            {
+                var item = GameContext.GlobalPoolManager.GenerateShopItem();
+                ShopContainer.Items.Add(item);
+            }
         }
         
         private void ValidatePossibleAction(ShopAction action)

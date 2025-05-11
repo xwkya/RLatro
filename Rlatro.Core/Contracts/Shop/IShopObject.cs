@@ -4,7 +4,8 @@ namespace Balatro.Core.Contracts.Shop
 {
     public interface IShopObject
     {
+        public ShopItemType ShopItemType { get; }
+        public int StaticId { get; }
         public int BaseCost { get; }
-        public ShopItemType ItemType { get; }
     }
 }

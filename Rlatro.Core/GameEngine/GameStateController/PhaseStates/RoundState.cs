@@ -91,7 +91,7 @@ namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
         private bool ExecuteUseConsumable(RoundAction action)
         {
             var consumable = GameContext.ConsumableContainer.Consumables[action.ConsumableIndex];
-            consumable.ApplyEffect(GameContext, action.CardIndexes);
+            consumable.Apply(GameContext, action.CardIndexes);
             GameContext.ConsumableContainer.RemoveConsumable(action.ConsumableIndex);
 
             return false;

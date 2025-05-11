@@ -1,7 +1,8 @@
-﻿using Balatro.Core.GameEngine.GameStateController.EventBus;
+﻿using Balatro.Core.CoreObjects.Vouchers;
+using Balatro.Core.GameEngine.GameStateController.EventBus;
 using Balatro.Core.GameEngine.PseudoRng;
 
-namespace Balatro.Core.CoreObjects.Vouchers
+namespace Balatro.Core.CoreObjects.Pools
 {
     /// <summary>
     /// Tracks all available vouchers.

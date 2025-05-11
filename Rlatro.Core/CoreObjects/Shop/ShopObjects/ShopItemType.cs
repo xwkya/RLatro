@@ -9,6 +9,6 @@
         PlanetCard,
         TarotCard,
         SpectralCard,
-        Card,
+        PlayingCard,
     }
 }

@@ -6,9 +6,10 @@ using Balatro.Core.GameEngine.GameStateController;
 
 namespace Balatro.Core.ObjectsImplementations.Jokers
 {
+    [JokerStaticDescription(staticId: 11, JokerRarity.Common, Description = "If hand played is Pair, +50 Chips.")]
     public class SlyJoker : JokerObject
     {
-        public SlyJoker(uint id, Edition edition = Edition.None) : base(id, edition)
+        public SlyJoker(int staticId, uint runtimeId, Edition edition = Edition.None) : base(staticId, runtimeId, edition)
         {
         }
 
@@ -23,14 +24,15 @@ namespace Balatro.Core.ObjectsImplementations.Jokers
             }
         }
 
-        public override int BasePrice => 4;
+        public override int BasePrice => 3;
         public override bool HasOnPlayedCardTriggerEffect => false;
         public override bool HasOnHeldInHandTriggerEffect => false;
     }
     
+    [JokerStaticDescription(staticId: 12, JokerRarity.Common, Description = "If hand played is Three of a Kind, +100 Chips.")]
     public class WilyJoker : JokerObject
     {
-        public WilyJoker(uint id, Edition edition = Edition.None) : base(id, edition)
+        public WilyJoker(int staticId, uint id, Edition edition = Edition.None) : base(staticId, id, edition)
         {
         }
 
@@ -50,9 +52,10 @@ namespace Balatro.Core.ObjectsImplementations.Jokers
         public override bool HasOnHeldInHandTriggerEffect => false;
     }
     
+    [JokerStaticDescription(staticId: 13, JokerRarity.Common, Description = "If hand played is Two Pair, +80 Chips.")]
     public class CleverJoker : JokerObject
     {
-        public CleverJoker(uint id, Edition edition = Edition.None) : base(id, edition)
+        public CleverJoker(int staticId, uint id, Edition edition = Edition.None) : base(staticId, id, edition)
         {
         }
 
@@ -72,9 +75,10 @@ namespace Balatro.Core.ObjectsImplementations.Jokers
         public override bool HasOnHeldInHandTriggerEffect => false;
     }
     
+    [JokerStaticDescription(staticId: 14, JokerRarity.Common, Description = "If hand played is Straight, +100 Chips.")]
     public class DeviousJoker : JokerObject
     {
-        public DeviousJoker(uint id, Edition edition = Edition.None) : base(id, edition)
+        public DeviousJoker(int staticId, uint id, Edition edition = Edition.None) : base(staticId, id, edition)
         {
         }
 
@@ -94,9 +98,10 @@ namespace Balatro.Core.ObjectsImplementations.Jokers
         public override bool HasOnHeldInHandTriggerEffect => false;
     }
     
+    [JokerStaticDescription(staticId: 15, JokerRarity.Common, Description = "If hand played is Flush, +80 Chips.")]
     public class CraftyJoker : JokerObject
     {
-        public CraftyJoker(uint id, Edition edition = Edition.None) : base(id, edition)
+        public CraftyJoker(int staticId, uint id, Edition edition = Edition.None) : base(staticId, id, edition)
         {
         }
 
@@ -116,9 +121,10 @@ namespace Balatro.Core.ObjectsImplementations.Jokers
         public override bool HasOnHeldInHandTriggerEffect => false;
     }
     
+    [JokerStaticDescription(staticId: 16, JokerRarity.Common, Description = "If 3 or fewer cards are played, +20 Mult.")]
     public class HalfJoker : JokerObject
     {
-        public HalfJoker(uint id, Edition edition = Edition.None) : base(id, edition)
+        public HalfJoker(int staticId, uint id, Edition edition = Edition.None) : base(staticId, id, edition)
         {
         }
 
@@ -137,16 +143,17 @@ namespace Balatro.Core.ObjectsImplementations.Jokers
         public override bool HasOnHeldInHandTriggerEffect => false;
     }
     
+    [JokerStaticDescription(staticId: 17, JokerRarity.Uncommon, Description = "X1 Mult for each empty Joker slot. (This Joker does not count)")]
     public class JokerStencil : JokerObject
     {
-        public JokerStencil(uint id, Edition edition = Edition.None) : base(id, edition)
+        public JokerStencil(int staticId, uint id, Edition edition = Edition.None) : base(staticId, id, edition)
         {
         }
 
         public override void OnCardTriggerDone(GameContext ctx, ref ScoreContext scoreCtx)
         {
             var emptySlots = ctx.JokerContainer.Slots -
-                             ctx.JokerContainer.Jokers.Count(j => j is not JokerStencil);
+                             ctx.JokerContainer.Jokers.Count(j => j.StaticId != StaticId);
             
             scoreCtx.TimesMult((uint)emptySlots, 1);
         }
@@ -156,10 +163,10 @@ namespace Balatro.Core.ObjectsImplementations.Jokers
         public override bool HasOnHeldInHandTriggerEffect => false;
     }
     
-    // TODO: Utilize OnBuy and OnSell
+    [JokerStaticDescription(staticId: 18, JokerRarity.Uncommon, Description = "Allows Flushes and Straights to be made with 4 cards.")]
     public class FourFingers : JokerObject
     {
-        public FourFingers(uint id, Edition edition = Edition.None) : base(id, edition)
+        public FourFingers(int staticId, uint id, Edition edition = Edition.None) : base(staticId, id, edition)
         {
         }
         
@@ -168,9 +175,10 @@ namespace Balatro.Core.ObjectsImplementations.Jokers
         public override bool HasOnHeldInHandTriggerEffect => false;
     }
     
+    [JokerStaticDescription(staticId: 19, JokerRarity.Uncommon, Description = "Retrigger all card held in hand abilities 1 additional time.")]
     public class Mime : JokerObject
     {
-        public Mime(uint id, Edition edition = Edition.None) : base(id, edition)
+        public Mime(int staticId, uint id, Edition edition = Edition.None) : base(staticId, id, edition)
         {
         }
 
@@ -184,11 +192,25 @@ namespace Balatro.Core.ObjectsImplementations.Jokers
         public override bool HasOnHeldInHandTriggerEffect => false;
     }
     
-    // TODO: Utilize OnBuy and OnSell and implement logic
+    [JokerStaticDescription(staticId: 20, JokerRarity.Common, Description = "Allows to go up to -20 gold in debt")]
     public class CreditCard : JokerObject
     {
-        public CreditCard(uint id, Edition edition = Edition.None) : base(id, edition)
+        public CreditCard(int staticId, uint id, Edition edition = Edition.None) : base(staticId, id, edition)
         {
+        }
+
+        public override void OnAcquired(GameContext ctx)
+        {
+            ctx.PersistentState.MinGold = -20;
+        }
+
+        public override void OnRemove(GameContext ctx)
+        {
+            // Check if any other credit card is present
+            if (ctx.JokerContainer.Jokers.Count(j => j.StaticId != StaticId) == 1)
+            {
+                ctx.PersistentState.MinGold = 0;
+            }
         }
 
         public override int BasePrice => 1;

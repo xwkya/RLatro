@@ -19,5 +19,22 @@
         {
             BalatroRng.Shuffle(in memoryToShuffle, actionType);
         }
+        
+        /// <summary>
+        /// Random number between min and max inclusive
+        /// </summary>
+        public int RandomInt(int min, int max, RngActionType actionType, string suffix = null)
+        {
+            return suffix is null ? 
+                BalatroRng.NextInt(actionType, min, max) :
+                BalatroRng.NextInt(actionType.Key() + suffix, min, max);
+        }
+
+        public double GetRandomProbability(RngActionType actionType, string suffix = null)
+        {
+            return suffix is null ? 
+                BalatroRng.NextDouble(actionType) :
+                BalatroRng.NextDouble(actionType.Key() + suffix);
+        }
     }
 }

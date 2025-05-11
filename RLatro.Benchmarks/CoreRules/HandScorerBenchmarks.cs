@@ -1,6 +1,7 @@
 ﻿using Balatro.Core.CoreObjects.Cards.CardObject;
 using Balatro.Core.CoreObjects.CoreEnums;
 using Balatro.Core.CoreObjects.Jokers.Joker;
+using Balatro.Core.CoreObjects.Registries;
 using Balatro.Core.CoreRules.Scoring;
 using Balatro.Core.GameEngine.GameStateController;
 using Balatro.Core.GameEngine.GameStateController.PhaseStates;
@@ -20,11 +21,11 @@ namespace RLatro.Benchmarks.CoreRules
         
         private static readonly List<JokerObject> SomeJokers =
         [
-            new JollyJoker(100),
-            new Joker(100),
-            new ZanyJoker(100, Edition.Poly),
-            new GluttonousJoker(100),
-            new LustyJoker(100)
+            JokerRegistry.CreateInstance<JollyJoker>(100),
+            JokerRegistry.CreateInstance<Joker>(100),
+            JokerRegistry.CreateInstance<ZanyJoker>(100, Edition.Poly),
+            JokerRegistry.CreateInstance<GluttonousJoker>(100),
+            JokerRegistry.CreateInstance<LustyJoker>(100),
         ];
         
         private void FullHouseState(IEnumerable<Card64> hand, IEnumerable<JokerObject> jokers)

@@ -15,9 +15,9 @@ namespace Balatro.Core.GameEngine.GameStateController.PersistentStates
         public int HandSize { get; set; }
         public int Round { get; set; }
         public int StartingRollPrice { get; set; } = 5;
+        public string TheFoolStorage = null;
         public int Ante => Round / 3;
         public AppearanceRates AppearanceRates { get; set; } = new AppearanceRates();
-        
         public HandTracker HandTracker { get; set; }
 
         public ScoreContext GetHandScore(HandRank rank)

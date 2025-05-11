@@ -6,12 +6,13 @@ using Balatro.Core.CoreRules.CanonicalViews;
 namespace Balatro.Core.GameEngine.GameStateController.EventBus
 {
     public delegate void OnHandPlayed(ReadOnlySpan<CardView> playedCardsViews, HandRank handRank);
-
     public delegate void OnHandDiscarded(ReadOnlySpan<CardView> discardedCardsViews, HandRank handRank);
-
     public delegate void OnBlindSelected();
-
     public delegate void OnVoucherBought(VoucherType voucherType);
+    public delegate void OnJokerAddedToContext(int staticId);
+    public delegate void OnJokerRemovedFromContext(int staticId);
+    public delegate void OnConsumableAddedToContext(int staticId);
+    public delegate void OnConsumableRemovedFromContext(int staticId);
 
     /// <summary>
     /// Main event bus for the game instance. This verbose pattern is used to pass stack-allocated data.
@@ -23,7 +24,11 @@ namespace Balatro.Core.GameEngine.GameStateController.EventBus
         private OnHandDiscarded OnHandDiscarded;
         private OnBlindSelected OnBlindSelected;
         private OnVoucherBought OnVoucherBought;
-
+        private OnJokerAddedToContext OnJokerAddedToContext;
+        private OnJokerRemovedFromContext OnJokerRemovedFromContext;
+        private OnConsumableAddedToContext OnConsumableAddedToContext;
+        private OnConsumableRemovedFromContext OnConsumableRemovedFromContext;
+        
         #region HandPlayed
 
         public void SubscribeToHandPlayed(OnHandPlayed onHandPlayed)
@@ -98,6 +103,82 @@ namespace Balatro.Core.GameEngine.GameStateController.EventBus
             OnVoucherBought?.Invoke(voucherType);
         }
 
+        #endregion
+        
+        #region JokerAddedToContext
+        
+        public void SubscribeToJokerAddedToContext(OnJokerAddedToContext onJokerAddedToContext)
+        {
+            OnJokerAddedToContext += onJokerAddedToContext;
+        }
+        
+        public void UnsubscribeToJokerAddedToContext(OnJokerAddedToContext onJokerAddedToContext)
+        {
+            OnJokerAddedToContext -= onJokerAddedToContext;
+        }
+        
+        public void PublishJokerAddedToContext(int staticId)
+        {
+            OnJokerAddedToContext?.Invoke(staticId);
+        }
+        
+        #endregion
+        
+        #region JokerRemovedFromContext
+        
+        public void SubscribeToJokerRemovedFromContext(OnJokerRemovedFromContext onJokerRemovedFromContext)
+        {
+            OnJokerRemovedFromContext += onJokerRemovedFromContext;
+        }
+        
+        public void UnsubscribeToJokerRemovedFromContext(OnJokerRemovedFromContext onJokerRemovedFromContext)
+        {
+            OnJokerRemovedFromContext -= onJokerRemovedFromContext;
+        }
+        
+        public void PublishJokerRemovedFromContext(int staticId)
+        {
+            OnJokerRemovedFromContext?.Invoke(staticId);
+        }
+        
+        #endregion
+        
+        #region ConsumableAddedToContext
+        
+        public void SubscribeToConsumableAddedToContext(OnConsumableAddedToContext onConsumableAddedToContext)
+        {
+            OnConsumableAddedToContext += onConsumableAddedToContext;
+        }
+        
+        public void UnsubscribeToConsumableAddedToContext(OnConsumableAddedToContext onConsumableAddedToContext)
+        {
+            OnConsumableAddedToContext -= onConsumableAddedToContext;
+        }
+        
+        public void PublishConsumableAddedToContext(int staticId)
+        {
+            OnConsumableAddedToContext?.Invoke(staticId);
+        }
+        
+        #endregion
+        
+        #region ConsumableRemovedFromContext
+        
+        public void SubscribeToConsumableRemovedFromContext(OnConsumableRemovedFromContext onConsumableRemovedFromContext)
+        {
+            OnConsumableRemovedFromContext += onConsumableRemovedFromContext;
+        }
+        
+        public void UnsubscribeToConsumableRemovedFromContext(OnConsumableRemovedFromContext onConsumableRemovedFromContext)
+        {
+            OnConsumableRemovedFromContext -= onConsumableRemovedFromContext;
+        }
+        
+        public void PublishConsumableRemovedFromContext(int staticId)
+        {
+            OnConsumableRemovedFromContext?.Invoke(staticId);
+        }
+        
         #endregion
     }
 }

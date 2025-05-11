@@ -1,6 +1,8 @@
 ﻿using Balatro.Core.CoreObjects.Cards.CardObject;
 using Balatro.Core.CoreObjects.Consumables.ConsumableObject;
 using Balatro.Core.CoreObjects.CoreEnums;
+using Balatro.Core.CoreObjects.Jokers.Joker;
+using Balatro.Core.CoreObjects.Registries;
 
 namespace Balatro.Core.CoreObjects
 {
@@ -17,9 +19,16 @@ namespace Balatro.Core.CoreObjects
             return card;
         }
         
-        public Consumable CreateConsumable(ConsumableDef def, bool isNegative = false)
+        public JokerObject CreateJoker(int jokerStaticId)
         {
-            var consumable = def.CreateInstance(NextId);
+            var joker = JokerRegistry.CreateInstance(jokerStaticId, NextId);
+            NextId++;
+            return joker;
+        }
+
+        public Consumable CreateConsumable(int consumableStaticId)
+        {
+            var consumable = ConsumableRegistry.CreateInstance(consumableStaticId, NextId);
             NextId++;
             return consumable;
         }

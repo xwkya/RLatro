@@ -68,6 +68,11 @@ namespace Balatro.Core.GameEngine.GameStateController.PersistentStates
                 };
             }
         }
+        
+        public int GetHandPlayedCount(HandRank handRank)
+        {
+            return HandsStatistics.TryGetValue(handRank, out var handStatistics) ? handStatistics.PlayedCount : 0;
+        }
 
         public ScoreContext GetHandScore(HandRank rank)
         {

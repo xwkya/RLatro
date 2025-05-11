@@ -11,7 +11,7 @@ namespace Balatro.Core.CoreObjects.Jokers.Joker
     public abstract class JokerObject : IShopObject
     {
         public uint Id { get; private set; }
-            
+        public int StaticId { get; } // Static definition ID
         public uint Scaling { get; set; } // Scaling counter, each joker can use this however they want.
         public SuitMask Suit { get; set; } // Whatever suit the joker is targeting.
         public Rank? Rank { get; set; } // Whatever rank the joker is targeting.
@@ -20,9 +20,10 @@ namespace Balatro.Core.CoreObjects.Jokers.Joker
         public abstract int BasePrice { get; }
         public int BaseSellValue => BasePrice / 2;
         
-        public JokerObject(uint id, Edition edition = Edition.None)
+        public JokerObject(int staticId, uint runtimeId, Edition edition = Edition.None)
         {
-            Id = id;
+            Id = runtimeId;
+            StaticId = staticId;
             Scaling = 0;
             Suit = SuitMask.None;
             Rank = null;
@@ -30,6 +31,9 @@ namespace Balatro.Core.CoreObjects.Jokers.Joker
             BonusSellValue = 0;
         }
 
+        public ShopItemType ShopItemType => ShopItemType.Joker;
+
+        // TODO: See if this is really needed
         public abstract bool HasOnPlayedCardTriggerEffect { get; }
         public abstract bool HasOnHeldInHandTriggerEffect { get; }
         
@@ -92,7 +96,7 @@ namespace Balatro.Core.CoreObjects.Jokers.Joker
         {
         }
 
-        public virtual void OnBuy(GameContext ctx)
+        public virtual void OnAcquired(GameContext ctx)
         {
         }
 

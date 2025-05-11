@@ -31,5 +31,6 @@ namespace Balatro.Core.CoreObjects.Jokers.JokersContainer
         public bool AllFaceCards() => false;
         public bool FourFingers() => Jokers.Any(j => j is FourFingers);
         public bool Shortcut() => false;
+        public bool Showman() => false;
     }
 }

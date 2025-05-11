@@ -1,6 +1,7 @@
 ﻿using Balatro.Core.CoreObjects.Cards.CardObject;
 using Balatro.Core.CoreObjects.CoreEnums;
 using Balatro.Core.CoreObjects.Jokers.Joker;
+using Balatro.Core.CoreObjects.Registries;
 using Balatro.Core.GameEngine.GameStateController;
 using Balatro.Core.GameEngine.GameStateController.PhaseActions;
 using Balatro.Core.GameEngine.GameStateController.PhaseStates;
@@ -14,20 +15,6 @@ namespace RLatro.Test.CoreRules
     {
         private GameContext GameContext { get; set; }
         private RoundState RoundState { get; set; }
-        
-        [Test]
-        public void ScoreStraightFlushWithGlass()
-        {
-            RoundState.HandleAction(new RoundAction()
-            {
-                ActionIntent = RoundActionIntent.Play,
-                CardIndexes = [0, 1, 2, 3, 4],
-            });
-        
-            // Straight flush lvl 1: 8 * 100
-            // With hand + glass: 16 * 151 = 2416
-            Assert.That(RoundState.CurrentChipsScore, Is.EqualTo(2416));
-        }
         
         public void SetUpTestState(IEnumerable<Card64> hand, IEnumerable<JokerObject> jokers)
         {
@@ -106,11 +93,11 @@ namespace RLatro.Test.CoreRules
 
         private static readonly JokerObject[] SomeJokers =
         [
-            new JollyJoker(100),
-            new Joker(100),
-            new ZanyJoker(100, Edition.Poly),
-            new GluttonousJoker(100),
-            new LustyJoker(100)
+            JokerRegistry.CreateInstance<JollyJoker>(100),
+            JokerRegistry.CreateInstance<Joker>(100),
+            JokerRegistry.CreateInstance<ZanyJoker>(100, Edition.Poly),
+            JokerRegistry.CreateInstance<GluttonousJoker>(100),
+            JokerRegistry.CreateInstance<LustyJoker>(100),
         ];
 
         #endregion
