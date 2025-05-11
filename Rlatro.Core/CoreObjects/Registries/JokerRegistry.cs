@@ -13,15 +13,13 @@ namespace Balatro.Core.CoreObjects.Registries
         private static readonly Dictionary<int, Func<int, uint, Edition, JokerObject>> ConstructorsByStaticId = new();
 
         // For reverse lookup
-        private static readonly Dictionary<Type, int> TypeToStaticId = new(); // No 'new Dictionary' needed, initialized below
-        private static readonly Dictionary<int, Type> StaticIdToType = new(); // No 'new Dictionary' needed, initialized below
+        private static readonly Dictionary<Type, int> TypeToStaticId = new();
+        private static readonly Dictionary<int, Type> StaticIdToType = new();
 
         static JokerRegistry()
         {
             var tempStaticIdsByRarity = new Dictionary<JokerRarity, List<int>>();
-            // Initialize TypeToStaticId and StaticIdToType here if they are not assigned elsewhere before use.
-            // However, they are populated within the loop below, which is fine.
-
+            
             var types = Assembly.GetExecutingAssembly().GetTypes()
                 .Where(t => t.IsSubclassOf(typeof(JokerObject)) && !t.IsAbstract);
 
@@ -41,8 +39,8 @@ namespace Balatro.Core.CoreObjects.Registries
                 }
                 
                 AttributesByStaticId[attr.StaticId] = attr;
-                TypeToStaticId[type] = attr.StaticId; // Populate here
-                StaticIdToType[attr.StaticId] = type;   // Populate here
+                TypeToStaticId[type] = attr.StaticId;
+                StaticIdToType[attr.StaticId] = type;
 
 
                 if (!tempStaticIdsByRarity.TryGetValue(attr.Rarity, out var list))
