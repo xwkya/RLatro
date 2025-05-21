@@ -105,7 +105,7 @@ namespace Balatro.Core.ObjectsImplementations.Jokers
     }
     
     [JokerStaticDescription(staticId: 5, JokerRarity.Common, Description = "Played Clubs give +3 Mult.")]
-    public class GluttonousJoker : JokerObject // Corrected spelling from Gluttonus
+    public class GluttonousJoker : JokerObject
     {
         public GluttonousJoker(int staticId, uint runtimeId, Edition edition = Edition.None) 
             : base(staticId, runtimeId, edition)

@@ -8,6 +8,13 @@ namespace Balatro.Core.CoreObjects.Consumables.ConsumablesContainer
         
         public List<Consumable> Consumables { get; set; }
 
-        public void RemoveConsumable(byte index) => Consumables.RemoveAt(index);
+        public void RemoveConsumable(int index) => Consumables.RemoveAt(index);
+        public void AddConsumable(Consumable consumable)
+        {
+            if (Consumables.Count >= Capacity)
+                throw new InvalidOperationException("Consumable container is full.");
+            
+            Consumables.Add(consumable);
+        }
     }
 }

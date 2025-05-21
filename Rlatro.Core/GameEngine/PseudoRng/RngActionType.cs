@@ -11,8 +11,10 @@
         SpaceJoker,
         GetSingleVoucher,
         GetTagVouchers,
-        RandomJoker,
-        RandomConsumable,
+        RandomShopJoker,
+        RandomPackJoker,
+        RandomShopConsumable,
+        RandomPackConsumable,
         ShopItemType,
         JokerRarity,
     }

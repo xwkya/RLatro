@@ -38,7 +38,7 @@ namespace RLatro.Test.CoreRules
             RoundState.HandleAction(new RoundAction()
             {
                 ActionIntent = RoundActionIntent.Play,
-                CardIndexes = Enumerable.Range(0, int.Min(cards.Length, 5)).Select(i => (byte)i).ToArray(),
+                CardIndexes = Enumerable.Range(0, int.Min(cards.Length, 5)).ToArray(),
             });
 
             Assert.That(RoundState.CurrentChipsScore, Is.EqualTo(expectedScore));

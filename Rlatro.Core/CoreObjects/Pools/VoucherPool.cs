@@ -1,4 +1,5 @@
 ﻿using Balatro.Core.CoreObjects.Vouchers;
+using Balatro.Core.GameEngine.GameStateController;
 using Balatro.Core.GameEngine.GameStateController.EventBus;
 using Balatro.Core.GameEngine.PseudoRng;
 
@@ -9,23 +10,33 @@ namespace Balatro.Core.CoreObjects.Pools
     /// </summary>
     public sealed class VoucherPool : IEventBusSubscriber
     {
+        private GameContext GameContext { get; }
         private readonly bool[] AvailableVouchers = new bool[Enum.GetValues<VoucherType>().Length];
         private int NumberOfAvailableVouchers;
         
         /// <summary>
         /// Initialize the voucher pool with the already owned vouchers.
         /// </summary>
-        public VoucherPool(ReadOnlySpan<VoucherType> ownedVouchers)
+        public VoucherPool(GameContext ctx)
+        {
+            GameContext = ctx;
+        }
+        
+        public void InitializePool()
         {
             NumberOfAvailableVouchers = AvailableVouchers.Length / 2;
+            
             // Set all base vouchers to true.
             for (int i = 0; i < AvailableVouchers.Length/2; i++)
             {
                 AvailableVouchers[2 * i] = true;
             }
             
-            foreach (var voucher in ownedVouchers)
+            // Check each owned voucher
+            for(var i = 0; i < GameContext.PersistentState.OwnedVouchers.Length; i++)
             {
+                var voucher = (VoucherType)i;
+                
                 // If the voucher is a base voucher, we need to unlock the next one
                 // and mark the current one as unavailable.
                 if (voucher.IsBaseVoucher())
@@ -43,9 +54,10 @@ namespace Balatro.Core.CoreObjects.Pools
                 }
             }
         }
-
-        public VoucherPool() : this(Array.Empty<VoucherType>())
+        
+        public void Subscribe(GameEventBus eventBus)
         {
+            eventBus.SubscribeToVoucherBought(OnVoucherBought);
         }
         
         public VoucherType[] GetTagVoucher(int numberOfVouchers, RngController rng)
@@ -90,12 +102,6 @@ namespace Balatro.Core.CoreObjects.Pools
             rng.GetShuffle(availableVouchers, RngActionType.GetSingleVoucher);
             // Get the voucher type from the shuffled list
             return (VoucherType)availableVouchers[0];
-        }
-
-
-        public void Subscribe(GameEventBus eventBus)
-        {
-            eventBus.SubscribeToVoucherBought(OnVoucherBought);
         }
 
         private void OnVoucherBought(VoucherType type)

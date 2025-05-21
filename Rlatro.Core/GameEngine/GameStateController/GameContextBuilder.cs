@@ -7,7 +7,6 @@ using Balatro.Core.CoreObjects.Consumables.ConsumablesContainer;
 using Balatro.Core.CoreObjects.Jokers.Joker;
 using Balatro.Core.CoreObjects.Jokers.JokersContainer;
 using Balatro.Core.CoreObjects.Pools;
-using Balatro.Core.CoreObjects.Vouchers;
 using Balatro.Core.GameEngine.Contracts;
 using Balatro.Core.GameEngine.GameStateController.EventBus;
 using Balatro.Core.GameEngine.GameStateController.PersistentStates;
@@ -26,7 +25,6 @@ namespace Balatro.Core.GameEngine.GameStateController
         {
             var gameEventBus = new GameEventBus();
             var handTracker = new HandTracker();
-            var voucherPool = new VoucherPool();
             
             var persistentState = new PersistentState()
             {
@@ -37,16 +35,10 @@ namespace Balatro.Core.GameEngine.GameStateController
                 HandTracker = handTracker,
                 Round = 1,
             };
-            
-            // Wire up the event bus
-            handTracker.Subscribe(gameEventBus);
-            voucherPool.Subscribe(gameEventBus);
-            persistentState.Subscribe(gameEventBus);
 
             var gameContext = new GameContext()
             {
                 GameEventBus = gameEventBus,
-                VoucherPool = voucherPool,
                 JokerContainer = new JokerContainer(),
                 ConsumableContainer = new ConsumableContainer(),
                 DiscardPile = new DiscardPile(),
@@ -57,6 +49,15 @@ namespace Balatro.Core.GameEngine.GameStateController
                 RngController = new RngController(seed),
                 ObjectsFactory = new CoreObjectsFactory(),
             };
+            
+            // Wire up the event bus
+            gameContext.GlobalPoolManager = new GlobalPoolManager(gameContext);
+
+            handTracker.Subscribe(gameEventBus);
+            persistentState.Subscribe(gameEventBus);
+            gameContext.GlobalPoolManager.Subscribe(gameEventBus);
+            
+            
             
             return new GameContextBuilder()
             {
@@ -95,6 +96,9 @@ namespace Balatro.Core.GameEngine.GameStateController
             {
                 throw new InvalidOperationException($"Provide a deck factory with {nameof(WithDeck)} is not set.");
             }
+            
+            GameContext.GlobalPoolManager.InitializePools();
+
             
             return GameContext;
         }
