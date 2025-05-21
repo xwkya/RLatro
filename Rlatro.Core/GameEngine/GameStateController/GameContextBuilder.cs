@@ -91,11 +91,11 @@ namespace Balatro.Core.GameEngine.GameStateController
         
         public GameContext CreateGameContext()
         {
-            if (GameContext.Hand is null)
+            if (GameContext.Deck.Count == 0)
             {
-                throw new InvalidOperationException($"Provide a deck factory with {nameof(WithDeck)} is not set.");
+                throw new InvalidOperationException($"Provide a deck factory with {nameof(WithDeck)} before creating the context.");
             }
-            
+
             return GameContext;
         }
     }
