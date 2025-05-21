@@ -74,13 +74,13 @@ namespace Balatro.Core.CoreObjects.Pools
             }
         }
 
-        public int GetRandomStaticId(ConsumableType type, RngController rng)
+        public int GetRandomStaticId(ConsumableType type, RngController rng, RngActionType actionType)
         {
             var masterStaticIdList = ConsumableRegistry.GetMasterOrderedStaticIds(type);
             
             if (GameContext.JokerContainer.Showman())
             {
-                var index = rng.RandomInt(0, masterStaticIdList.Count - 1, RngActionType.RandomConsumable);
+                var index = rng.RandomInt(0, masterStaticIdList.Count - 1, actionType);
                 return masterStaticIdList[index];
             }
 
@@ -110,7 +110,7 @@ namespace Balatro.Core.CoreObjects.Pools
             if (count == 0) return GetDefaultStaticIdForType(type);
 
             int randomIndex =
-                rng.RandomInt(0, count - 1, RngActionType.RandomConsumable); // If RandomInt is [min, maxInclusive]
+                rng.RandomInt(0, count - 1, actionType);
             return candidatesSpan[randomIndex];
         }
 

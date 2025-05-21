@@ -22,7 +22,13 @@ namespace Balatro.Core.GameEngine
 
         public void HandleAction(BasePlayerAction action)
         {
-            GamePhaseState.HandleAction(action);
+            var phaseOver = GamePhaseState.HandleAction(action);
+            if (phaseOver)
+            {
+                GamePhaseState.OnExitPhase();
+                GamePhaseState = GamePhaseState.GetNextPhaseState();
+                GamePhaseState.OnEnterPhase();
+            }
         }
     }
 }

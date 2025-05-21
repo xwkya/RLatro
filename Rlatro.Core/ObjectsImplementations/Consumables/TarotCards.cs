@@ -10,12 +10,12 @@ namespace Balatro.Core.ObjectsImplementations.Consumables
         {
         }
 
-        public override void Apply(GameContext context, byte[] targetCards)
+        public override void Apply(GameContext context, int[] targetCards)
         {
             throw new NotImplementedException();
         }
 
-        public override bool IsUsable(GameContext ctx, byte[] targetCards)
+        public override bool IsUsable(GameContext ctx, int[] targetCards)
         {
             return ctx.PersistentState.TheFoolStorage is not null;
         }

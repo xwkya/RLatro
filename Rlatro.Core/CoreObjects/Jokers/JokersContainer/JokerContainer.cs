@@ -17,6 +17,11 @@ namespace Balatro.Core.CoreObjects.Jokers.JokersContainer
             Jokers.RemoveAt(jokerIndex);
         }
         
+        public void AddJoker(GameContext ctx, JokerObject joker)
+        {
+            Jokers.Add(joker);
+            joker.OnAcquired(ctx);
+        }
         
         public SuitMask GetJokersSuitChange(Suit suit) => 
             suit switch

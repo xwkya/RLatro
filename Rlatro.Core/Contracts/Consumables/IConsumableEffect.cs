@@ -4,6 +4,6 @@ namespace Balatro.Core.Contracts.Consumables
 {
     public interface IConsumableEffect
     {
-        void Apply(GameContext context, byte[] targetCards);
+        void Apply(GameContext context, int[] targetCards);
     }
 }

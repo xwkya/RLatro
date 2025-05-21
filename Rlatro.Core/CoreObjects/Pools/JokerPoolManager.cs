@@ -62,12 +62,12 @@ namespace Balatro.Core.CoreObjects.Pools
             NumberOfJokersInContextByRarity[rarity][staticId] += 1;
         }
 
-        public int GetRandomStaticId(JokerRarity rarity, RngController rng)
+        public int GetRandomStaticId(JokerRarity rarity, RngController rng, RngActionType actionType)
         {
             var masterStaticIdList = JokerRegistry.GetMasterOrderedStaticIds(rarity);
             if (GameContext.JokerContainer.Showman())
             {
-                var index = rng.RandomInt(0, masterStaticIdList.Count - 1, RngActionType.RandomJoker);
+                var index = rng.RandomInt(0, masterStaticIdList.Count - 1, actionType);
                 return masterStaticIdList[index];
             }
 
@@ -85,7 +85,7 @@ namespace Balatro.Core.CoreObjects.Pools
 
             if (count == 0) return DefaultCommonJokerStaticId;
 
-            int randomIndex = rng.RandomInt(0, count, RngActionType.RandomJoker);
+            int randomIndex = rng.RandomInt(0, count, RngActionType.RandomShopJoker);
             return candidatesSpan[randomIndex];
         }
     }

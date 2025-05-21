@@ -22,7 +22,6 @@ namespace Balatro.Core.GameEngine.GameStateController
         public PersistentState PersistentState { get; set; }
         public PriceManager PriceManager { get; set; }
         public GlobalPoolManager GlobalPoolManager { get; set; }
-        public VoucherPool VoucherPool { get; set; }
         public GameEventBus GameEventBus { get; set; }
         public CoreObjectsFactory CoreObjectsFactory { get; set; }
 

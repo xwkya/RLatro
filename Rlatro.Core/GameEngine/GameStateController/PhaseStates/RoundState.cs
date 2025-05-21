@@ -1,7 +1,7 @@
-﻿using Balatro.Core.CoreObjects.Cards.CardObject;
-using Balatro.Core.CoreRules.CanonicalViews;
+﻿using Balatro.Core.CoreRules.CanonicalViews;
 using Balatro.Core.CoreRules.Scoring;
 using Balatro.Core.GameEngine.GameStateController.PhaseActions;
+using Balatro.Core.GameEngine.GameStateController.PhaseActions.ActionIntents;
 using Balatro.Core.GameEngine.StateController;
 
 namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
@@ -47,6 +47,11 @@ namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
             };
         }
 
+        public IGamePhaseState GetNextPhaseState()
+        {
+            return new ShopState(GameContext);
+        }
+
         /// <summary>
         /// Draw cards until hand reaches the hand size.
         /// </summary>
@@ -60,7 +65,7 @@ namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
             }
         }
 
-        private bool ExecuteDiscard(ReadOnlySpan<byte> cardIndexes)
+        private bool ExecuteDiscard(ReadOnlySpan<int> cardIndexes)
         {
             // Commit action
             Discards--;
@@ -77,7 +82,7 @@ namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
             return false;
         }
 
-        private bool ExecutePlay(ReadOnlySpan<byte> cardIndexes)
+        private bool ExecutePlay(ReadOnlySpan<int> cardIndexes)
         {
             Hands--;
             GameContext.Hand.MoveMany(cardIndexes, GameContext.PlayContainer); // hand -> play
@@ -86,11 +91,11 @@ namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
             GameContext.PlayContainer.MoveMany(cardIndexes, GameContext.DiscardPile); // play -> discard
             DrawCards();
 
-            return Hands == 0 || GameContext.Hand.Count == 0 || CurrentChipsScore >= CurrentChipsRequirement;
+            return IsPhaseOver;
         }
         
         
-        private bool ExecuteSellConsumable(byte consumableIndex)
+        private bool ExecuteSellConsumable(int consumableIndex)
         {
             var consumable = GameContext.ConsumableContainer.Consumables[consumableIndex];
             var sellValue = GameContext.PriceManager.GetSellPrice(consumable);
@@ -113,7 +118,7 @@ namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
             return false;
         }
 
-        private bool ExecuteSellJoker(byte jokerIndex)
+        private bool ExecuteSellJoker(int jokerIndex)
         {
             var joker = GameContext.JokerContainer.Jokers[jokerIndex];
             var sellValue = GameContext.PriceManager.GetSellPrice(joker);

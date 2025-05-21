@@ -54,7 +54,7 @@ namespace Balatro.Core.CoreObjects.Cards.CardsContainer
             Cards.RemoveAt(index);
         }
         
-        public void MoveMany(ReadOnlySpan<byte> indices, CardContainer target)
+        public void MoveMany(ReadOnlySpan<int> indices, CardContainer target)
         {
             if (indices.IsEmpty) return;
             
@@ -115,7 +115,7 @@ namespace Balatro.Core.CoreObjects.Cards.CardsContainer
         public void FillCardViews(
             GameContext ctx,
             Span<CardView> cardViews,
-            ReadOnlySpan<byte> cardIndexes)
+            ReadOnlySpan<int> cardIndexes)
         {
             for (var i = 0; i < cardIndexes.Length; i++)
             {

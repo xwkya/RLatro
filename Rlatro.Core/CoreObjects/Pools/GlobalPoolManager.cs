@@ -3,11 +3,12 @@ using Balatro.Core.CoreObjects.Consumables.ConsumableObject;
 using Balatro.Core.CoreObjects.Jokers.Joker;
 using Balatro.Core.CoreObjects.Shop.ShopObjects;
 using Balatro.Core.GameEngine.GameStateController;
+using Balatro.Core.GameEngine.GameStateController.EventBus;
 using Balatro.Core.GameEngine.PseudoRng;
 
 namespace Balatro.Core.CoreObjects.Pools
 {
-    public class GlobalPoolManager
+    public class GlobalPoolManager : IEventBusSubscriber
     {
         private GameContext GameContext { get; }
         private RngController RngController { get; }
@@ -19,7 +20,7 @@ namespace Balatro.Core.CoreObjects.Pools
         {
             GameContext = ctx;
             JokerPoolManager = new JokerPoolManager(ctx);
-            VoucherPool = new VoucherPool();
+            VoucherPool = new VoucherPool(ctx);
             ConsumablePoolManager = new ConsumablePoolManager(ctx);
             RngController = ctx.RngController;
         }
@@ -28,7 +29,29 @@ namespace Balatro.Core.CoreObjects.Pools
         {
             JokerPoolManager.InitializePool();
             ConsumablePoolManager.InitializePool();
-            // TODO: VoucherPool.InitializeVoucherPool();
+            VoucherPool.InitializePool();
+        }
+        
+        public void Subscribe(GameEventBus eventBus)
+        {
+            ConsumablePoolManager.Subscribe(eventBus);
+            JokerPoolManager.Subscribe(eventBus);
+            VoucherPool.Subscribe(eventBus);
+        }
+
+        public Consumable GenerateTarotCard(RngActionType actionType)
+        {
+            var consumable = ConsumablePoolManager.GetRandomStaticId(ConsumableType.Tarot, RngController, actionType);
+            GameContext.GameEventBus.PublishConsumableAddedToContext(consumable);
+            return GameContext.CoreObjectsFactory.CreateConsumable(consumable);
+        }
+        
+        public JokerObject GenerateJoker(RngActionType actionType)
+        {
+            var rarity = CalculateJokerRarity();
+            var jokerStaticId = JokerPoolManager.GetRandomStaticId(rarity, RngController, actionType);
+            GameContext.GameEventBus.PublishJokerAddedToContext(jokerStaticId);
+            return GameContext.CoreObjectsFactory.CreateJoker(jokerStaticId);
         }
 
         public IShopObject GenerateShopItem()
@@ -36,10 +59,7 @@ namespace Balatro.Core.CoreObjects.Pools
             var itemType = CalculateShopItemType();
             if (itemType == ShopItemType.Joker)
             {
-                var rarity = CalculateJokerRarity();
-                var jokerStaticId = JokerPoolManager.GetRandomStaticId(rarity, RngController);
-                GameContext.GameEventBus.PublishJokerAddedToContext(jokerStaticId);
-                return GameContext.CoreObjectsFactory.CreateJoker(jokerStaticId);
+                return GenerateJoker(RngActionType.RandomShopJoker);
             }
 
             if (itemType == ShopItemType.PlayingCard)
@@ -55,9 +75,8 @@ namespace Balatro.Core.CoreObjects.Pools
                 ShopItemType.SpectralCard => ConsumableType.Spectral,
                 _ => throw new ArgumentOutOfRangeException(nameof(itemType), itemType, null)
             };
-            var consumable = ConsumablePoolManager.GetRandomStaticId(consumableType, RngController);
-            GameContext.GameEventBus.PublishConsumableAddedToContext(consumable);
-            return GameContext.CoreObjectsFactory.CreateConsumable(consumable);
+
+            return GenerateTarotCard(RngActionType.RandomShopConsumable);
         }
 
         private ShopItemType CalculateShopItemType()

@@ -16,8 +16,8 @@ namespace Balatro.Core.CoreObjects.Consumables.ConsumableObject
         public int SellValue => (BaseSellValue + BonusValue);
         public bool IsNegative { get; } // For Perkeo
         
-        public abstract void Apply(GameContext context, byte[] targetCards);
-        public abstract bool IsUsable(GameContext ctx, byte[] targetCards);
+        public abstract void Apply(GameContext context, int[] targetCards);
+        public abstract bool IsUsable(GameContext ctx, int[] targetCards);
         
         public Consumable(int staticId, uint id, bool isNegative = false)
         {
