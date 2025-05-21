@@ -20,6 +20,7 @@ namespace Balatro.Core.GameEngine.GameStateController
         public JokerContainer JokerContainer { get; set; }
         public ConsumableContainer ConsumableContainer { get; set; }
         public PersistentState PersistentState { get; set; }
+        public PriceManager PriceManager { get; set; }
         public GlobalPoolManager GlobalPoolManager { get; set; }
         public VoucherPool VoucherPool { get; set; }
         public GameEventBus GameEventBus { get; set; }

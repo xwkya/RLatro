@@ -92,7 +92,8 @@ namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
         
         private bool ExecuteSellConsumable(byte consumableIndex)
         {
-            var sellValue = GameContext.ConsumableContainer.Consumables[consumableIndex].SellValue;
+            var consumable = GameContext.ConsumableContainer.Consumables[consumableIndex];
+            var sellValue = GameContext.PriceManager.GetSellPrice(consumable);
             
             GameContext.GameEventBus.PublishConsumableRemovedFromContext(consumableIndex);
             GameContext.ConsumableContainer.RemoveConsumable(consumableIndex);
@@ -115,7 +116,7 @@ namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
         private bool ExecuteSellJoker(byte jokerIndex)
         {
             var joker = GameContext.JokerContainer.Jokers[jokerIndex];
-            var sellValue = ComputationHelpers.ComputeSellValue(GameContext, joker.BaseSellValue, joker.BonusSellValue);
+            var sellValue = GameContext.PriceManager.GetSellPrice(joker);
             
             GameContext.GameEventBus.PublishJokerRemovedFromContext(joker.StaticId);
             GameContext.JokerContainer.RemoveJoker(GameContext, jokerIndex);

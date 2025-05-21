@@ -12,6 +12,10 @@ namespace Balatro.Core.CoreObjects.Registries
         // Compiled constructors for JokerObject: Func<staticId, runtimeId, edition, JokerObject>
         private static readonly Dictionary<int, Func<int, uint, Edition, JokerObject>> ConstructorsByStaticId = new();
 
+        // Store the base price of each joker so pricing logic can access it without
+        // instantiating jokers repeatedly at runtime.
+        private static readonly Dictionary<int, int> BasePriceByStaticId = new();
+
         // For reverse lookup
         private static readonly Dictionary<Type, int> TypeToStaticId = new();
         private static readonly Dictionary<int, Type> StaticIdToType = new();
@@ -65,8 +69,12 @@ namespace Balatro.Core.CoreObjects.Registries
                     // Compile the lambda
                     var lambda = System.Linq.Expressions.Expression.Lambda<Func<int, uint, Edition, JokerObject>>(
                         newExpr, staticIdParam, runtimeIdParam, editionParam);
-                    
+
                     ConstructorsByStaticId[attr.StaticId] = lambda.Compile();
+
+                    // Instantiate once to cache the base price for this joker
+                    var tempInstance = ConstructorsByStaticId[attr.StaticId](attr.StaticId, 0, Edition.None);
+                    BasePriceByStaticId[attr.StaticId] = tempInstance.BasePrice;
                 }
                 else
                 {
@@ -106,8 +114,18 @@ namespace Balatro.Core.CoreObjects.Registries
                 // Call the compiled constructor, passing the staticId along with runtimeId and edition
                 return constructor(staticId, runtimeId, ed);
             }
-            
+
             throw new ArgumentException($"No Joker constructor found for StaticId {staticId}.");
+        }
+
+        /// <summary>
+        /// Gets the base price for a joker without instantiating it.
+        /// </summary>
+        public static int GetBasePrice(int staticId)
+        {
+            return BasePriceByStaticId.TryGetValue(staticId, out var price)
+                ? price
+                : throw new KeyNotFoundException($"No base price known for Joker StaticId {staticId}.");
         }
 
         public static JokerObject CreateInstance<T>(uint runtimeId, Edition ed = Edition.None)

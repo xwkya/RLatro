@@ -6,6 +6,7 @@ using Balatro.Core.CoreObjects.Cards.CardsContainer;
 using Balatro.Core.CoreObjects.Consumables.ConsumablesContainer;
 using Balatro.Core.CoreObjects.Jokers.Joker;
 using Balatro.Core.CoreObjects.Jokers.JokersContainer;
+using Balatro.Core.GameEngine;
 using Balatro.Core.CoreObjects.Pools;
 using Balatro.Core.CoreObjects.Vouchers;
 using Balatro.Core.GameEngine.Contracts;
@@ -57,6 +58,8 @@ namespace Balatro.Core.GameEngine.GameStateController
                 RngController = new RngController(seed),
                 ObjectsFactory = new CoreObjectsFactory(),
             };
+
+            gameContext.PriceManager = new PriceManager(gameContext);
             
             return new GameContextBuilder()
             {

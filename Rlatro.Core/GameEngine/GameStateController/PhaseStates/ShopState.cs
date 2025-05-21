@@ -1,13 +1,13 @@
 ﻿using Balatro.Core.CoreObjects.Shop.ShopContainers;
 using Balatro.Core.CoreObjects.Shop.ShopObjects;
 using Balatro.Core.GameEngine.GameStateController.PhaseActions;
+using Balatro.Core.GameEngine;
 using Balatro.Core.GameEngine.StateController;
 
 namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
 {
     public class ShopState : IGamePhaseState
     {
-        private const int VoucherPrice = 10;
         public GameContext GameContext { get; set; }
         public ShopContainer ShopContainer { get; set; }
         public VoucherContainer VoucherContainer { get; set; }
@@ -76,7 +76,7 @@ namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
         private bool ExecuteSellJoker(int jokerIndex)
         {
             var joker = GameContext.JokerContainer.Jokers[jokerIndex];
-            var sellValue = ComputationHelpers.ComputeSellValue(GameContext, joker.BaseSellValue, joker.BonusSellValue);
+            var sellValue = GameContext.PriceManager.GetSellPrice(joker);
             
             // Remove the joker from the game context and the joker container
             GameContext.GameEventBus.PublishJokerRemovedFromContext(joker.StaticId);
@@ -89,7 +89,8 @@ namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
         
         private bool ExecuteSellConsumable(byte consumableIndex)
         {
-            var sellValue = GameContext.ConsumableContainer.Consumables[consumableIndex].SellValue;
+            var consumable = GameContext.ConsumableContainer.Consumables[consumableIndex];
+            var sellValue = GameContext.PriceManager.GetSellPrice(consumable);
             
             GameContext.GameEventBus.PublishConsumableRemovedFromContext(consumableIndex);
             GameContext.ConsumableContainer.RemoveConsumable(consumableIndex);
@@ -103,7 +104,7 @@ namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
             var voucher = VoucherContainer.Vouchers[voucherIndex];
             VoucherContainer.Vouchers.RemoveAt(voucherIndex);
             
-            GameContext.PersistentState.Gold -= VoucherPrice;
+            GameContext.PersistentState.Gold -= GameContext.PriceManager.GetBuyPrice(voucher);
             GameContext.GameEventBus.PublishVoucherBought(voucher);
             return false;
         }
@@ -133,7 +134,8 @@ namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
                         throw new ArgumentOutOfRangeException(nameof(action.ShopIndex), action.ShopIndex, $"Cannot buy item {action.ShopIndex} from shop, item does not exist");
                     }
 
-                    if (GameContext.PersistentState.Gold - ShopContainer.Items[action.ShopIndex].BaseCost <
+                    var itemCost = GameContext.PriceManager.GetBuyPrice(ShopContainer.Items[action.ShopIndex]);
+                    if (GameContext.PersistentState.Gold - itemCost <
                         GameContext.PersistentState.MinGold)
                     {
                         throw new InvalidOperationException("Not enough gold to buy item.");
@@ -150,7 +152,8 @@ namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
                     {
                         throw new ArgumentOutOfRangeException(nameof(action.VoucherIndex), action.VoucherIndex, $"Voucher {action.VoucherIndex} does not exist");;
                     }
-                    if (GameContext.PersistentState.Gold - VoucherPrice < GameContext.PersistentState.MinGold)
+                    var voucherCost = GameContext.PriceManager.GetBuyPrice(VoucherContainer.Vouchers[action.VoucherIndex]);
+                    if (GameContext.PersistentState.Gold - voucherCost < GameContext.PersistentState.MinGold)
                     {
                         throw new InvalidOperationException("Not enough gold to buy voucher.");
                     }
