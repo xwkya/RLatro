@@ -1,5 +1,6 @@
 ﻿using Balatro.Core.CoreObjects.BoosterPacks;
 using Balatro.Core.CoreObjects.Jokers.Joker;
+using Balatro.Core.GameEngine.Contracts;
 using Balatro.Core.GameEngine.GameStateController.PhaseActions;
 using Balatro.Core.GameEngine.GameStateController.PhaseActions.ActionIntents;
 using Balatro.Core.GameEngine.PseudoRng;
@@ -7,28 +8,26 @@ using Balatro.Core.GameEngine.StateController;
 
 namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
 {
-    public class JokerPackState : IGamePhaseState
+    public class JokerPackState : BaseGamePhaseState
     {
-        private GameContext GameContext { get; }
         private IGamePhaseState IncomingState { get; }
         private int NumberOfChoices { get; set;}
         private int NumberOfCards { get; set;}
         private List<JokerObject> JokerObjects { get; set; } = new();
         
-        public JokerPackState(GameContext ctx, IGamePhaseState incomingState, BoosterPackType type)
+        public JokerPackState(GameContext ctx, IGamePhaseState incomingState, BoosterPackType type) : base(ctx)
         {
             var sizeAndChoices = type.GetPackSizeAndChoice();
             NumberOfCards = sizeAndChoices.size;
             NumberOfChoices = sizeAndChoices.choice;
             IncomingState = incomingState;
-            GameContext = ctx;
             
             FillJokerChoices();
         }
         
-        public GamePhase Phase { get; }
-        
-        public bool HandleAction(BasePlayerAction action)
+        public override GamePhase Phase => GamePhase.JokerPack;
+
+        protected override bool HandleStateSpecificAction(BasePlayerAction action)
         {
             if (action is not PackAction packAction)
             {
@@ -49,7 +48,7 @@ namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
             return NumberOfChoices == 0;
         }
 
-        public IGamePhaseState GetNextPhaseState()
+        public override IGamePhaseState GetNextPhaseState()
         {
             return IncomingState;
         }

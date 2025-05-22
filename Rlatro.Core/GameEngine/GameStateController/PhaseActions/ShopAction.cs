@@ -5,8 +5,6 @@
         BuyFromShop,
         BuyBoosterPack,
         BuyVoucher,
-        SellJoker,
-        SellConsumable,
         Roll,
     }
     

@@ -1,7 +1,7 @@
 ﻿using Balatro.Core.GameEngine.GameStateController.PhaseActions;
 using Balatro.Core.GameEngine.StateController;
 
-namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
+namespace Balatro.Core.GameEngine.Contracts
 {
     public interface IGamePhaseState
     {

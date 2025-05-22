@@ -4,8 +4,5 @@
     {
         Play,
         Discard,
-        UseConsumable,
-        SellConsumable,
-        SellJoker,
     }
 }

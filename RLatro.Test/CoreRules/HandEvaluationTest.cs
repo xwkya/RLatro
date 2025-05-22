@@ -4,6 +4,7 @@ using Balatro.Core.CoreObjects.Jokers.Joker;
 using Balatro.Core.CoreObjects.Registries;
 using Balatro.Core.GameEngine.GameStateController;
 using Balatro.Core.GameEngine.GameStateController.PhaseActions;
+using Balatro.Core.GameEngine.GameStateController.PhaseActions.ActionIntents;
 using Balatro.Core.GameEngine.GameStateController.PhaseStates;
 using Balatro.Core.ObjectsImplementations.Decks;
 using Balatro.Core.ObjectsImplementations.Jokers;

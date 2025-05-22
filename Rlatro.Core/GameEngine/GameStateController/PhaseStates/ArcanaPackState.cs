@@ -1,5 +1,6 @@
 ﻿using Balatro.Core.CoreObjects.BoosterPacks;
 using Balatro.Core.CoreObjects.Consumables.ConsumableObject;
+using Balatro.Core.GameEngine.Contracts;
 using Balatro.Core.GameEngine.GameStateController.PhaseActions;
 using Balatro.Core.GameEngine.GameStateController.PhaseActions.ActionIntents;
 using Balatro.Core.GameEngine.PseudoRng;
@@ -7,17 +8,15 @@ using Balatro.Core.GameEngine.StateController;
 
 namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
 {
-    public class ArcanaPackState : IGamePhaseState
+    public class ArcanaPackState : BaseGamePhaseState
     {
         private IGamePhaseState IncomingState { get; }
         private int ArcanaPackSize { get; init; }
         private int NumberOfChoices { get; set; }
         private List<Consumable> ArcanaCards { get; } = new();
-        private GameContext GameContext { get; }
         
-        public ArcanaPackState(GameContext ctx, IGamePhaseState incomingState, BoosterPackType type)
+        public ArcanaPackState(GameContext ctx, IGamePhaseState incomingState, BoosterPackType type) : base(ctx)
         {
-            GameContext = ctx;
             IncomingState = incomingState;
             
             var t = type.GetPackSizeAndChoice();
@@ -28,9 +27,9 @@ namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
             FillHand();
         }
         
-        public GamePhase Phase => GamePhase.ArcanaPack;
-        
-        public bool HandleAction(BasePlayerAction action)
+        public override GamePhase Phase => GamePhase.ArcanaPack;
+
+        protected override bool HandleStateSpecificAction(BasePlayerAction action)
         {
             if (action is not PackActionWithTargets packAction)
             {
@@ -56,7 +55,7 @@ namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
             return NumberOfChoices == 0;
         }
 
-        public IGamePhaseState GetNextPhaseState()
+        public override IGamePhaseState GetNextPhaseState()
         {
             return IncomingState;
         }

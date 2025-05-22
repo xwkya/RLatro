@@ -3,26 +3,22 @@ using Balatro.Core.CoreObjects.Consumables.ConsumableObject;
 using Balatro.Core.CoreObjects.Jokers.Joker;
 using Balatro.Core.CoreObjects.Shop.ShopContainers;
 using Balatro.Core.CoreObjects.Shop.ShopObjects;
+using Balatro.Core.GameEngine.Contracts;
 using Balatro.Core.GameEngine.GameStateController.PhaseActions;
 using Balatro.Core.GameEngine.StateController;
 
 namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
 {
-    public class ShopState : IGamePhaseState
+    public class ShopState : BaseGamePhaseState
     {
         private const int VoucherPrice = 10;
-        public GameContext GameContext { get; set; }
         private ShopContainer ShopContainer { get; set; }
         private VoucherContainer VoucherContainer { get; set; }
         public BoosterContainer BoosterContainer { get; set; }
         private GamePhase NextPhase { get; set; }
         private BoosterPackType? OpenedPackType { get; set; }
-        
-        public ShopState(GameContext ctx)
-        {
-            GameContext = ctx;
-        }
-        public GamePhase Phase => GamePhase.Shop;
+        public override GamePhase Phase => GamePhase.Shop;
+        public ShopState(GameContext ctx) : base(ctx) { }
         
         /// <summary>
         /// Gets the number of rolls the player has paid -> Chaos free roll should not increment this counter.
@@ -34,7 +30,7 @@ namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
         /// </summary>
         public int NumberOfFreeRolls { get; set; }
         
-        public bool HandleAction(BasePlayerAction action)
+        protected override bool HandleStateSpecificAction(BasePlayerAction action)
         {
             if (action is not ShopAction shopAction)
             {
@@ -47,14 +43,10 @@ namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
             {
                 case ShopActionIntent.Roll:
                     return ExecuteRoll();
-                case ShopActionIntent.SellJoker:
-                    return ExecuteSellJoker(shopAction.JokerIndex);
                 case ShopActionIntent.BuyVoucher:
                     return ExecuteBuyVoucher(shopAction.VoucherIndex);
                 case ShopActionIntent.BuyFromShop:
                     return ExecuteBuyFromShop(shopAction.ShopIndex);
-                case ShopActionIntent.SellConsumable:
-                    return ExecuteSellConsumable(shopAction.ConsumableIndex);
                 case ShopActionIntent.BuyBoosterPack:
                     return ExecuteBuyBoosterPack(shopAction.BoosterPackIndex);
                 default:
@@ -62,7 +54,7 @@ namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
             }
         }
 
-        public IGamePhaseState GetNextPhaseState()
+        public override IGamePhaseState GetNextPhaseState()
         {
             // Internal verification
             if (NextPhase != GamePhase.BlindSelection && !OpenedPackType.HasValue)
@@ -86,7 +78,7 @@ namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
             
             if (NextPhase == GamePhase.SpectralPack)
             {
-                return new SpectralPackState(this);
+                return new SpectralPackState(this, GameContext);
             }
             
             if (NextPhase == GamePhase.Round)
@@ -206,24 +198,6 @@ namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
                         throw new InvalidOperationException("Not enough gold to buy item.");
                     }
                     break;
-                case ShopActionIntent.SellJoker:
-                    if (GameContext.JokerContainer.Jokers.Count <= action.JokerIndex)
-                    {
-                        throw new ArgumentOutOfRangeException(nameof(action.JokerIndex), action.JokerIndex, "Cannot sell joker");
-                    }
-                    break;
-                case ShopActionIntent.BuyVoucher:
-                    if (VoucherContainer.Vouchers.Count <= action.VoucherIndex)
-                    {
-                        throw new ArgumentOutOfRangeException(nameof(action.VoucherIndex), action.VoucherIndex, $"Voucher {action.VoucherIndex} does not exist");;
-                    }
-                    if (GameContext.PersistentState.Gold - VoucherPrice < GameContext.PersistentState.MinGold)
-                    {
-                        throw new InvalidOperationException("Not enough gold to buy voucher.");
-                    }
-                    break;
-                case ShopActionIntent.BuyBoosterPack:
-                    // TODO: Implement booster packs
                 default:
                     throw new ArgumentOutOfRangeException(nameof(action.ActionIntent), action.ActionIntent, null);
             }
