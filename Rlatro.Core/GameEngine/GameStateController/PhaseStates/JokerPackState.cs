@@ -1,5 +1,6 @@
-﻿using Balatro.Core.CoreObjects.BoosterPacks;
-using Balatro.Core.CoreObjects.Jokers.Joker;
+﻿using Balatro.Core.CoreObjects;
+using Balatro.Core.CoreObjects.BoosterPacks;
+using Balatro.Core.CoreObjects.Shop.ShopObjects;
 using Balatro.Core.GameEngine.Contracts;
 using Balatro.Core.GameEngine.GameStateController.PhaseActions;
 using Balatro.Core.GameEngine.GameStateController.PhaseActions.ActionIntents;
@@ -13,7 +14,7 @@ namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
         private IGamePhaseState IncomingState { get; }
         private int NumberOfChoices { get; set;}
         private int NumberOfCards { get; set;}
-        private List<JokerObject> JokerObjects { get; set; } = new();
+        private List<ShopItem> JokerObjects { get; set; } = new();
         
         public JokerPackState(GameContext ctx, IGamePhaseState incomingState, BoosterPackType type) : base(ctx)
         {
@@ -39,8 +40,9 @@ namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
             {
                 return true;
             }
-
-            var joker = JokerObjects[packAction.CardIndex];
+            
+            var jokerShopItem = JokerObjects[packAction.CardIndex];
+            var joker = CoreObjectsFactory.CreateJoker(jokerShopItem);
             GameContext.JokerContainer.AddJoker(GameContext, joker);
             JokerObjects.RemoveAt(packAction.CardIndex);
             NumberOfChoices--;
@@ -71,10 +73,10 @@ namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
 
         private void FillJokerChoices()
         {
-            JokerObjects = new List<JokerObject>();
+            JokerObjects = new List<ShopItem>();
             for (int i = 0; i < NumberOfCards; i++)
             {
-                var joker = GameContext.GlobalPoolManager.GenerateJoker(RngActionType.RandomPackJoker);
+                var joker = GameContext.GlobalPoolManager.GenerateShopJoker(RngActionType.RandomPackJoker);
                 JokerObjects.Add(joker);
             }
         }

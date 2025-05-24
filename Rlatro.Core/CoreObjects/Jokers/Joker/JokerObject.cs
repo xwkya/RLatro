@@ -12,13 +12,11 @@ namespace Balatro.Core.CoreObjects.Jokers.Joker
     {
         public uint Id { get; private set; }
         public int StaticId { get; } // Static definition ID
-        public uint Scaling { get; set; } // Scaling counter, each joker can use this however they want.
+        public uint Scaling { get; set; } // Scaling counter, each joker can tttttttttttttttttttttttttttttttttttttttttttuse this however they want.
         public SuitMask Suit { get; set; } // Whatever suit the joker is targeting.
-        public Rank? Rank { get; set; } // Whatever rank the joker is targeting.
+        public Rank? Rank { get; set; } // Whatever rank the joker is targeting.trrreeeerttrererertertertert
         public Edition Edition { get; set; }
         public int BonusSellValue { get; set; }
-        public abstract int BasePrice { get; }
-        public int BaseSellValue => BasePrice / 2;
         
         public JokerObject(int staticId, uint runtimeId, Edition edition = Edition.None)
         {
@@ -104,7 +102,6 @@ namespace Balatro.Core.CoreObjects.Jokers.Joker
         {
         }
 
-        public int BaseCost => BasePrice;
         public ShopItemType ItemType => ShopItemType.Joker;
     }
 }

@@ -47,7 +47,8 @@ namespace Balatro.Core.CoreObjects.Pools
         
         public void Subscribe(GameEventBus eventBus)
         {
-            throw new NotImplementedException();
+            eventBus.SubscribeToJokerAddedToContext(JokerAddedToContext);
+            eventBus.SubscribeToJokerRemovedFromContext(JokerRemovedFromContext);
         }
 
         public void JokerRemovedFromContext(int staticId)

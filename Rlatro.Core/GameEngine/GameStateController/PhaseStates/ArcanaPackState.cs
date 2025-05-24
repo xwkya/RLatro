@@ -59,6 +59,12 @@ namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
         {
             return IncomingState;
         }
+        
+        public override void OnExitPhase()
+        {
+            GameContext.Hand.MoveAllTo(GameContext.Deck);
+            GameContext.Deck.Shuffle();
+        }
 
         private void ValidatePossibleAction(PackActionWithTargets packAction)
         {
@@ -85,7 +91,7 @@ namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
         {
             for (var i = 0; i < ArcanaPackSize; i++)
             {
-                var card = GameContext.GlobalPoolManager.GenerateTarotCard(RngActionType.RandomPackConsumable);
+                var card = GameContext.GlobalPoolManager.GenerateConsumable(RngActionType.RandomPackConsumable, ConsumableType.Tarot);
                 ArcanaCards.Add(card);
             }
         }

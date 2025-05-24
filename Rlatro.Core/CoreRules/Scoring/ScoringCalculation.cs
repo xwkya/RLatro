@@ -257,7 +257,7 @@ namespace Balatro.Core.CoreRules.Scoring
                     }
                     if (ctx.RngController.ProbabilityCheck(LuckyEnhancementGoldProbability, RngActionType.LuckyCardMoney))
                     {
-                        ctx.PersistentState.Gold += LuckyEnhancementGold;
+                        ctx.PersistentState.EconomyHandler.AddGold(LuckyEnhancementGold);
                     }
                     break;
                 case Enhancement.Glass:

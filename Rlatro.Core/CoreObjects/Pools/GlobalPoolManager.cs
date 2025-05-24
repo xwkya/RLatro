@@ -1,5 +1,5 @@
-﻿using Balatro.Core.Contracts.Shop;
-using Balatro.Core.CoreObjects.Consumables.ConsumableObject;
+﻿using Balatro.Core.CoreObjects.Consumables.ConsumableObject;
+using Balatro.Core.CoreObjects.CoreEnums;
 using Balatro.Core.CoreObjects.Jokers.Joker;
 using Balatro.Core.CoreObjects.Shop.ShopObjects;
 using Balatro.Core.GameEngine.GameStateController;
@@ -39,27 +39,51 @@ namespace Balatro.Core.CoreObjects.Pools
             VoucherPool.Subscribe(eventBus);
         }
 
-        public Consumable GenerateTarotCard(RngActionType actionType)
+        public ShopItem GenerateShopConsumable(RngActionType actionType, ConsumableType type)
         {
-            var consumable = ConsumablePoolManager.GetRandomStaticId(ConsumableType.Tarot, RngController, actionType);
+            var consumable = ConsumablePoolManager.GetRandomStaticId(type, RngController, actionType);
             GameContext.GameEventBus.PublishConsumableAddedToContext(consumable);
-            return GameContext.CoreObjectsFactory.CreateConsumable(consumable);
+            
+            var runtimeId = GameContext.CoreObjectsFactory.GetNextRuntimeId();
+            return new ShopItem()
+            {
+                Id = runtimeId,
+                StaticId = consumable,
+                Type = type.GetShopItemType(),
+                Edition = Edition.None,
+            };
         }
-        
-        public JokerObject GenerateJoker(RngActionType actionType)
+
+        public Consumable GenerateConsumable(RngActionType actionType, ConsumableType type)
+        {
+            var consumableStaticId = ConsumablePoolManager.GetRandomStaticId(type, RngController, actionType);
+            GameContext.GameEventBus.PublishConsumableAddedToContext(consumableStaticId);
+
+            return GameContext.CoreObjectsFactory.CreateConsumable(consumableStaticId);
+        }
+
+        public ShopItem GenerateShopJoker(RngActionType actionType)
         {
             var rarity = CalculateJokerRarity();
             var jokerStaticId = JokerPoolManager.GetRandomStaticId(rarity, RngController, actionType);
             GameContext.GameEventBus.PublishJokerAddedToContext(jokerStaticId);
-            return GameContext.CoreObjectsFactory.CreateJoker(jokerStaticId);
+            
+            var runtimeId = GameContext.CoreObjectsFactory.GetNextRuntimeId();
+            return new ShopItem()
+            {
+                Id = runtimeId,
+                StaticId = jokerStaticId,
+                Type = ShopItemType.Joker,
+                Edition = Edition.None,
+            };
         }
 
-        public IShopObject GenerateShopItem()
+        public ShopItem GenerateShopItem()
         {
             var itemType = CalculateShopItemType();
             if (itemType == ShopItemType.Joker)
             {
-                return GenerateJoker(RngActionType.RandomShopJoker);
+                return GenerateShopJoker(RngActionType.RandomShopJoker);
             }
 
             if (itemType == ShopItemType.PlayingCard)
@@ -76,7 +100,7 @@ namespace Balatro.Core.CoreObjects.Pools
                 _ => throw new ArgumentOutOfRangeException(nameof(itemType), itemType, null)
             };
 
-            return GenerateTarotCard(RngActionType.RandomShopConsumable);
+            return GenerateShopConsumable(RngActionType.RandomShopConsumable, consumableType);
         }
 
         private ShopItemType CalculateShopItemType()
@@ -92,15 +116,21 @@ namespace Balatro.Core.CoreObjects.Pools
             {
                 return ShopItemType.Joker;
             }
-            if (randomValue <= GameContext.PersistentState.AppearanceRates.JokerRate + GameContext.PersistentState.AppearanceRates.PlanetRate)
+            if (randomValue <= GameContext.PersistentState.AppearanceRates.JokerRate 
+                + GameContext.PersistentState.AppearanceRates.PlanetRate)
             {
                 return ShopItemType.PlanetCard;
             }
-            if (randomValue <= GameContext.PersistentState.AppearanceRates.JokerRate + GameContext.PersistentState.AppearanceRates.PlanetRate + GameContext.PersistentState.AppearanceRates.TarotRate)
+            if (randomValue <= GameContext.PersistentState.AppearanceRates.JokerRate 
+                + GameContext.PersistentState.AppearanceRates.PlanetRate 
+                + GameContext.PersistentState.AppearanceRates.TarotRate)
             {
                 return ShopItemType.TarotCard;
             }
-            if (randomValue <= GameContext.PersistentState.AppearanceRates.JokerRate + GameContext.PersistentState.AppearanceRates.PlanetRate + GameContext.PersistentState.AppearanceRates.TarotRate + GameContext.PersistentState.AppearanceRates.SpectralRate)
+            if (randomValue <= GameContext.PersistentState.AppearanceRates.JokerRate
+                + GameContext.PersistentState.AppearanceRates.PlanetRate 
+                + GameContext.PersistentState.AppearanceRates.TarotRate
+                + GameContext.PersistentState.AppearanceRates.SpectralRate)
             {
                 return ShopItemType.SpectralCard;
             }

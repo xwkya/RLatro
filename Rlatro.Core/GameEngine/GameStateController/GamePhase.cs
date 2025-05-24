@@ -9,6 +9,6 @@
         JokerPack,
         PlanetPack,
         SpectralPack,
-        EvaluatingHand,
+        CardPack,
     }
 }

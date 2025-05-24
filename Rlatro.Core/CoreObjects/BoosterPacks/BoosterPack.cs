@@ -4,6 +4,6 @@ namespace Balatro.Core.CoreObjects.BoosterPacks
 {
     public struct BoosterPack
     {
-        public BoosterPackType BoostedPackType;
+        public BoosterPackType BoosterPackType;
     }
 }

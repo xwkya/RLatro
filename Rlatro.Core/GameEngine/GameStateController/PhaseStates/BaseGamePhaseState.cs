@@ -27,6 +27,14 @@ namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
         
         protected abstract bool HandleStateSpecificAction(BasePlayerAction action);
 
+        public virtual void OnEnterPhase()
+        {
+        }
+
+        public virtual void OnExitPhase()
+        {
+        }
+
         public abstract IGamePhaseState GetNextPhaseState();
 
         private bool HandleSharedActionIntent(BasePlayerAction action)
@@ -41,19 +49,22 @@ namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
                     return ExecuteUseConsumable(action);
                 case SharedActionIntent.SellJoker:
                     return ExecuteSellJoker(action.JokerIndex);
-                default:
-                    throw new NotImplementedException($"Unhandled action intent: {action.SharedActionIntent}");
             }
+
+            // All actions have been handled, we throw an exception just in case
+            throw new ApplicationException($"Action {action.SharedActionIntent.ToString()} has not been handled properly, all cases must be implemented.");
         }
         
         private bool ExecuteSellConsumable(int consumableIndex)
         {
-            var sellValue = GameContext.ConsumableContainer.Consumables[consumableIndex].SellValue;
+            var consumable = GameContext.ConsumableContainer.Consumables[consumableIndex];
+            var sellValue = GameContext.PersistentState.EconomyHandler
+                .GetConsumableSellPrice(consumable);
             
             GameContext.GameEventBus.PublishConsumableRemovedFromContext(consumableIndex);
             GameContext.ConsumableContainer.RemoveConsumable(consumableIndex);
 
-            GameContext.PersistentState.Gold += sellValue;
+            GameContext.PersistentState.EconomyHandler.AddGold(sellValue);
             return false;
         }
 
@@ -71,12 +82,12 @@ namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
         private bool ExecuteSellJoker(int jokerIndex)
         {
             var joker = GameContext.JokerContainer.Jokers[jokerIndex];
-            var sellValue = ComputationHelpers.ComputeSellValue(GameContext, joker.BaseSellValue, joker.BonusSellValue);
+            var sellValue = GameContext.PersistentState.EconomyHandler.GetJokerSellPrice(joker);
             
             GameContext.GameEventBus.PublishJokerRemovedFromContext(joker.StaticId);
             GameContext.JokerContainer.RemoveJoker(GameContext, jokerIndex);
 
-            GameContext.PersistentState.Gold += sellValue;
+            GameContext.PersistentState.EconomyHandler.AddGold(sellValue);
             return false;
         }
 

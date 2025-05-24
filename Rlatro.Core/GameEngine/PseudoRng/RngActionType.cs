@@ -17,6 +17,14 @@
         RandomPackConsumable,
         ShopItemType,
         JokerRarity,
+        ShopCardBase,
+        PackCardBase,
+        ShopCardEnhancement,
+        PackCardEnhancement,
+        ShopCardEdition,
+        PackCardEdition,
+        ShopCardSeal,
+        PackCardSeal,
     }
     
     static class RngActionTypeExt

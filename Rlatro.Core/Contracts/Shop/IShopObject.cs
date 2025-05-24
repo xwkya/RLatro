@@ -6,6 +6,5 @@ namespace Balatro.Core.Contracts.Shop
     {
         public ShopItemType ShopItemType { get; }
         public int StaticId { get; }
-        public int BaseCost { get; }
     }
 }

@@ -1,6 +1,5 @@
-﻿using Balatro.Core.CoreObjects.BoosterPacks;
-using Balatro.Core.CoreObjects.Consumables.ConsumableObject;
-using Balatro.Core.CoreObjects.Jokers.Joker;
+﻿using Balatro.Core.CoreObjects;
+using Balatro.Core.CoreObjects.BoosterPacks;
 using Balatro.Core.CoreObjects.Shop.ShopContainers;
 using Balatro.Core.CoreObjects.Shop.ShopObjects;
 using Balatro.Core.GameEngine.Contracts;
@@ -11,7 +10,6 @@ namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
 {
     public class ShopState : BaseGamePhaseState
     {
-        private const int VoucherPrice = 10;
         private ShopContainer ShopContainer { get; set; }
         private VoucherContainer VoucherContainer { get; set; }
         public BoosterContainer BoosterContainer { get; set; }
@@ -73,12 +71,17 @@ namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
 
             if (NextPhase == GamePhase.PlanetPack)
             {
-                return new PlanetPackState(this);
+                return new PlanetPackState(GameContext, this, OpenedPackType!.Value);
             }
             
             if (NextPhase == GamePhase.SpectralPack)
             {
-                return new SpectralPackState(this, GameContext);
+                return new SpectralPackState(GameContext, this, OpenedPackType!.Value);
+            }
+
+            if (NextPhase == GamePhase.CardPack)
+            {
+                throw new NotImplementedException();
             }
             
             if (NextPhase == GamePhase.Round)
@@ -91,14 +94,22 @@ namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
 
         private bool ExecuteRoll()
         {
+            int nextRollPrice;
+            
             // Book-keep the roll prices
             if (NumberOfFreeRolls > 0)
             {
                 NumberOfFreeRolls--;
+                nextRollPrice = 0;
             }
 
-            GameContext.PersistentState.Gold -= (GameContext.PersistentState.StartingRollPrice + NumberOfRollsPaidThisTurn);
-            NumberOfRollsPaidThisTurn++;
+            else
+            {
+                nextRollPrice = GameContext.PersistentState.StartingRollPrice + NumberOfRollsPaidThisTurn;
+                NumberOfRollsPaidThisTurn++;
+            }
+
+            GameContext.PersistentState.EconomyHandler.SpendGold(nextRollPrice);
             
             // Perform the roll
             ShopContainer.ClearItems(GameContext);
@@ -107,37 +118,13 @@ namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
             return false;
         }
         
-        private bool ExecuteSellJoker(int jokerIndex)
-        {
-            var joker = GameContext.JokerContainer.Jokers[jokerIndex];
-            var sellValue = ComputationHelpers.ComputeSellValue(GameContext, joker.BaseSellValue, joker.BonusSellValue);
-            
-            // Remove the joker from the game context and the joker container
-            GameContext.GameEventBus.PublishJokerRemovedFromContext(joker.StaticId);
-            GameContext.JokerContainer.RemoveJoker(GameContext, jokerIndex);
-        
-            // Add the sell value to the player's gold
-            GameContext.PersistentState.Gold += sellValue;
-            return false;
-        }
-        
-        private bool ExecuteSellConsumable(byte consumableIndex)
-        {
-            var sellValue = GameContext.ConsumableContainer.Consumables[consumableIndex].SellValue;
-            
-            GameContext.GameEventBus.PublishConsumableRemovedFromContext(consumableIndex);
-            GameContext.ConsumableContainer.RemoveConsumable(consumableIndex);
-
-            GameContext.PersistentState.Gold += sellValue;
-            return false;
-        }
-        
         public bool ExecuteBuyVoucher(int voucherIndex)
         {
             var voucher = VoucherContainer.Vouchers[voucherIndex];
             VoucherContainer.Vouchers.RemoveAt(voucherIndex);
             
-            GameContext.PersistentState.Gold -= VoucherPrice;
+            var voucherPrice = GameContext.PersistentState.EconomyHandler.GetVoucherPrice();
+            GameContext.PersistentState.EconomyHandler.SpendGold(voucherPrice);
             GameContext.GameEventBus.PublishVoucherBought(voucher);
             return false;
         }
@@ -145,15 +132,15 @@ namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
         public bool ExecuteBuyFromShop(int shopIndex)
         {
             var shopItem = ShopContainer.Items[shopIndex];
-            switch (shopItem.ShopItemType)
+            switch (shopItem.Type)
             {
                 case ShopItemType.TarotCard:
                 case ShopItemType.PlanetCard:
                 case ShopItemType.SpectralCard:
-                    GameContext.ConsumableContainer.AddConsumable((Consumable)shopItem);
+                    GameContext.ConsumableContainer.AddConsumable(CoreObjectsFactory.CreateConsumable(shopItem));
                     break;
                 case ShopItemType.Joker:
-                    GameContext.JokerContainer.AddJoker(GameContext, (JokerObject)shopItem);
+                    GameContext.JokerContainer.AddJoker(GameContext, CoreObjectsFactory.CreateJoker(shopItem));
                     break;
                 case ShopItemType.PlayingCard:
                     throw new NotImplementedException("Buyable playing cards not yet added");
@@ -161,10 +148,59 @@ namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
 
             return false;
         }
+
+        private int RollPrice()
+        {
+            if (NumberOfFreeRolls > 0)
+            {
+                return 0; // Free roll
+            }
+            
+            return GameContext.PersistentState.StartingRollPrice + NumberOfRollsPaidThisTurn;
+        }
         
         private bool ExecuteBuyBoosterPack(int boosterPackIndex)
         {
-            throw new NotImplementedException();
+            var packType = BoosterContainer.BoosterPacks[boosterPackIndex].BoosterPackType;
+            
+            GameContext.PersistentState.EconomyHandler.SpendGold(GameContext.PersistentState.EconomyHandler.GetBoosterPackPrice(packType));
+            OpenedPackType = packType;
+            NextPhase = GetBoosterPackPhase(packType);
+            BoosterContainer.BoosterPacks.RemoveAt(boosterPackIndex);
+            return true;
+        }
+        
+        private GamePhase GetBoosterPackPhase(BoosterPackType packType)
+        {
+            switch (packType)
+            {
+                case BoosterPackType.ArcanaNormal:
+                case BoosterPackType.ArcanaJumbo:
+                case BoosterPackType.ArcanaMega:
+                    return GamePhase.ArcanaPack;
+                
+                case BoosterPackType.CelestialNormal:
+                case BoosterPackType.CelestialJumbo:
+                case BoosterPackType.CelestialMega:
+                    return GamePhase.PlanetPack;
+                
+                case BoosterPackType.BuffoonNormal:
+                case BoosterPackType.BuffoonJumbo:
+                case BoosterPackType.BuffoonMega:
+                    return GamePhase.JokerPack;
+                
+                case BoosterPackType.SpectralNormal:
+                case BoosterPackType.SpectralJumbo:
+                case BoosterPackType.SpectralMega:
+                    return GamePhase.SpectralPack;
+                
+                case BoosterPackType.StandardNormal:
+                case BoosterPackType.StandardJumbo:
+                case BoosterPackType.StandardMega:
+                    return GamePhase.CardPack;
+            }
+            
+            throw new ArgumentOutOfRangeException(nameof(packType), packType, null);
         }
 
         private void FillShopContainer()
@@ -181,23 +217,49 @@ namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
             switch (action.ActionIntent)
             {
                 case ShopActionIntent.Roll:
-                    if (GameContext.PersistentState.Gold < GameContext.PersistentState.MinGold)
+                    if (!GameContext.PersistentState.EconomyHandler.CanSpend(RollPrice()))
                     {
                         throw new InvalidOperationException("Not enough gold to roll.");
                     }
                     break;
+                
                 case ShopActionIntent.BuyFromShop:
                     if (ShopContainer.Items.Count <= action.ShopIndex)
                     {
                         throw new ArgumentOutOfRangeException(nameof(action.ShopIndex), action.ShopIndex, $"Cannot buy item {action.ShopIndex} from shop, item does not exist");
                     }
 
-                    if (GameContext.PersistentState.Gold - ShopContainer.Items[action.ShopIndex].BaseCost <
-                        GameContext.PersistentState.MinGold)
+                    if (!GameContext.PersistentState.EconomyHandler.CanBuy(ShopContainer.Items[action.ShopIndex]))
                     {
                         throw new InvalidOperationException("Not enough gold to buy item.");
                     }
                     break;
+                
+                case ShopActionIntent.BuyVoucher:
+                    if (VoucherContainer.Vouchers.Count <= action.VoucherIndex)
+                    {
+                        throw new ArgumentOutOfRangeException(nameof(action.VoucherIndex), action.VoucherIndex, "Voucher index is out of range.");
+                    }
+
+                    if (!GameContext.PersistentState.EconomyHandler.CanBuyVoucher())
+                    {
+                        throw new InvalidOperationException("Not enough gold to buy voucher.");
+                    }
+                    break;
+                
+                case ShopActionIntent.BuyBoosterPack:
+                    if (BoosterContainer.BoosterPacks.Count <= action.BoosterPackIndex)
+                    {
+                        throw new ArgumentOutOfRangeException(nameof(action.BoosterPackIndex), action.BoosterPackIndex, "Booster pack index is out of range.");
+                    }
+
+                    if (!GameContext.PersistentState.EconomyHandler.CanBuy(BoosterContainer
+                            .BoosterPacks[action.BoosterPackIndex].BoosterPackType))
+                    {
+                        throw new InvalidOperationException("Not enough gold to buy booster pack.");
+                    }
+                    break;
+                
                 default:
                     throw new ArgumentOutOfRangeException(nameof(action.ActionIntent), action.ActionIntent, null);
             }

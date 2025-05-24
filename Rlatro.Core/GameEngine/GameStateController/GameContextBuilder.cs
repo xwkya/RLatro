@@ -24,17 +24,18 @@ namespace Balatro.Core.GameEngine.GameStateController
         public static GameContextBuilder Create(string seed)
         {
             var gameEventBus = new GameEventBus();
-            var handTracker = new HandTracker();
             
             var persistentState = new PersistentState()
             {
                 Discards = 4,
                 Hands = 4,
-                Gold = 10,
                 HandSize = 8,
-                HandTracker = handTracker,
+                HandTracker = new HandTracker(),
                 Round = 1,
             };
+            var startingGold = 10;
+            var economyHandler = new EconomyHandler(persistentState, startingGold);
+            persistentState.EconomyHandler = economyHandler;
 
             var gameContext = new GameContext()
             {
@@ -53,7 +54,6 @@ namespace Balatro.Core.GameEngine.GameStateController
             // Wire up the event bus
             gameContext.GlobalPoolManager = new GlobalPoolManager(gameContext);
 
-            handTracker.Subscribe(gameEventBus);
             persistentState.Subscribe(gameEventBus);
             gameContext.GlobalPoolManager.Subscribe(gameEventBus);
             

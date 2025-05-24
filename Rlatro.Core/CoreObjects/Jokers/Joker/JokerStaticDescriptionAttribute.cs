@@ -9,9 +9,10 @@
         /// </summary>
         public int StaticId { get; }
         public JokerRarity Rarity { get; }
+        public int BasePrice { get; set; }
         public string Description { get; set; } // Optional
 
-        public JokerStaticDescriptionAttribute(int staticId, JokerRarity rarity)
+        public JokerStaticDescriptionAttribute(int staticId, JokerRarity rarity, int basePrice)
         {
             StaticId = staticId; // This 'order' is now the primary key.
             Rarity = rarity;

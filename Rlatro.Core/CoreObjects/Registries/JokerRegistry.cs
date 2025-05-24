@@ -4,7 +4,7 @@ using Balatro.Core.CoreObjects.Jokers.Joker;
 
 namespace Balatro.Core.CoreObjects.Registries
 {
-        public static class JokerRegistry
+    public static class JokerRegistry
     {
         private static readonly Dictionary<JokerRarity, IReadOnlyList<int>> MasterOrderedStaticIdsByRarity = new();
         private static readonly Dictionary<int, JokerStaticDescriptionAttribute> AttributesByStaticId = new();
@@ -19,7 +19,7 @@ namespace Balatro.Core.CoreObjects.Registries
         static JokerRegistry()
         {
             var tempStaticIdsByRarity = new Dictionary<JokerRarity, List<int>>();
-            
+
             var types = Assembly.GetExecutingAssembly().GetTypes()
                 .Where(t => t.IsSubclassOf(typeof(JokerObject)) && !t.IsAbstract);
 
@@ -28,7 +28,8 @@ namespace Balatro.Core.CoreObjects.Registries
                 var attr = type.GetCustomAttribute<JokerStaticDescriptionAttribute>();
                 if (attr == null)
                 {
-                    throw new ArgumentException($"Type {type.Name} does not have a {nameof(JokerStaticDescriptionAttribute)}.");
+                    throw new ArgumentException(
+                        $"Type {type.Name} does not have a {nameof(JokerStaticDescriptionAttribute)}.");
                 }
 
                 if (AttributesByStaticId.ContainsKey(attr.StaticId))
@@ -37,7 +38,7 @@ namespace Balatro.Core.CoreObjects.Registries
                     throw new ArgumentException(
                         $"Duplicate StaticId {attr.StaticId} found. Existing: {existingType}, New: {type.Name}. StaticIds must be unique.");
                 }
-                
+
                 AttributesByStaticId[attr.StaticId] = attr;
                 TypeToStaticId[type] = attr.StaticId;
                 StaticIdToType[attr.StaticId] = type;
@@ -48,6 +49,7 @@ namespace Balatro.Core.CoreObjects.Registries
                     list = new List<int>();
                     tempStaticIdsByRarity[attr.Rarity] = list;
                 }
+
                 list.Add(attr.StaticId);
 
                 // Constructor now takes (int staticId, uint runtimeId, Edition edition)
@@ -58,14 +60,15 @@ namespace Balatro.Core.CoreObjects.Registries
                     var staticIdParam = System.Linq.Expressions.Expression.Parameter(typeof(int), "staticIdArg");
                     var runtimeIdParam = System.Linq.Expressions.Expression.Parameter(typeof(uint), "runtimeIdArg");
                     var editionParam = System.Linq.Expressions.Expression.Parameter(typeof(Edition), "editionArg");
-                    
+
                     // Create the 'new' expression, passing the lambda parameters to the constructor
-                    var newExpr = System.Linq.Expressions.Expression.New(ctorInfo, staticIdParam, runtimeIdParam, editionParam);
-                    
+                    var newExpr =
+                        System.Linq.Expressions.Expression.New(ctorInfo, staticIdParam, runtimeIdParam, editionParam);
+
                     // Compile the lambda
                     var lambda = System.Linq.Expressions.Expression.Lambda<Func<int, uint, Edition, JokerObject>>(
                         newExpr, staticIdParam, runtimeIdParam, editionParam);
-                    
+
                     ConstructorsByStaticId[attr.StaticId] = lambda.Compile();
                 }
                 else
@@ -84,20 +87,24 @@ namespace Balatro.Core.CoreObjects.Registries
             }
         }
 
-        public static IReadOnlyList<int> GetMasterOrderedStaticIds(JokerRarity rarity) => 
+        public static IReadOnlyList<int> GetMasterOrderedStaticIds(JokerRarity rarity) =>
             MasterOrderedStaticIdsByRarity.TryGetValue(rarity, out var list) ? list : Array.Empty<int>();
 
         public static JokerStaticDescriptionAttribute GetAttribute(int staticId) =>
-            AttributesByStaticId.TryGetValue(staticId, out var attr) ? attr : 
-            throw new KeyNotFoundException($"No JokerAttribute found for StaticId {staticId}.");
-        
+            AttributesByStaticId.TryGetValue(staticId, out var attr)
+                ? attr
+                : throw new KeyNotFoundException($"No JokerAttribute found for StaticId {staticId}.");
+
         public static Type GetType(int staticId) =>
-            StaticIdToType.TryGetValue(staticId, out var type) ? type : 
-            throw new KeyNotFoundException($"No Joker Type found for StaticId {staticId}.");
+            StaticIdToType.TryGetValue(staticId, out var type)
+                ? type
+                : throw new KeyNotFoundException($"No Joker Type found for StaticId {staticId}.");
 
         public static int GetStaticId(Type type) =>
-             TypeToStaticId.TryGetValue(type, out var id) ? id : 
-             throw new KeyNotFoundException($"No StaticId found for Joker Type {type.Name}. Is it registered with a JokerStaticDescriptionAttribute?");
+            TypeToStaticId.TryGetValue(type, out var id)
+                ? id
+                : throw new KeyNotFoundException(
+                    $"No StaticId found for Joker Type {type.Name}. Is it registered with a JokerStaticDescriptionAttribute?");
 
         public static JokerObject CreateInstance(int staticId, uint runtimeId, Edition ed = Edition.None)
         {
@@ -106,7 +113,7 @@ namespace Balatro.Core.CoreObjects.Registries
                 // Call the compiled constructor, passing the staticId along with runtimeId and edition
                 return constructor(staticId, runtimeId, ed);
             }
-            
+
             throw new ArgumentException($"No Joker constructor found for StaticId {staticId}.");
         }
 
@@ -119,7 +126,7 @@ namespace Balatro.Core.CoreObjects.Registries
                 // Call the compiled constructor, passing the staticId along with runtimeId and edition
                 return constructor(staticId, runtimeId, ed);
             }
-            
+
             throw new ArgumentException($"No Joker constructor found for StaticId {staticId}.");
         }
     }

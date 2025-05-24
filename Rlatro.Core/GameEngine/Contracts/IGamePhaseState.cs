@@ -7,8 +7,8 @@ namespace Balatro.Core.GameEngine.Contracts
     {
         GamePhase Phase { get; }
         bool HandleAction(BasePlayerAction action);
-        void OnEnterPhase() {}
-        void OnExitPhase() {}
+        public void OnEnterPhase() {}
+        public void OnExitPhase() {}
         IGamePhaseState GetNextPhaseState();
     }
 }

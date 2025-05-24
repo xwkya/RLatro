@@ -7,7 +7,7 @@ using Balatro.Core.GameEngine.GameStateController;
 
 namespace Balatro.Core.ObjectsImplementations.Jokers
 {
-    [JokerStaticDescription(staticId: 1, JokerRarity.Common, Description = "Adds +4 mult")]
+    [JokerStaticDescription(staticId: 1, JokerRarity.Common, 2, Description = "Adds +4 mult")]
     public class Joker : JokerObject
     {
         public Joker(int staticId, uint runtimeId, Edition edition = Edition.None) 
@@ -16,7 +16,6 @@ namespace Balatro.Core.ObjectsImplementations.Jokers
         }
         
         private const uint MultBonus = 4;
-        public override int BasePrice => 2;
         public override bool HasOnPlayedCardTriggerEffect => false;
         public override bool HasOnHeldInHandTriggerEffect => false;
 
@@ -26,7 +25,7 @@ namespace Balatro.Core.ObjectsImplementations.Jokers
         }
     }
     
-    [JokerStaticDescription(staticId: 2, JokerRarity.Common, Description = "Played Diamonds give +3 Mult.")]
+    [JokerStaticDescription(staticId: 2, JokerRarity.Common, 5, Description = "Played Diamonds give +3 Mult.")]
     public class GreedyJoker : JokerObject
     {
         public GreedyJoker(int staticId, uint runtimeId, Edition edition = Edition.None) 
@@ -47,12 +46,11 @@ namespace Balatro.Core.ObjectsImplementations.Jokers
             return card;
         }
 
-        public override int BasePrice => 5;
         public override bool HasOnPlayedCardTriggerEffect => true;
         public override bool HasOnHeldInHandTriggerEffect => false;
     }
     
-    [JokerStaticDescription(staticId: 3, JokerRarity.Common, Description = "Played Hearts give +3 Mult.")]
+    [JokerStaticDescription(staticId: 3, JokerRarity.Common, 5, Description = "Played Hearts give +3 Mult.")]
     public class LustyJoker : JokerObject
     {
         public LustyJoker(int staticId, uint runtimeId, Edition edition = Edition.None) 
@@ -73,12 +71,11 @@ namespace Balatro.Core.ObjectsImplementations.Jokers
             return card;
         }
 
-        public override int BasePrice => 5;
         public override bool HasOnPlayedCardTriggerEffect => true;
         public override bool HasOnHeldInHandTriggerEffect => false;
     }
     
-    [JokerStaticDescription(staticId: 4, JokerRarity.Common, Description = "Played Spades give +3 Mult.")]
+    [JokerStaticDescription(staticId: 4, JokerRarity.Common, 5, Description = "Played Spades give +3 Mult.")]
     public class WrathfulJoker : JokerObject
     {
         public WrathfulJoker(int staticId, uint runtimeId, Edition edition = Edition.None) 
@@ -99,12 +96,11 @@ namespace Balatro.Core.ObjectsImplementations.Jokers
             return card;
         }
 
-        public override int BasePrice => 5;
         public override bool HasOnPlayedCardTriggerEffect => true;
         public override bool HasOnHeldInHandTriggerEffect => false;
     }
     
-    [JokerStaticDescription(staticId: 5, JokerRarity.Common, Description = "Played Clubs give +3 Mult.")]
+    [JokerStaticDescription(staticId: 5, JokerRarity.Common, 5, Description = "Played Clubs give +3 Mult.")]
     public class GluttonousJoker : JokerObject
     {
         public GluttonousJoker(int staticId, uint runtimeId, Edition edition = Edition.None) 
@@ -125,12 +121,11 @@ namespace Balatro.Core.ObjectsImplementations.Jokers
             return card;
         }
 
-        public override int BasePrice => 5;
         public override bool HasOnPlayedCardTriggerEffect => true;
         public override bool HasOnHeldInHandTriggerEffect => false;
     }
 
-    [JokerStaticDescription(staticId: 6, JokerRarity.Common, Description = "If hand played is Pair, +8 Mult.")]
+    [JokerStaticDescription(staticId: 6, JokerRarity.Common, 4, Description = "If hand played is Pair, +8 Mult.")]
     public class JollyJoker : JokerObject
     {
         public JollyJoker(int staticId, uint runtimeId, Edition edition = Edition.None) 
@@ -149,12 +144,11 @@ namespace Balatro.Core.ObjectsImplementations.Jokers
             }
         }
 
-        public override int BasePrice => 4;
         public override bool HasOnPlayedCardTriggerEffect => false;
         public override bool HasOnHeldInHandTriggerEffect => false;
     }
     
-    [JokerStaticDescription(staticId: 7, JokerRarity.Common, Description = "If hand played is Three of a Kind, +12 Mult.")]
+    [JokerStaticDescription(staticId: 7, JokerRarity.Common, 4, Description = "If hand played is Three of a Kind, +12 Mult.")]
     public class ZanyJoker : JokerObject
     {
         public ZanyJoker(int staticId, uint runtimeId, Edition edition = Edition.None) 
@@ -173,12 +167,11 @@ namespace Balatro.Core.ObjectsImplementations.Jokers
             }
         }
 
-        public override int BasePrice => 4;
         public override bool HasOnPlayedCardTriggerEffect => false;
         public override bool HasOnHeldInHandTriggerEffect => false;
     }
     
-    [JokerStaticDescription(staticId: 8, JokerRarity.Common, Description = "If hand played is Two Pair, +10 Mult.")]
+    [JokerStaticDescription(staticId: 8, JokerRarity.Common, 4, Description = "If hand played is Two Pair, +10 Mult.")]
     public class MadJoker : JokerObject
     {
         public MadJoker(int staticId, uint runtimeId, Edition edition = Edition.None) 
@@ -197,12 +190,11 @@ namespace Balatro.Core.ObjectsImplementations.Jokers
             }
         }
 
-        public override int BasePrice => 4;
         public override bool HasOnPlayedCardTriggerEffect => false;
         public override bool HasOnHeldInHandTriggerEffect => false;
     }
     
-    [JokerStaticDescription(staticId: 9, JokerRarity.Common, Description = "If hand played is Straight, +12 Mult.")]
+    [JokerStaticDescription(staticId: 9, JokerRarity.Common, 4, Description = "If hand played is Straight, +12 Mult.")]
     public class CrazyJoker : JokerObject
     {
         public CrazyJoker(int staticId, uint runtimeId, Edition edition = Edition.None) 
@@ -221,12 +213,11 @@ namespace Balatro.Core.ObjectsImplementations.Jokers
             }
         }
 
-        public override int BasePrice => 4;
         public override bool HasOnPlayedCardTriggerEffect => false;
         public override bool HasOnHeldInHandTriggerEffect => false;
     }
     
-    [JokerStaticDescription(staticId: 10, JokerRarity.Common, Description = "If hand played is Flush, +10 Mult.")]
+    [JokerStaticDescription(staticId: 10, JokerRarity.Common, 4, Description = "If hand played is Flush, +10 Mult.")]
     public class DrollJoker : JokerObject
     {
         public DrollJoker(int staticId, uint runtimeId, Edition edition = Edition.None) 
@@ -245,7 +236,6 @@ namespace Balatro.Core.ObjectsImplementations.Jokers
             }
         }
 
-        public override int BasePrice => 4;
         public override bool HasOnPlayedCardTriggerEffect => false;
         public override bool HasOnHeldInHandTriggerEffect => false;
     }

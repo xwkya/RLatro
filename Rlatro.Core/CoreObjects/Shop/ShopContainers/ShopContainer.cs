@@ -7,19 +7,19 @@ namespace Balatro.Core.CoreObjects.Shop.ShopContainers
     public class ShopContainer
     {
         public int Capacity { get; set; }
-        public List<IShopObject> Items { get; set; }
+        public List<ShopItem> Items { get; set; }
 
         public void ClearItems(GameContext ctx)
         {
             foreach (var item in Items)
             {
-                if (item.ShopItemType == ShopItemType.Joker)
+                if (item.Type == ShopItemType.Joker)
                 {
                     ctx.GameEventBus.PublishJokerRemovedFromContext(item.StaticId);
                 }
-                if (item.ShopItemType == ShopItemType.PlanetCard || 
-                    item.ShopItemType == ShopItemType.TarotCard ||
-                    item.ShopItemType == ShopItemType.SpectralCard)
+                if (item.Type == ShopItemType.PlanetCard || 
+                    item.Type == ShopItemType.TarotCard ||
+                    item.Type == ShopItemType.SpectralCard)
                 {
                     ctx.GameEventBus.PublishConsumableRemovedFromContext(item.StaticId);
                 }

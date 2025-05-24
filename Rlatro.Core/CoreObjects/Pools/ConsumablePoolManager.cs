@@ -50,7 +50,8 @@ namespace Balatro.Core.CoreObjects.Pools
 
         public void Subscribe(GameEventBus eventBus)
         {
-            throw new NotImplementedException("Subscribe to relevant consumable events.");
+            eventBus.SubscribeToConsumableAddedToContext(ConsumableAddedToContext);
+            eventBus.SubscribeToConsumableRemovedFromContext(ConsumableRemovedFromContext);
         }
 
         // Event handler methods

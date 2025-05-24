@@ -19,7 +19,5 @@ namespace Balatro.Core.ObjectsImplementations.Consumables
         {
             return ctx.PersistentState.TheFoolStorage is not null;
         }
-
-        public override int BaseCost => 3;
     }
 }

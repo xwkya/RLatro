@@ -8,8 +8,6 @@ namespace Balatro.Core.GameEngine.GameStateController.PersistentStates
     public class PersistentState : IEventBusSubscriber
     {
         public bool[] OwnedVouchers = new bool[Enum.GetValues(typeof(VoucherType)).Length];
-        public int Gold { get; set; }
-        public int MinGold { get; set; }
         public int Discards { get; set; }
         public int Hands { get; set; }
         public int HandSize { get; set; }
@@ -17,9 +15,15 @@ namespace Balatro.Core.GameEngine.GameStateController.PersistentStates
         public int StartingRollPrice { get; set; } = 5;
         public string TheFoolStorage = null;
         public int Ante => Round / 3;
-        public AppearanceRates AppearanceRates { get; set; } = new AppearanceRates();
+        public AppearanceRates AppearanceRates { get; set; }
         public HandTracker HandTracker { get; set; }
+        public EconomyHandler EconomyHandler { get; set; }
 
+        public PersistentState()
+        {
+            AppearanceRates = new AppearanceRates(this);
+        }
+        
         public ScoreContext GetHandScore(HandRank rank)
         {
             return HandTracker.GetHandScore(rank);
@@ -33,6 +37,10 @@ namespace Balatro.Core.GameEngine.GameStateController.PersistentStates
         public void Subscribe(GameEventBus eventBus)
         {
             eventBus.SubscribeToVoucherBought(OnVoucherBought);
+            
+            // Pass down the subscription to the owned objects
+            AppearanceRates.Subscribe(eventBus);
+            HandTracker.Subscribe(eventBus);
         }
     }
 }
