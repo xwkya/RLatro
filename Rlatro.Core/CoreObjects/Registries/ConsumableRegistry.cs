@@ -1,5 +1,6 @@
 ﻿using System.Reflection;
 using Balatro.Core.CoreObjects.Consumables.ConsumableObject;
+using Balatro.Core.CoreObjects.CoreEnums;
 
 namespace Balatro.Core.CoreObjects.Registries
 {
@@ -15,6 +16,8 @@ namespace Balatro.Core.CoreObjects.Registries
 
         private static readonly Dictionary<Type, int> TypeToStaticId = new Dictionary<Type, int>();
         private static readonly Dictionary<int, Type> StaticIdToType = new Dictionary<int, Type>();
+        
+        private static readonly Dictionary<HandRank, int> HandRankToStaticId = new Dictionary<HandRank, int>();
 
         static ConsumableRegistry()
         {
@@ -42,6 +45,11 @@ namespace Balatro.Core.CoreObjects.Registries
                 AttributesByStaticId[attr.StaticId] = attr;
                 TypeToStaticId[type] = attr.StaticId;
                 StaticIdToType[attr.StaticId] = type;
+
+                if (attr.UpgradedRank.HasValue)
+                {
+                    HandRankToStaticId[attr.UpgradedRank.Value] = attr.StaticId;
+                }
 
                 if (!tempStaticIdsByType.TryGetValue(attr.Type, out var list))
                 {
@@ -98,6 +106,11 @@ namespace Balatro.Core.CoreObjects.Registries
                 ? id
                 : throw new KeyNotFoundException(
                     $"No StaticId found for Consumable Type {type.Name}. Is it registered with an attribute?");
+        
+        public static int GetHandRankPlanetStaticId(HandRank rank) =>
+            HandRankToStaticId.TryGetValue(rank, out var staticId)
+                ? staticId
+                : throw new KeyNotFoundException($"No StaticId found for HandRank {rank}.");
 
         public static Consumable CreateInstance(int staticId, uint runtimeId, bool isNegative = false)
         {

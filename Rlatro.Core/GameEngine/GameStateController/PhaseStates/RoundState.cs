@@ -1,4 +1,5 @@
-﻿using Balatro.Core.CoreRules.CanonicalViews;
+﻿using Balatro.Core.CoreObjects.CoreEnums;
+using Balatro.Core.CoreRules.CanonicalViews;
 using Balatro.Core.CoreRules.Scoring;
 using Balatro.Core.GameEngine.Contracts;
 using Balatro.Core.GameEngine.GameStateController.PhaseActions;
@@ -18,6 +19,7 @@ namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
         public uint CurrentChipsScore { get; set; }  // TODO: This will be a problem for hands above 4T chips
         public uint CurrentChipsRequirement { get; set; }
         public bool IsPhaseOver => (CurrentChipsScore >= CurrentChipsRequirement) || (Hands == 0) || (GameContext.GetHandSize() <= 0);
+        private HandRank? LastPlayedHand { get; set; }
 
         public RoundState(GameContext ctx) : base(ctx)
         {
@@ -29,8 +31,22 @@ namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
         public override void OnEnterPhase()
         {
             base.OnEnterPhase();
-            DrawCards(); // Draw cards to fill the hand
+            DrawCards();
             CurrentChipsRequirement = 300;
+        }
+
+        public override void OnExitPhase()
+        {
+            base.OnExitPhase();
+
+            TriggerEndOfRoundEvent();
+            
+            GameContext.Hand.MoveAllTo(GameContext.Deck);
+            GameContext.DiscardPile.MoveAllTo(GameContext.Deck);
+            GameContext.Deck.Shuffle(GameContext.RngController);
+            
+            // Move up one round
+            GameContext.PersistentState.Round++;
         }
 
         protected override bool HandleStateSpecificAction(BasePlayerAction action)
@@ -90,11 +106,37 @@ namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
             Hands--;
             GameContext.Hand.MoveMany(cardIndexes, GameContext.PlayContainer); // hand -> play
             var scoreContext = ScoringCalculation.EvaluateHand(GameContext);
+            LastPlayedHand = scoreContext.HandRank;
             CurrentChipsScore += scoreContext.Chips * scoreContext.MultNumerator / scoreContext.MultDenominator;
             GameContext.PlayContainer.MoveAllTo(GameContext.DiscardPile); // play -> discard
-            DrawCards();
+            
+            var isPhaseOver = IsPhaseOver;
 
-            return IsPhaseOver;
+            if (!isPhaseOver)
+            {
+                DrawCards();
+            }
+
+            return isPhaseOver;
+        }
+
+        private void TriggerEndOfRoundEvent()
+        {
+            // Trigger blue seal, gold cards, etc..
+            ScoringCalculation.TriggerHandCardsEndOfRound(GameContext, LastPlayedHand!.Value);
+            
+            // Trigger end of round event for jokers
+            foreach (var joker in GameContext.JokerContainer.Jokers)
+            {
+                joker.OnRoundEnd(GameContext);
+            }
+            
+            // Interest and money from hands left
+            var goldFromHandsLeft = GameContext.PersistentState.EconomyHandler.GetGoldPerHandLeft() * Hands;
+            var goldFromInterest = GameContext.PersistentState.EconomyHandler.CalculateInterest();
+            var blindReward = GameContext.PersistentState.EconomyHandler.CalculateRoundGold();
+            
+            GameContext.PersistentState.EconomyHandler.AddGold(goldFromHandsLeft + goldFromInterest + blindReward);
         }
         
         private void ValidatePossibleAction(RoundAction action)

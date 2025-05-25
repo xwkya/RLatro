@@ -1,7 +1,4 @@
-﻿using System.Security.Cryptography;
-using System.Text;
-
-namespace Balatro.Core.GameEngine.PseudoRng
+﻿namespace Balatro.Core.GameEngine.PseudoRng
 {
     /// <summary>
     /// Copy of the Balatro’s pseudorandom helpers.
@@ -102,9 +99,16 @@ namespace Balatro.Core.GameEngine.PseudoRng
         
         private static ulong HashString(string input)
         {
-            using var sha256 = SHA256.Create();
-            byte[] hashBytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(input));
-            return BitConverter.ToUInt64(hashBytes, 0);
+            const ulong FnvOffsetBasis = 14695981039346656037;
+            const ulong FnvPrime = 1099511628211;
+    
+            ulong hash = FnvOffsetBasis;
+            foreach (char c in input)
+            {
+                hash ^= c;
+                hash *= FnvPrime;
+            }
+            return hash;
         }
     }
 }

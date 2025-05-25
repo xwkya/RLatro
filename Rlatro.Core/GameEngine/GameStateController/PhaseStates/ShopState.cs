@@ -91,7 +91,7 @@ namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
 
             if (NextPhase == GamePhase.CardPack)
             {
-                throw new NotImplementedException();
+                return new CardPackState(GameContext, this, OpenedPackType!.Value);
             }
             
             if (NextPhase == GamePhase.Round)
@@ -220,6 +220,16 @@ namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
                 var item = GameContext.GlobalPoolManager.GenerateShopItem();
                 ShopContainer.Items.Add(item);
             }
+        }
+
+        private void FillBoosterPackContainer()
+        {
+            throw new NotImplementedException();
+        }
+
+        private void FillVoucherContainer()
+        {
+            throw new NotImplementedException();
         }
         
         private void ValidatePossibleAction(ShopAction action)

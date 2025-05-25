@@ -1,5 +1,6 @@
 ﻿using Balatro.Core.CoreObjects.Cards.CardObject;
 using Balatro.Core.CoreObjects.CoreEnums;
+using Balatro.Core.CoreObjects.Registries;
 using Balatro.Core.CoreRules.CanonicalViews;
 using Balatro.Core.GameEngine.GameStateController;
 using Balatro.Core.GameEngine.PseudoRng;
@@ -13,6 +14,7 @@ namespace Balatro.Core.CoreRules.Scoring
         private const uint HoloMult = 10;
         private const uint PolychromeMultNumerator = 3;
         private const uint PolychromeMultDenominator = 2;
+        private const int GoldCardGrantedGold = 3;
         
         private static void TriggerEdition(Edition edition, ref ScoreContext scoreCtx)
         {
@@ -108,6 +110,37 @@ namespace Balatro.Core.CoreRules.Scoring
             }
 
             return totalTriggers;
+        }
+
+        public static void TriggerHandCardsEndOfRound(
+            GameContext ctx,
+            HandRank lastPlayedHand)
+        {
+            Span<CardView> handCardViews = stackalloc CardView[ctx.Hand.Count];
+            ctx.Hand.FillCardViews(ctx, handCardViews, false);
+            
+            // Count how many times the card will be triggered
+            Span<int> countHandCardTriggers = stackalloc int[ctx.Hand.Count];
+            
+            countHandCardTriggers.Fill(0); 
+            
+            // Triggers from red seals + joker triggers
+            for (var i = 0; i < ctx.Hand.Count; i++)
+            {
+                countHandCardTriggers[i] = CountCardTriggers(ctx, false, i, handCardViews[i]);
+            }
+            
+            // Trigger all cards in hand
+            for (var i = 0; i < ctx.Hand.Count; i++)
+            {
+                var cardToScore = ctx.Hand.Span[i];
+                var cardTriggers = countHandCardTriggers[i];
+                
+                for (var trigger = 0; trigger < cardTriggers; trigger++)
+                {
+                    TriggerHandCardEffectEndOfRound(cardToScore, ctx, lastPlayedHand);
+                }
+            }
         }
         
         private static void TriggerHandCards(
@@ -276,6 +309,23 @@ namespace Balatro.Core.CoreRules.Scoring
                 case Enhancement.Steel:
                     scoreContext.TimesMult(3, 2);
                     break;
+            }
+        }
+
+        private static void TriggerHandCardEffectEndOfRound(
+            Card64 card,
+            GameContext ctx,
+            HandRank lastPlayedHand)
+        {
+            if (card.GetEnh() == Enhancement.Gold)
+            {
+                ctx.PersistentState.EconomyHandler.AddGold(GoldCardGrantedGold);
+            }
+
+            if (card.GetSeal() == Seal.Blue && ctx.ConsumableContainer.Capacity > ctx.ConsumableContainer.Consumables.Count)
+            {
+                var planetStaticId = ConsumableRegistry.GetHandRankPlanetStaticId(lastPlayedHand);
+                ctx.ConsumableContainer.AddConsumable(ctx.CoreObjectsFactory.CreateConsumable(planetStaticId));
             }
         }
 

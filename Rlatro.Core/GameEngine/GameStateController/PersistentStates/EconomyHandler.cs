@@ -17,25 +17,31 @@ namespace Balatro.Core.GameEngine.GameStateController.PersistentStates
         private const int HologramPrice = 3;
         private const int PolychromePrice = 5;
         private const int NegativePrice = 5;
-        
+        private const int BaseGoldPerHandLeft = 1;
+
+        private const int SmallBlindReward = 3;
+        private const int BigBlindReward = 4;
+        private const int BossBlindReward = 5;
+
         /// <summary>
         /// Reference to the game instance's persistent state for voucher lookup.
         /// </summary>
         private PersistentState PersistentState { get; set; }
+
         private int CurrentGold { get; set; }
         private int MinGold { get; set; } = 0;
-        
+
         public EconomyHandler(PersistentState persistentState, int startingGold)
         {
             PersistentState = persistentState;
             CurrentGold = startingGold;
         }
-        
+
         public int GetCurrentGold()
         {
             return CurrentGold;
         }
-        
+
         public void AddGold(int amount)
         {
             CurrentGold += amount;
@@ -71,6 +77,43 @@ namespace Balatro.Core.GameEngine.GameStateController.PersistentStates
             return GetDiscountedPrice(VoucherBasePrice);
         }
 
+        public int GetGoldPerHandLeft()
+        {
+            return BaseGoldPerHandLeft;
+        }
+
+        public int CalculateInterest()
+        {
+            int maxInterest;
+            if (PersistentState.OwnedVouchers[(int)VoucherType.MoneyTree])
+            {
+                maxInterest = 100;
+            }
+            else if (PersistentState.OwnedVouchers[(int)VoucherType.SeedMoney])
+            {
+                maxInterest = 50;
+            }
+            else
+            {
+                maxInterest = 25;
+            }
+
+            var interest = CurrentGold > maxInterest ? maxInterest / 5 : CurrentGold / 5;
+            return interest;
+        }
+
+        public int CalculateRoundGold()
+        {
+            var roundType = (PersistentState.Round - 1) % 3;
+            return roundType switch
+            {
+                0 => SmallBlindReward,
+                1 => BigBlindReward,
+                2 => BossBlindReward,
+                _ => 0,
+            };
+        }
+
         public int GetShopItemPrice(ShopItem item)
         {
             var basePrice = GetShopItemBasePrice(item);
@@ -90,7 +133,7 @@ namespace Balatro.Core.GameEngine.GameStateController.PersistentStates
             var basePrice = GetJokerBasePrice(joker.StaticId);
             var editionBonus = GetEditionBonusValue(joker.Edition);
             var discountedPrice = GetDiscountedPrice(basePrice + editionBonus);
-            
+
             var sellPrice = discountedPrice / 2 + joker.BonusSellValue;
             return sellPrice < 1 ? 1 : sellPrice;
         }
@@ -108,7 +151,7 @@ namespace Balatro.Core.GameEngine.GameStateController.PersistentStates
             {
                 return price / 2;
             }
-            
+
             if (PersistentState.OwnedVouchers[Discount30VoucherIndex])
             {
                 return price * 7 / 10; // 30% discount
