@@ -1,6 +1,4 @@
-﻿using Balatro.Core.CoreObjects.BoosterPacks;
-using Balatro.Core.CoreObjects.Consumables.ConsumableObject;
-using Balatro.Core.GameEngine.Contracts;
+﻿using Balatro.Core.CoreObjects.Consumables.ConsumableObject;
 using Balatro.Core.GameEngine.GameStateController.PhaseActions;
 using Balatro.Core.GameEngine.GameStateController.PhaseActions.ActionIntents;
 using Balatro.Core.GameEngine.PseudoRng;
@@ -8,25 +6,15 @@ using Balatro.Core.GameEngine.StateController;
 
 namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
 {
-    public class SpectralPackState : BaseGamePhaseState
+    public class SpectralPackState : BasePackState<SpectralPackState>
     {
-        private ShopState IncomingState { get; }
-        private int NumberOfChoices { get; set; }
-        private int NumberOfCards { get; set; }
         private List<Consumable> SpectralCards { get; set; } = new();
         
-        public SpectralPackState(GameContext ctx, ShopState incomingState, BoosterPackType packType) : base(ctx)
+        public SpectralPackState(GameContext ctx) : base(ctx)
         {
-            IncomingState = incomingState;
-            var sizeAndChoices = packType.GetPackSizeAndChoice();
-            NumberOfCards = sizeAndChoices.size;
-            NumberOfChoices = sizeAndChoices.choice;
-            FillCardChoices();
-            FillHand();
         }
 
         public override GamePhase Phase => GamePhase.SpectralPack;
-        
 
         protected override bool HandleStateSpecificAction(BasePlayerAction action)
         {
@@ -53,16 +41,18 @@ namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
             NumberOfChoices--;
             return NumberOfChoices == 0;
         }
-
-        public override IGamePhaseState GetNextPhaseState()
+        
+        public override void OnEnterPhase()
         {
-            return IncomingState;
+            FillCardChoices();
+            FillHand();
         }
 
         public override void OnExitPhase()
         {
             GameContext.Hand.MoveAllTo(GameContext.Deck);
             GameContext.Deck.Shuffle(GameContext.RngController);
+            ClearCardChoices();
         }
 
         private void ValidatePossibleAction(PackActionWithTargets packAction)
@@ -88,11 +78,21 @@ namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
 
         private void FillCardChoices()
         {
-            for (var i = 0; i < NumberOfCards; i++)
+            for (var i = 0; i < PackSize; i++)
             {
                 var card = GameContext.GlobalPoolManager.GenerateConsumable(RngActionType.RandomPackConsumable, ConsumableType.Spectral);
                 SpectralCards.Add(card);
             }
+        }
+
+        private void ClearCardChoices()
+        {
+            foreach (var t in SpectralCards)
+            {
+                GameContext.GameEventBus.PublishConsumableRemovedFromContext(t.StaticId);
+            }
+
+            SpectralCards.Clear();
         }
     }
 }

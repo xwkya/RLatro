@@ -3,8 +3,10 @@ using Balatro.Core.CoreObjects.Cards.CardsContainer;
 using Balatro.Core.CoreObjects.Consumables.ConsumablesContainer;
 using Balatro.Core.CoreObjects.Jokers.JokersContainer;
 using Balatro.Core.CoreObjects.Pools;
+using Balatro.Core.GameEngine.Contracts;
 using Balatro.Core.GameEngine.GameStateController.EventBus;
 using Balatro.Core.GameEngine.GameStateController.PersistentStates;
+using Balatro.Core.GameEngine.GameStateController.PhaseStates;
 using Balatro.Core.GameEngine.PseudoRng;
 
 namespace Balatro.Core.GameEngine.GameStateController
@@ -22,6 +24,7 @@ namespace Balatro.Core.GameEngine.GameStateController
         public GlobalPoolManager GlobalPoolManager { get; set; }
         public GameEventBus GameEventBus { get; set; }
         public CoreObjectsFactory CoreObjectsFactory { get; set; }
+        public Dictionary<Type, IGamePhaseState> GamePhaseStates = new Dictionary<Type, IGamePhaseState>();
 
         public int GetHandSize()
         {

@@ -1,6 +1,4 @@
-﻿using Balatro.Core.CoreObjects.BoosterPacks;
-using Balatro.Core.CoreObjects.Consumables.ConsumableObject;
-using Balatro.Core.GameEngine.Contracts;
+﻿using Balatro.Core.CoreObjects.Consumables.ConsumableObject;
 using Balatro.Core.GameEngine.GameStateController.PhaseActions;
 using Balatro.Core.GameEngine.GameStateController.PhaseActions.ActionIntents;
 using Balatro.Core.GameEngine.PseudoRng;
@@ -8,24 +6,11 @@ using Balatro.Core.GameEngine.StateController;
 
 namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
 {
-    public class ArcanaPackState : BaseGamePhaseState
+    public class ArcanaPackState : BasePackState<ArcanaPackState>
     {
-        private IGamePhaseState IncomingState { get; }
-        private int ArcanaPackSize { get; init; }
-        private int NumberOfChoices { get; set; }
         private List<Consumable> ArcanaCards { get; } = new();
         
-        public ArcanaPackState(GameContext ctx, IGamePhaseState incomingState, BoosterPackType type) : base(ctx)
-        {
-            IncomingState = incomingState;
-            
-            var t = type.GetPackSizeAndChoice();
-            ArcanaPackSize = t.size;
-            NumberOfChoices = t.choice;
-            
-            FillCardsChoice();
-            FillHand();
-        }
+        public ArcanaPackState(GameContext ctx) : base(ctx) { }
         
         public override GamePhase Phase => GamePhase.ArcanaPack;
 
@@ -54,16 +39,18 @@ namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
             NumberOfChoices--;
             return NumberOfChoices == 0;
         }
-
-        public override IGamePhaseState GetNextPhaseState()
-        {
-            return IncomingState;
-        }
         
         public override void OnExitPhase()
         {
             GameContext.Hand.MoveAllTo(GameContext.Deck);
             GameContext.Deck.Shuffle(GameContext.RngController);
+            ClearCardChoice();
+        }
+
+        public override void OnEnterPhase()
+        {
+            FillCardsChoice();
+            FillHand();
         }
 
         private void ValidatePossibleAction(PackActionWithTargets packAction)
@@ -89,11 +76,20 @@ namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
 
         private void FillCardsChoice()
         {
-            for (var i = 0; i < ArcanaPackSize; i++)
+            for (var i = 0; i < PackSize; i++)
             {
                 var card = GameContext.GlobalPoolManager.GenerateConsumable(RngActionType.RandomPackConsumable, ConsumableType.Tarot);
                 ArcanaCards.Add(card);
             }
+        }
+        
+        private void ClearCardChoice()
+        {
+            foreach (var card in ArcanaCards)
+            {
+                GameContext.GameEventBus.PublishConsumableRemovedFromContext(card.StaticId);
+            }
+            ArcanaCards.Clear();
         }
     }
 }

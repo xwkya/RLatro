@@ -2,6 +2,7 @@
 using Balatro.Core.CoreObjects.CoreEnums;
 using Balatro.Core.CoreObjects.Jokers.Joker;
 using Balatro.Core.CoreObjects.Shop.ShopObjects;
+using Balatro.Core.CoreObjects.Vouchers;
 using Balatro.Core.GameEngine.GameStateController;
 using Balatro.Core.GameEngine.GameStateController.EventBus;
 using Balatro.Core.GameEngine.PseudoRng;
@@ -52,6 +53,16 @@ namespace Balatro.Core.CoreObjects.Pools
                 Type = type.GetShopItemType(),
                 Edition = Edition.None,
             };
+        }
+
+        public VoucherType GetNewAnteVoucher()
+        {
+            return VoucherPool.GetNewAnteVoucher(GameContext.RngController);
+        }
+
+        public VoucherType[] GetTagVoucher(int numberOfVouchers)
+        {
+            return VoucherPool.GetTagVoucher(numberOfVouchers, GameContext.RngController);
         }
 
         public Consumable GenerateConsumable(RngActionType actionType, ConsumableType type)

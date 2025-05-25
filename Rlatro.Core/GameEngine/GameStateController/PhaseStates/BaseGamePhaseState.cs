@@ -9,6 +9,7 @@ namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
     {
         protected GameContext GameContext { get; }
         public abstract GamePhase Phase { get; }
+        public abstract bool ShouldInitializeNextState { get; }
         
         public BaseGamePhaseState(GameContext gameContext)
         {

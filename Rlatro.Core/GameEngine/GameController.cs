@@ -93,7 +93,11 @@ namespace Balatro.Core.GameEngine
                 {
                     GamePhaseState.OnExitPhase();
                     GamePhaseState = GamePhaseState.GetNextPhaseState();
-                    GamePhaseState.OnEnterPhase();
+                    
+                    if (GamePhaseState.ShouldInitializeNextState)
+                    {
+                        GamePhaseState.OnEnterPhase();
+                    }
                 }
                 
                 Display.DisplayGameState(GameContext, GamePhaseState);

@@ -2,8 +2,10 @@
 using Balatro.Core.CoreObjects.BoosterPacks;
 using Balatro.Core.CoreObjects.Shop.ShopContainers;
 using Balatro.Core.CoreObjects.Shop.ShopObjects;
+using Balatro.Core.CoreObjects.Vouchers;
 using Balatro.Core.GameEngine.Contracts;
 using Balatro.Core.GameEngine.GameStateController.PhaseActions;
+using Balatro.Core.GameEngine.PseudoRng;
 using Balatro.Core.GameEngine.StateController;
 
 namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
@@ -16,7 +18,15 @@ namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
         private GamePhase NextPhase { get; set; }
         private BoosterPackType? OpenedPackType { get; set; }
         public override GamePhase Phase => GamePhase.Shop;
-        public ShopState(GameContext ctx) : base(ctx) { }
+        public override bool ShouldInitializeNextState => true;
+
+        private VoucherType CurrentAnteVoucher { get; set; }
+
+        public ShopState(GameContext ctx) : base(ctx)
+        {
+            ShopContainer = new ShopContainer(2); // TODO: Use vouchers for this
+            CurrentAnteVoucher = ctx.GlobalPoolManager.GetNewAnteVoucher();
+        }
         
         /// <summary>
         /// Gets the number of rolls the player has paid -> Chaos free roll should not increment this counter.
@@ -54,14 +64,17 @@ namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
 
         public override void OnEnterPhase()
         {
-            if (ShopContainer is null)
-            {
-                ShopContainer = new ShopContainer(2); // TODO: Use vouchers for this
-            }
-            
             FillShopContainer();
+            FillBoosterPackContainer();
+            FillVoucherContainer();
         }
 
+        public override void OnExitPhase()
+        {
+            ShopContainer.ClearItems(GameContext);
+            BoosterContainer.BoosterPacks.Clear();
+        }
+        
         public override IGamePhaseState GetNextPhaseState()
         {
             // Internal verification
@@ -71,35 +84,112 @@ namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
                     
             if (NextPhase == GamePhase.ArcanaPack)
             {
-                return new ArcanaPackState(GameContext, this, OpenedPackType!.Value);
+                ArcanaPackState arcanaPackState;
+                if (GameContext.GamePhaseStates.ContainsKey(typeof(ArcanaPackState)))
+                {
+                    arcanaPackState = (ArcanaPackState)GameContext.GamePhaseStates[typeof(ArcanaPackState)];
+                }
+                else
+                {
+                    arcanaPackState = new ArcanaPackState(GameContext);
+                    GameContext.GamePhaseStates[typeof(ArcanaPackState)] = arcanaPackState;
+                }
+
+                arcanaPackState.SetIncomingState(this)
+                    .SetPackType(OpenedPackType!.Value);
+
+                return arcanaPackState;
             }
             
             if (NextPhase == GamePhase.JokerPack)
             {
-                return new JokerPackState(GameContext, this, OpenedPackType!.Value);
+                JokerPackState jokerPackState;
+                if (GameContext.GamePhaseStates.ContainsKey(typeof(JokerPackState)))
+                {
+                    jokerPackState = (JokerPackState)GameContext.GamePhaseStates[typeof(JokerPackState)];
+                }
+                else
+                {
+                    jokerPackState = new JokerPackState(GameContext);
+                    GameContext.GamePhaseStates[typeof(JokerPackState)] = jokerPackState;
+                }
+
+                jokerPackState.SetIncomingState(this)
+                    .SetPackType(OpenedPackType!.Value);
+
+                return jokerPackState;
             }
 
             if (NextPhase == GamePhase.PlanetPack)
             {
-                return new PlanetPackState(GameContext, this, OpenedPackType!.Value);
+                PlanetPackState planetPackState;
+                if (GameContext.GamePhaseStates.ContainsKey(typeof(PlanetPackState)))
+                {
+                    planetPackState = (PlanetPackState)GameContext.GamePhaseStates[typeof(PlanetPackState)];
+                }
+                else
+                {
+                    planetPackState = new PlanetPackState(GameContext);
+                    GameContext.GamePhaseStates[typeof(PlanetPackState)] = planetPackState;
+                }
+
+                planetPackState.SetIncomingState(this)
+                    .SetPackType(OpenedPackType!.Value);
+
+                return planetPackState;
             }
             
             if (NextPhase == GamePhase.SpectralPack)
             {
-                return new SpectralPackState(GameContext, this, OpenedPackType!.Value);
+                SpectralPackState spectralPackState;
+                if (GameContext.GamePhaseStates.ContainsKey(typeof(SpectralPackState)))
+                {
+                    spectralPackState = (SpectralPackState)GameContext.GamePhaseStates[typeof(SpectralPackState)];
+                }
+                else
+                {
+                    spectralPackState = new SpectralPackState(GameContext);
+                    GameContext.GamePhaseStates[typeof(SpectralPackState)] = spectralPackState;
+                }
+
+                spectralPackState.SetIncomingState(this)
+                    .SetPackType(OpenedPackType!.Value);
+
+                return spectralPackState;
             }
 
             if (NextPhase == GamePhase.CardPack)
             {
-                return new CardPackState(GameContext, this, OpenedPackType!.Value);
-            }
-            
-            if (NextPhase == GamePhase.Round)
-            {
-                return new RoundState(GameContext);
+                CardPackState cardPackState;
+                if (GameContext.GamePhaseStates.ContainsKey(typeof(CardPackState)))
+                {
+                    cardPackState = (CardPackState)GameContext.GamePhaseStates[typeof(CardPackState)];
+                }
+                else
+                {
+                    cardPackState = new CardPackState(GameContext);
+                    GameContext.GamePhaseStates[typeof(CardPackState)] = cardPackState;
+                }
+
+                cardPackState.SetIncomingState(this)
+                    .SetPackType(OpenedPackType!.Value);
+
+                return cardPackState;
             }
 
-            return new BlindSelectionState(GameContext);
+            // Otherwise we use the blind state
+            BlindSelectionState blindSelectionState;
+            if (GameContext.GamePhaseStates.ContainsKey(typeof(BlindSelectionState)))
+            {
+                blindSelectionState = (BlindSelectionState)GameContext.GamePhaseStates[typeof(BlindSelectionState)];
+            }
+            else
+            {
+                blindSelectionState = new BlindSelectionState(GameContext);
+                GameContext.GamePhaseStates[typeof(BlindSelectionState)] = blindSelectionState;
+            }
+
+            return blindSelectionState;
         }
 
         private bool ExecuteRoll()
@@ -224,12 +314,45 @@ namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
 
         private void FillBoosterPackContainer()
         {
-            throw new NotImplementedException();
+            var appearanceRates = GameContext.PersistentState.AppearanceRates;
+            
+            for (int i = 0; i < BoosterContainer.BoosterPackSlots; i++)
+            {
+                var selectedPackType = SelectWeightedBoosterPack(appearanceRates.GetAllBoosterPackWeights());
+                var boosterPack = new BoosterPack { BoosterPackType = selectedPackType };
+                BoosterContainer.AddPack(boosterPack);
+            }
+        }
+        
+        private BoosterPackType SelectWeightedBoosterPack(IReadOnlyDictionary<BoosterPackType, float> weights)
+        {
+            var randomValue = GameContext.RngController.GetRandomProbability(RngActionType.RandomPack);
+            
+            float currentWeight = 0f;
+            foreach (var kvp in weights)
+            {
+                currentWeight += kvp.Value;
+                if (randomValue <= currentWeight)
+                {
+                    return kvp.Key;
+                }
+            }
+
+            throw new ApplicationException("Failed to select a weighted booster pack. This should never happen.");
         }
 
         private void FillVoucherContainer()
         {
-            throw new NotImplementedException();
+            // Clear all to prevent vouchers from tags to persist
+            VoucherContainer.Vouchers.Clear();
+            
+            // Create a new voucher if it's round 1
+            if (GameContext.PersistentState.Round % 3 == 1)
+            {
+                CurrentAnteVoucher = GameContext.GlobalPoolManager.GetNewAnteVoucher();
+            }
+            
+            VoucherContainer.Vouchers.Add(CurrentAnteVoucher);
         }
         
         private void ValidatePossibleAction(ShopAction action)

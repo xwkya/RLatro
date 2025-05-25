@@ -11,6 +11,7 @@
         SpaceJoker,
         GetSingleVoucher,
         GetTagVouchers,
+        RandomPack,
         RandomShopJoker,
         RandomPackJoker,
         RandomShopConsumable,

@@ -1,27 +1,18 @@
-﻿using Balatro.Core.CoreObjects.BoosterPacks;
-using Balatro.Core.CoreObjects.Cards.CardObject;
+﻿using Balatro.Core.CoreObjects.Cards.CardObject;
 using Balatro.Core.CoreObjects.Registries;
-using Balatro.Core.GameEngine.Contracts;
 using Balatro.Core.GameEngine.GameStateController.PhaseActions;
 using Balatro.Core.GameEngine.GameStateController.PhaseActions.ActionIntents;
 using Balatro.Core.GameEngine.StateController;
 
 namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
 {
-    public class CardPackState : BaseGamePhaseState
+    public class CardPackState : BasePackState<CardPackState>
     {
-        private IGamePhaseState IncomingState { get; }
-        private int BoosterPackSize { get; }
-        private int NumberOfChoices { get; set; }
         private List<Card64> PackCards { get; } = new();
-        
-        public CardPackState(GameContext gameContext, IGamePhaseState incomingState, BoosterPackType packType) : base(gameContext)
+
+        public CardPackState(GameContext gameContext)
+            : base(gameContext)
         {
-            IncomingState = incomingState;
-            var sizeAndChoices = packType.GetPackSizeAndChoice();
-            NumberOfChoices = sizeAndChoices.choice;
-            BoosterPackSize = sizeAndChoices.size;
-            FillCardsChoice();
         }
 
         public override GamePhase Phase => GamePhase.CardPack;
@@ -48,6 +39,16 @@ namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
             return NumberOfChoices == 0;
         }
         
+        public override void OnEnterPhase()
+        {
+            FillCardsChoice();
+        }
+
+        public override void OnExitPhase()
+        {
+            ClearCardChoice();
+        }
+        
         private void ValidatePossibleAction(PackAction packAction)
         {
             if (packAction.Intent == PackActionIntent.GetCard)
@@ -59,20 +60,20 @@ namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
             }
         }
 
-        public override IGamePhaseState GetNextPhaseState()
-        {
-            return IncomingState;
-        }
-
         private void FillCardsChoice()
         {
-            for (int i = 0; i < BoosterPackSize; i++)
+            for (int i = 0; i < PackSize; i++)
             {
                 var card = CardRegistry.CreateCard(GameContext, fromPack: true,
                     GameContext.PersistentState.Ante.ToString());
                 
                 PackCards.Add(card);
             }
+        }
+
+        private void ClearCardChoice()
+        {
+            PackCards.Clear();
         }
     }
 }

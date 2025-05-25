@@ -1,4 +1,5 @@
-﻿using Balatro.Core.CoreObjects.Vouchers;
+﻿using Balatro.Core.CoreObjects.BoosterPacks;
+using Balatro.Core.CoreObjects.Vouchers;
 using Balatro.Core.GameEngine.GameStateController.EventBus;
 
 namespace Balatro.Core.GameEngine.GameStateController.PersistentStates
@@ -47,6 +48,36 @@ namespace Balatro.Core.GameEngine.GameStateController.PersistentStates
         public float HoloPlayingCardRate { get; private set; }
         public float FoilPlayingCardRate { get; private set; }
         
+        private static readonly Dictionary<BoosterPackType, float> BoosterPackWeights = new()
+        {
+            // Standard packs
+            { BoosterPackType.StandardNormal, 4f },
+            { BoosterPackType.StandardJumbo, 2f },
+            { BoosterPackType.StandardMega, 0.5f },
+            
+            // Arcana packs
+            { BoosterPackType.ArcanaNormal, 4f },
+            { BoosterPackType.ArcanaJumbo, 2f },
+            { BoosterPackType.ArcanaMega, 0.5f },
+            
+            // Celestial packs
+            { BoosterPackType.CelestialNormal, 4f },
+            { BoosterPackType.CelestialJumbo, 2f },
+            { BoosterPackType.CelestialMega, 0.5f },
+            
+            // Spectral packs
+            { BoosterPackType.SpectralNormal, 0.6f },
+            { BoosterPackType.SpectralJumbo, 0.3f },
+            { BoosterPackType.SpectralMega, 0.07f },
+            
+            // Buffoon packs
+            { BoosterPackType.BuffoonNormal, 1.2f },
+            { BoosterPackType.BuffoonJumbo, 0.6f },
+            { BoosterPackType.BuffoonMega, 0.15f }
+        };
+
+        private static Dictionary<BoosterPackType, float> BoosterPackNormalizedWeights = new();
+        
 
         public float CommonRarityRate => CommonRate;
         public float UncommonRarityRate => UncommonRate;
@@ -55,6 +86,12 @@ namespace Balatro.Core.GameEngine.GameStateController.PersistentStates
         public float SealChanceRate => SealChance;
         
         private PersistentState PersistentState { get; }
+        
+        static AppearanceRates()
+        {
+            // Calculate normalized weights for booster packs
+            CalculateNormalizedBoosterPackWeights();
+        }
 
         public AppearanceRates(PersistentState persistentState)
         {
@@ -65,6 +102,36 @@ namespace Balatro.Core.GameEngine.GameStateController.PersistentStates
         public void Subscribe(GameEventBus eventBus)
         {
             eventBus.SubscribeToVoucherBought(RecomputeAppearanceRates);
+        }
+        
+        /// <summary>
+        /// Gets the weight for a specific booster pack type for weighted random selection
+        /// </summary>
+        public float GetBoosterPackWeight(BoosterPackType packType)
+        {
+            return BoosterPackNormalizedWeights.GetValueOrDefault(packType, 1f);
+        }
+
+        /// <summary>
+        /// Gets all available booster pack types with their weights
+        /// </summary>
+        public IReadOnlyDictionary<BoosterPackType, float> GetAllBoosterPackWeights()
+        {
+            return BoosterPackNormalizedWeights;
+        }
+        
+        private static float GetTotalBoosterPackWeight()
+        {
+            return BoosterPackWeights.Values.Sum();
+        }
+
+        private static void CalculateNormalizedBoosterPackWeights()
+        {
+            float totalWeight = GetTotalBoosterPackWeight();
+
+            BoosterPackNormalizedWeights = BoosterPackWeights.ToDictionary(
+                kvp => kvp.Key,
+                kvp => kvp.Value / totalWeight);
         }
 
         private void RecomputeAppearanceRates(VoucherType _)

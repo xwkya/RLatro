@@ -14,6 +14,8 @@ namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
     public class RoundState : BaseGamePhaseState
     {
         public override GamePhase Phase => GamePhase.Round;
+        public override bool ShouldInitializeNextState => true;
+
         public int Hands { get; set; }
         public int Discards { get; set; }
         public uint CurrentChipsScore { get; set; }  // TODO: This will be a problem for hands above 4T chips
@@ -68,7 +70,14 @@ namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
 
         public override IGamePhaseState GetNextPhaseState()
         {
-            return new ShopState(GameContext);
+            if (GameContext.GamePhaseStates.ContainsKey(typeof(ShopState)))
+            {
+                return GameContext.GamePhaseStates[typeof(ShopState)];
+            }
+
+            var shopState = new ShopState(GameContext);
+            GameContext.GamePhaseStates[typeof(ShopState)] = shopState;
+            return shopState;
         }
 
         /// <summary>

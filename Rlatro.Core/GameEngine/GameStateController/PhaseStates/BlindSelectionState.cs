@@ -9,6 +9,7 @@ namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
         public BlindSelectionState(GameContext ctx) : base(ctx) { }
 
         public override GamePhase Phase => GamePhase.BlindSelection;
+        public override bool ShouldInitializeNextState => true;
 
         protected override bool HandleStateSpecificAction(BasePlayerAction action)
         {

@@ -1,7 +1,5 @@
 ﻿using Balatro.Core.CoreObjects;
-using Balatro.Core.CoreObjects.BoosterPacks;
 using Balatro.Core.CoreObjects.Shop.ShopObjects;
-using Balatro.Core.GameEngine.Contracts;
 using Balatro.Core.GameEngine.GameStateController.PhaseActions;
 using Balatro.Core.GameEngine.GameStateController.PhaseActions.ActionIntents;
 using Balatro.Core.GameEngine.PseudoRng;
@@ -9,21 +7,12 @@ using Balatro.Core.GameEngine.StateController;
 
 namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
 {
-    public class JokerPackState : BaseGamePhaseState
+    public class JokerPackState : BasePackState<JokerPackState>
     {
-        private IGamePhaseState IncomingState { get; }
-        private int NumberOfChoices { get; set;}
-        private int NumberOfCards { get; set;}
         private List<ShopItem> JokerObjects { get; set; } = new();
         
-        public JokerPackState(GameContext ctx, IGamePhaseState incomingState, BoosterPackType type) : base(ctx)
+        public JokerPackState(GameContext ctx) : base(ctx)
         {
-            var sizeAndChoices = type.GetPackSizeAndChoice();
-            NumberOfCards = sizeAndChoices.size;
-            NumberOfChoices = sizeAndChoices.choice;
-            IncomingState = incomingState;
-            
-            FillJokerChoices();
         }
         
         public override GamePhase Phase => GamePhase.JokerPack;
@@ -50,9 +39,14 @@ namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
             return NumberOfChoices == 0;
         }
 
-        public override IGamePhaseState GetNextPhaseState()
+        public override void OnEnterPhase()
         {
-            return IncomingState;
+            FillJokerChoices();
+        }
+
+        public override void OnExitPhase()
+        {
+            ClearJokerChoices();
         }
 
         private void ValidatePossibleAction(PackAction packAction)
@@ -74,11 +68,21 @@ namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
         private void FillJokerChoices()
         {
             JokerObjects = new List<ShopItem>();
-            for (int i = 0; i < NumberOfCards; i++)
+            for (int i = 0; i < PackSize; i++)
             {
                 var joker = GameContext.GlobalPoolManager.GenerateJokerShopItem(RngActionType.RandomPackJoker);
                 JokerObjects.Add(joker);
             }
+        }
+
+        private void ClearJokerChoices()
+        {
+            foreach (var t in JokerObjects)
+            {
+                GameContext.GameEventBus.PublishConsumableRemovedFromContext(t.StaticId);
+            }
+
+            JokerObjects.Clear();
         }
     }
 }
