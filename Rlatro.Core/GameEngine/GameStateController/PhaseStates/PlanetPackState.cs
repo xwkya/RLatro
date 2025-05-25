@@ -17,6 +17,11 @@ namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
             base(gameContext)
         {
         }
+        
+        public List<ShopItem> GetPlanetCards()
+        {
+            return PlanetCards;
+        }
 
         public override GamePhase Phase => GamePhase.PlanetPack;
 

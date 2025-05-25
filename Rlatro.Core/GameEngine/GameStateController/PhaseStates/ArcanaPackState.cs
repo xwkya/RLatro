@@ -12,6 +12,11 @@ namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
         
         public ArcanaPackState(GameContext ctx) : base(ctx) { }
         
+        public List<Consumable> GetArcanaCards()
+        {
+            return ArcanaCards;
+        }
+        
         public override GamePhase Phase => GamePhase.ArcanaPack;
 
         protected override bool HandleStateSpecificAction(BasePlayerAction action)

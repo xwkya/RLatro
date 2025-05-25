@@ -1,5 +1,6 @@
 ﻿using System.Text;
 using Balatro.Core.Contracts.Display;
+using Balatro.Core.Display.Components;
 using Balatro.Core.GameEngine.Contracts;
 using Balatro.Core.GameEngine.GameStateController;
 using Balatro.Core.GameEngine.GameStateController.PhaseStates;
@@ -14,10 +15,8 @@ namespace Balatro.Core.Display
             Clear();
             
             var sb = new StringBuilder();
-            sb.AppendLine("=== BALATRO GAME STATE ===");
-            sb.AppendLine($"Phase: {currentState.Phase}");
-            sb.AppendLine($"Gold: ${gameContext.PersistentState.EconomyHandler.GetCurrentGold()}");
-            sb.AppendLine($"Round: {gameContext.PersistentState.Round} | Ante: {gameContext.PersistentState.Ante}");
+            sb.AppendLine("=== BALATRO ===");
+            sb.AppendLine($"Phase: {currentState.Phase} | Gold: ${gameContext.PersistentState.EconomyHandler.GetCurrentGold()} | Round: {gameContext.PersistentState.Round} | Ante: {gameContext.PersistentState.Ante}");
             sb.AppendLine();
 
             // Display phase-specific information
@@ -27,104 +26,129 @@ namespace Balatro.Core.Display
                     DisplayRoundState(sb, gameContext, currentState as RoundState);
                     break;
                 case GamePhase.Shop:
-                    DisplayShopState(sb, gameContext, currentState as ShopState);
+                    SimpleShopDisplayComponent.DisplayShopState(sb, gameContext, currentState as ShopState);
+                    break;
+                case GamePhase.ArcanaPack:
+                    SimplePackDisplayComponent.DisplayArcanaPackState(sb, gameContext, currentState as ArcanaPackState);
+                    break;
+                case GamePhase.SpectralPack:
+                    SimplePackDisplayComponent.DisplaySpectralPackState(sb, gameContext, currentState as SpectralPackState);
+                    break;
+                case GamePhase.PlanetPack:
+                    SimplePackDisplayComponent.DisplayPlanetPackState(sb, gameContext, currentState as PlanetPackState);
+                    break;
+                case GamePhase.JokerPack:
+                    SimplePackDisplayComponent.DisplayJokerPackState(sb, gameContext, currentState as JokerPackState);
+                    break;
+                case GamePhase.CardPack:
+                    SimplePackDisplayComponent.DisplayCardPackState(sb, gameContext, currentState as CardPackState);
+                    break;
+                case GamePhase.BlindSelection:
+                    DisplayBlindSelectionState(sb, gameContext, currentState as BlindSelectionState);
                     break;
                 default:
-                    sb.AppendLine($"[{currentState.Phase} state - basic display]");
+                    sb.AppendLine($"[{currentState.Phase} - display not implemented]");
                     break;
             }
 
-            // Always show jokers and consumables
-            DisplayJokers(sb, gameContext);
-            DisplayConsumables(sb, gameContext);
+            // Always show jokers and consumables compactly
+            DisplayJokersCompact(sb, gameContext);
+            DisplayConsumablesCompact(sb, gameContext);
 
             Console.WriteLine(sb.ToString());
         }
 
         private void DisplayRoundState(StringBuilder sb, GameContext gameContext, RoundState roundState)
         {
-            sb.AppendLine("=== ROUND STATE ===");
-            sb.AppendLine($"Hands remaining: {roundState?.Hands ?? gameContext.GetHands()}");
-            sb.AppendLine($"Discards remaining: {roundState?.Discards ?? gameContext.GetDiscards()}");
-            sb.AppendLine($"Current score: {roundState?.CurrentChipsScore ?? 0}");
-            sb.AppendLine($"Target score: {roundState?.CurrentChipsRequirement ?? 0}");
+            sb.AppendLine("=== ROUND ===");
+            sb.AppendLine($"Hands: {roundState?.Hands ?? gameContext.GetHands()} | Discards: {roundState?.Discards ?? gameContext.GetDiscards()} | Score: {roundState?.CurrentChipsScore ?? 0}/{roundState?.CurrentChipsRequirement ?? 0}");
             sb.AppendLine();
 
-            // Display hand
-            sb.AppendLine("=== YOUR HAND ===");
+            // Display hand compactly
+            sb.Append("Hand: ");
             if (gameContext.Hand.Count == 0)
             {
                 sb.AppendLine("(Empty)");
             }
             else
             {
+                var handCards = new List<string>();
                 for (int i = 0; i < gameContext.Hand.Count; i++)
                 {
                     var card = gameContext.Hand.Span[i];
-                    sb.AppendLine($"[{i}] {card.Representation()}");
+                    var parts = card.Representation().Split(' ');
+                    var shortName = parts.Length >= 2 ? $"{parts[0]}{parts[1][0]}" : card.ToString();
+                    handCards.Add($"[{i}] {shortName}");
                 }
+                sb.AppendLine(string.Join(", ", handCards));
             }
-            sb.AppendLine();
 
             // Display played cards if any
             if (gameContext.PlayContainer.Count > 0)
             {
-                sb.AppendLine("=== PLAYED CARDS ===");
+                sb.Append("Played: ");
+                var playedCards = new List<string>();
                 for (int i = 0; i < gameContext.PlayContainer.Count; i++)
                 {
                     var card = gameContext.PlayContainer.Span[i];
-                    sb.AppendLine($"  {card.Representation()}");
+                    var parts = card.Representation().Split(' ');
+                    var shortName = parts.Length >= 2 ? $"{parts[0]}{parts[1][0]}" : card.ToString();
+                    playedCards.Add(shortName);
                 }
-                sb.AppendLine();
+                sb.AppendLine(string.Join(", ", playedCards));
             }
 
-            // Display deck and discard counts
-            sb.AppendLine($"Deck: {gameContext.Deck.Count} cards | Discard pile: {gameContext.DiscardPile.Count} cards");
+            sb.AppendLine($"Deck: {gameContext.Deck.Count} | Discard: {gameContext.DiscardPile.Count}");
+            sb.AppendLine();
+            sb.AppendLine("Commands: 'p [indices]' (play), 'd [indices]' (discard), 'sj [index]' (sell joker), 'sc [index]' (sell consumable), 'uc [index] [targets]' (use consumable)");
             sb.AppendLine();
         }
 
-        private void DisplayShopState(StringBuilder sb, GameContext gameContext, ShopState shopState)
+        private void DisplayBlindSelectionState(StringBuilder sb, GameContext gameContext, BlindSelectionState blindSelectionState)
         {
-            sb.AppendLine("=== SHOP STATE ===");
-            sb.AppendLine("Welcome to the shop!");
-            sb.AppendLine("(Shop display not fully implemented yet)");
+            sb.AppendLine("=== BLIND SELECTION ===");
+            sb.AppendLine("Choose your blind! (Not implemented - continuing to next round)");
             sb.AppendLine();
         }
 
-        private void DisplayJokers(StringBuilder sb, GameContext gameContext)
+        private void DisplayJokersCompact(StringBuilder sb, GameContext gameContext)
         {
-            sb.AppendLine("=== JOKERS ===");
-            if (gameContext.JokerContainer.Jokers.Count == 0)
+            if (gameContext.JokerContainer.Jokers.Count > 0)
             {
-                sb.AppendLine("(No jokers)");
-            }
-            else
-            {
+                sb.Append("Jokers: ");
+                var jokers = new List<string>();
                 for (int i = 0; i < gameContext.JokerContainer.Jokers.Count; i++)
                 {
                     var joker = gameContext.JokerContainer.Jokers[i];
-                    sb.AppendLine($"[{i}] {joker.GetType().Name} (ID: {joker.StaticId})");
+                    var edition = joker.Edition != CoreObjects.CoreEnums.Edition.None ? $"({joker.Edition})" : "";
+                    jokers.Add($"[{i}] {joker.GetType().Name}{edition}");
                 }
-            }
-            sb.AppendLine();
-        }
-
-        private void DisplayConsumables(StringBuilder sb, GameContext gameContext)
-        {
-            sb.AppendLine("=== CONSUMABLES ===");
-            if (gameContext.ConsumableContainer.Consumables.Count == 0)
-            {
-                sb.AppendLine("(No consumables)");
+                sb.AppendLine(string.Join(", ", jokers));
             }
             else
             {
+                sb.AppendLine("Jokers: (None)");
+            }
+        }
+
+        private void DisplayConsumablesCompact(StringBuilder sb, GameContext gameContext)
+        {
+            if (gameContext.ConsumableContainer.Consumables.Count > 0)
+            {
+                sb.Append("Consumables: ");
+                var consumables = new List<string>();
                 for (int i = 0; i < gameContext.ConsumableContainer.Consumables.Count; i++)
                 {
                     var consumable = gameContext.ConsumableContainer.Consumables[i];
-                    sb.AppendLine($"[{i}] {consumable.GetType().Name}");
+                    var negative = consumable.IsNegative ? "(Neg)" : "";
+                    consumables.Add($"[{i}] {consumable.GetType().Name}{negative}");
                 }
+                sb.AppendLine(string.Join(", ", consumables));
             }
-            sb.AppendLine();
+            else
+            {
+                sb.AppendLine("Consumables: (None)");
+            }
         }
 
         public void DisplayMessage(string message)

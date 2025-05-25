@@ -14,6 +14,11 @@ namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
             : base(gameContext)
         {
         }
+        
+        public List<Card64> GetPackCards()
+        {
+            return PackCards;
+        }
 
         public override GamePhase Phase => GamePhase.CardPack;
         

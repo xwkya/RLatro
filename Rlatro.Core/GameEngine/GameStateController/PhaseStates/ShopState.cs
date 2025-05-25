@@ -12,8 +12,8 @@ namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
 {
     public class ShopState : BaseGamePhaseState
     {
-        private ShopContainer ShopContainer { get; set; }
-        private VoucherContainer VoucherContainer { get; set; }
+        public ShopContainer ShopContainer { get; set; }
+        public VoucherContainer VoucherContainer { get; set; }
         public BoosterContainer BoosterContainer { get; set; }
         private GamePhase NextPhase { get; set; }
         private BoosterPackType? OpenedPackType { get; set; }
@@ -25,6 +25,8 @@ namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
         public ShopState(GameContext ctx) : base(ctx)
         {
             ShopContainer = new ShopContainer(2); // TODO: Use vouchers for this
+            VoucherContainer = new VoucherContainer();
+            BoosterContainer = new BoosterContainer();
             CurrentAnteVoucher = ctx.GlobalPoolManager.GetNewAnteVoucher();
         }
         

@@ -35,6 +35,7 @@ namespace Balatro.Core.CoreObjects.Pools
             // Check each owned voucher
             for(var i = 0; i < GameContext.PersistentState.OwnedVouchers.Length; i++)
             {
+                if (!GameContext.PersistentState.OwnedVouchers[i]) continue;
                 var voucher = (VoucherType)i;
                 
                 // If the voucher is a base voucher, we need to unlock the next one
@@ -100,6 +101,7 @@ namespace Balatro.Core.CoreObjects.Pools
             
             // Shuffle the available vouchers
             rng.GetShuffle(availableVouchers, RngActionType.GetSingleVoucher);
+            
             // Get the voucher type from the shuffled list
             return (VoucherType)availableVouchers[0];
         }

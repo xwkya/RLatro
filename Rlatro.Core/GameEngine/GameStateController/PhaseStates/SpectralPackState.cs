@@ -13,6 +13,11 @@ namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
         public SpectralPackState(GameContext ctx) : base(ctx)
         {
         }
+        
+        public List<Consumable> GetSpectralCards()
+        {
+            return SpectralCards;
+        }
 
         public override GamePhase Phase => GamePhase.SpectralPack;
 

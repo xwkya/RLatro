@@ -63,9 +63,17 @@ namespace Balatro.Core.GameEngine
                     if (phaseOver)
                     {
                         Display.DisplayMessage($"Phase {GamePhaseState.Phase} completed!");
-                        GamePhaseState.OnExitPhase();
-                        GamePhaseState = GamePhaseState.GetNextPhaseState();
-                        GamePhaseState.OnEnterPhase();
+                        var currentPhase = GamePhaseState;
+                        var nextPhase = currentPhase.GetNextPhaseState();
+                        
+                        // Only unload the current phase if the next phase is temporary (pack phase)
+                        if (nextPhase.ShouldInitializeNextState)
+                            currentPhase.OnExitPhase();
+                        
+                        if (currentPhase.ShouldInitializeNextState)
+                            nextPhase.OnEnterPhase();
+
+                        GamePhaseState = nextPhase;
                         Display.DisplayMessage($"Entering {GamePhaseState.Phase} phase");
                     }
                 }

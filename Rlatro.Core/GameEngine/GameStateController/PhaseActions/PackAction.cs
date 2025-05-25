@@ -4,14 +4,14 @@ namespace Balatro.Core.GameEngine.GameStateController.PhaseActions
 {
     public sealed class PackAction : BasePlayerAction
     {
-        public PackActionIntent Intent { get; }
-        public int CardIndex { get; }
+        public PackActionIntent Intent { get; set; }
+        public int CardIndex { get; set; }
     }
     
     public sealed class PackActionWithTargets : BasePlayerAction
     {
-        public PackActionIntent Intent { get; }
-        public int CardIndex { get; }
-        public int[] TargetIndices { get; }
+        public PackActionIntent Intent { get; set; }
+        public int CardIndex { get; set; }
+        public int[] TargetIndices { get; set; }
     }
 }

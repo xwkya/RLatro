@@ -14,6 +14,11 @@ namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
         public JokerPackState(GameContext ctx) : base(ctx)
         {
         }
+
+        public List<ShopItem> GetJokerObjects()
+        {
+            return JokerObjects;
+        }
         
         public override GamePhase Phase => GamePhase.JokerPack;
 
@@ -79,7 +84,7 @@ namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
         {
             foreach (var t in JokerObjects)
             {
-                GameContext.GameEventBus.PublishConsumableRemovedFromContext(t.StaticId);
+                GameContext.GameEventBus.PublishJokerRemovedFromContext(t.StaticId);
             }
 
             JokerObjects.Clear();
