@@ -12,7 +12,6 @@ namespace Balatro.Core.GameEngine.GameStateController
     public class GameContext
     {
         public RngController RngController { get; set; }
-        public CoreObjectsFactory ObjectsFactory { get; set; }
         public Deck Deck { get; set; }
         public Hand Hand { get; set; }
         public DiscardPile DiscardPile { get; set; }

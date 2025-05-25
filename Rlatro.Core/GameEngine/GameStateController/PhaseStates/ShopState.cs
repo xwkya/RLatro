@@ -52,6 +52,16 @@ namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
             }
         }
 
+        public override void OnEnterPhase()
+        {
+            if (ShopContainer is null)
+            {
+                ShopContainer = new ShopContainer(2); // TODO: Use vouchers for this
+            }
+            
+            FillShopContainer();
+        }
+
         public override IGamePhaseState GetNextPhaseState()
         {
             // Internal verification

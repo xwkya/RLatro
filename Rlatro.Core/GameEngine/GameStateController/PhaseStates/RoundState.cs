@@ -26,6 +26,13 @@ namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
             Discards = GameContext.GetDiscards();
         }
 
+        public override void OnEnterPhase()
+        {
+            base.OnEnterPhase();
+            DrawCards(); // Draw cards to fill the hand
+            CurrentChipsRequirement = 300;
+        }
+
         protected override bool HandleStateSpecificAction(BasePlayerAction action)
         {
             if (action is not RoundAction roundAction)
@@ -67,12 +74,12 @@ namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
             Discards--;
             
             // Create the card view of the discarded cards
-            Span<CardView> discardedCardViews = stackalloc CardView[GameContext.Hand.Count];
+            Span<CardView> discardedCardViews = stackalloc CardView[cardIndexes.Length];
             GameContext.Hand.FillCardViews(GameContext, discardedCardViews, cardIndexes);
             
             // Execute and publish the event
             GameContext.GameEventBus.PublishHandDiscarded(discardedCardViews);
-            GameContext.Deck.MoveMany(cardIndexes, GameContext.DiscardPile); // hand -> discard
+            GameContext.Hand.MoveMany(cardIndexes, GameContext.DiscardPile); // hand -> discard
             
             DrawCards();
             return false;
@@ -84,7 +91,7 @@ namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
             GameContext.Hand.MoveMany(cardIndexes, GameContext.PlayContainer); // hand -> play
             var scoreContext = ScoringCalculation.EvaluateHand(GameContext);
             CurrentChipsScore += scoreContext.Chips * scoreContext.MultNumerator / scoreContext.MultDenominator;
-            GameContext.PlayContainer.MoveMany(cardIndexes, GameContext.DiscardPile); // play -> discard
+            GameContext.PlayContainer.MoveAllTo(GameContext.DiscardPile); // play -> discard
             DrawCards();
 
             return IsPhaseOver;

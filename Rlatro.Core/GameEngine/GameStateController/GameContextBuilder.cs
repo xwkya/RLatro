@@ -48,7 +48,7 @@ namespace Balatro.Core.GameEngine.GameStateController
                 Deck = new Deck(),
                 PersistentState = persistentState,
                 RngController = new RngController(seed),
-                ObjectsFactory = new CoreObjectsFactory(),
+                CoreObjectsFactory = new CoreObjectsFactory(),
             };
             
             // Wire up the event bus
@@ -67,7 +67,7 @@ namespace Balatro.Core.GameEngine.GameStateController
         
         public GameContextBuilder WithDeck(IDeckFactory deckFactory)
         {
-            GameContext.Deck = deckFactory.CreateDeck(GameContext.ObjectsFactory);
+            GameContext.Deck = deckFactory.CreateDeck(GameContext.CoreObjectsFactory);
             GameContext.JokerContainer.Slots = deckFactory.JokerSlots();
             return this;
         }

@@ -20,7 +20,7 @@ namespace Balatro.Core.CoreObjects
             Seal seal = Seal.None,
             Edition edition = Edition.None)
         {
-            var card = Card64.Create(NextId, rank, suit, Enhancement.None, Seal.None, Edition.None);
+            var card = Card64.Create(NextId, rank, suit, enhancement, seal, edition);
             NextId++;
             return card;
         }

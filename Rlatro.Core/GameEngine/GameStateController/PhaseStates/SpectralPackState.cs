@@ -62,7 +62,7 @@ namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
         public override void OnExitPhase()
         {
             GameContext.Hand.MoveAllTo(GameContext.Deck);
-            GameContext.Deck.Shuffle();
+            GameContext.Deck.Shuffle(GameContext.RngController);
         }
 
         private void ValidatePossibleAction(PackActionWithTargets packAction)

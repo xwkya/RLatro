@@ -86,7 +86,7 @@ namespace Balatro.Core.CoreObjects.Pools
 
             if (count == 0) return DefaultCommonJokerStaticId;
 
-            int randomIndex = rng.RandomInt(0, count, RngActionType.RandomShopJoker);
+            int randomIndex = rng.RandomInt(0, count - 1, actionType);
             return candidatesSpan[randomIndex];
         }
     }

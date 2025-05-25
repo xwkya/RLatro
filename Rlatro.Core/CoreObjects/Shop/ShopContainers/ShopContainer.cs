@@ -1,5 +1,4 @@
-﻿using Balatro.Core.Contracts.Shop;
-using Balatro.Core.CoreObjects.Shop.ShopObjects;
+﻿using Balatro.Core.CoreObjects.Shop.ShopObjects;
 using Balatro.Core.GameEngine.GameStateController;
 
 namespace Balatro.Core.CoreObjects.Shop.ShopContainers
@@ -8,6 +7,12 @@ namespace Balatro.Core.CoreObjects.Shop.ShopContainers
     {
         public int Capacity { get; set; }
         public List<ShopItem> Items { get; set; }
+        
+        public ShopContainer(int capacity)
+        {
+            Capacity = capacity;
+            Items = new List<ShopItem>(capacity);
+        }
 
         public void ClearItems(GameContext ctx)
         {

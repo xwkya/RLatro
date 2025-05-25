@@ -3,6 +3,7 @@ using System.Text;
 using Balatro.Core.CoreObjects.Cards.CardObject;
 using Balatro.Core.CoreRules.CanonicalViews;
 using Balatro.Core.GameEngine.GameStateController;
+using Balatro.Core.GameEngine.PseudoRng;
 
 namespace Balatro.Core.CoreObjects.Cards.CardsContainer
 {
@@ -120,6 +121,66 @@ namespace Balatro.Core.CoreObjects.Cards.CardsContainer
             for (var i = 0; i < cardIndexes.Length; i++)
             {
                 cardViews[i] = CardView.Create(Span[cardIndexes[i]], ctx);
+            }
+        }
+        
+        /// <summary>
+        /// Randomly permutes the order of <see cref="Cards"/> in-place.
+        /// Zero allocation shuffling.
+        /// </summary>
+        public void Shuffle(RngController rngController)
+        {
+            Span<int> indexSpan = stackalloc int[Count];
+            uint[] runtimeIds = new uint[Count];
+            for (int i = 0; i < Count; i++)
+            {
+                indexSpan[i] = i;
+                runtimeIds[i] = Span[i].Id;
+            }
+            
+            rngController.GetShuffle(indexSpan, runtimeIds, RngActionType.Shuffle);
+            
+            // Reorder the Cards based on the shuffled indexes
+            ApplyPermutationInPlace(indexSpan);
+        }
+        
+        /// <summary>
+        /// Applies a permutation to the Cards list in-place using cycle decomposition.
+        /// Time: O(n), Space: O(1) additional (reuses the indexSpan as a visited marker)
+        /// </summary>
+        /// <param name="permutation">The permutation to apply, where permutation[i] is the new position of element i</param>
+        private void ApplyPermutationInPlace(Span<int> permutation)
+        {
+            var cards = Span;
+    
+            for (int start = 0; start < permutation.Length; start++)
+            {
+                // Skip if this element is already in the correct position or already processed
+                if (permutation[start] == start || permutation[start] < 0)
+                    continue;
+            
+                // Follow the cycle starting from 'start'
+                var temp = cards[start];
+                int current = start;
+        
+                while (true)
+                {
+                    int next = permutation[current];
+            
+                    // Mark current as visited by making it negative
+                    permutation[current] = -permutation[current] - 1;
+            
+                    if (next == start)
+                    {
+                        // End of cycle, place the temp value
+                        cards[current] = temp;
+                        break;
+                    }
+            
+                    // Move the card and continue the cycle
+                    cards[current] = cards[next];
+                    current = next;
+                }
             }
         }
     }

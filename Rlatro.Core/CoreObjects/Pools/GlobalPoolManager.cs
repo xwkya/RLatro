@@ -62,7 +62,7 @@ namespace Balatro.Core.CoreObjects.Pools
             return GameContext.CoreObjectsFactory.CreateConsumable(consumableStaticId);
         }
 
-        public ShopItem GenerateShopJoker(RngActionType actionType)
+        public ShopItem GenerateJokerShopItem(RngActionType actionType)
         {
             var rarity = CalculateJokerRarity();
             var jokerStaticId = JokerPoolManager.GetRandomStaticId(rarity, RngController, actionType);
@@ -83,7 +83,7 @@ namespace Balatro.Core.CoreObjects.Pools
             var itemType = CalculateShopItemType();
             if (itemType == ShopItemType.Joker)
             {
-                return GenerateShopJoker(RngActionType.RandomShopJoker);
+                return GenerateJokerShopItem(RngActionType.RandomShopJoker);
             }
 
             if (itemType == ShopItemType.PlayingCard)

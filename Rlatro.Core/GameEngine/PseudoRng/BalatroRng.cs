@@ -1,4 +1,6 @@
-﻿
+﻿using System.Security.Cryptography;
+using System.Text;
+
 namespace Balatro.Core.GameEngine.PseudoRng
 {
     /// <summary>
@@ -61,7 +63,6 @@ namespace Balatro.Core.GameEngine.PseudoRng
             }
         }
         
-        
         public void Shuffle(in Span<int> indexes, RngActionType key)
         {
             // Perform Fisher-Yates shuffle on the sorted indexes
@@ -81,7 +82,8 @@ namespace Balatro.Core.GameEngine.PseudoRng
                 
                 if (!KeyToRandomTable.ContainsKey(key))
                 {
-                    KeyToRandomTable[key] = new LuaRandom((ulong)key.GetHashCode());
+                    var hashCode = HashString(key);
+                    KeyToRandomTable[key] = new LuaRandom(hashCode);
                 }
             }
         }
@@ -91,10 +93,18 @@ namespace Balatro.Core.GameEngine.PseudoRng
             var gameKey = $"{GameSeed}_{key}";
             if (!KeyToRandomTable.ContainsKey(key))
             {
-                KeyToRandomTable[key] = new LuaRandom((ulong)gameKey.GetHashCode());
+                var hashCode = HashString(gameKey);
+                KeyToRandomTable[key] = new LuaRandom(hashCode);
             }
 
             return KeyToRandomTable[key];
+        }
+        
+        private static ulong HashString(string input)
+        {
+            using var sha256 = SHA256.Create();
+            byte[] hashBytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(input));
+            return BitConverter.ToUInt64(hashBytes, 0);
         }
     }
 }

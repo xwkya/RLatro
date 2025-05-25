@@ -76,7 +76,7 @@ namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
             JokerObjects = new List<ShopItem>();
             for (int i = 0; i < NumberOfCards; i++)
             {
-                var joker = GameContext.GlobalPoolManager.GenerateShopJoker(RngActionType.RandomPackJoker);
+                var joker = GameContext.GlobalPoolManager.GenerateJokerShopItem(RngActionType.RandomPackJoker);
                 JokerObjects.Add(joker);
             }
         }

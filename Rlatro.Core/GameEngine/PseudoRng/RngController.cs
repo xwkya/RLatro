@@ -19,6 +19,11 @@
         {
             BalatroRng.Shuffle(in memoryToShuffle, actionType);
         }
+
+        public void GetShuffle(in Span<int> memoryToShuffle, uint[] keys, RngActionType actionType)
+        {
+            BalatroRng.Shuffle(in memoryToShuffle, keys, actionType);
+        }
         
         /// <summary>
         /// Random number between min and max inclusive
