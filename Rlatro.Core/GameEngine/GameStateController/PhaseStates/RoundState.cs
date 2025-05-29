@@ -46,6 +46,8 @@ namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
             GameContext.Hand.MoveAllTo(GameContext.Deck);
             GameContext.DiscardPile.MoveAllTo(GameContext.Deck);
             GameContext.Deck.Shuffle(GameContext.RngController);
+
+            GameContext.PersistentState.UnusedDiscards += Discards;
             
             // Move up one round
             GameContext.PersistentState.Round++;
@@ -118,6 +120,7 @@ namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
             LastPlayedHand = scoreContext.HandRank;
             CurrentChipsScore += scoreContext.Chips * scoreContext.MultNumerator / scoreContext.MultDenominator;
             GameContext.PlayContainer.MoveAllTo(GameContext.DiscardPile); // play -> discard
+            GameContext.PersistentState.NumberOfHandsPlayed += Hands;
             
             var isPhaseOver = IsPhaseOver;
 

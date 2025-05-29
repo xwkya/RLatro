@@ -18,6 +18,9 @@ namespace Balatro.Core.GameEngine.GameStateController.PersistentStates
         public AppearanceRates AppearanceRates { get; set; }
         public HandTracker HandTracker { get; set; }
         public EconomyHandler EconomyHandler { get; set; }
+        public bool FirstShopHasBeenVisited { get; set; } = false;
+        public int UnusedDiscards { get; set; }
+        public int NumberOfHandsPlayed { get; set; }
 
         public PersistentState()
         {

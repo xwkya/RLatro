@@ -69,12 +69,14 @@ namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
             FillShopContainer();
             FillBoosterPackContainer();
             FillVoucherContainer();
+            CreateBlindsIfNewAnte();
         }
 
         public override void OnExitPhase()
         {
             ShopContainer.ClearItems(GameContext);
             BoosterContainer.BoosterPacks.Clear();
+            GameContext.PersistentState.FirstShopHasBeenVisited = true;
         }
         
         public override IGamePhaseState GetNextPhaseState()
@@ -179,7 +181,7 @@ namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
                 return cardPackState;
             }
 
-            // Otherwise we use the blind state
+            // Otherwise we use a round state
             BlindSelectionState blindSelectionState;
             if (GameContext.GamePhaseStates.ContainsKey(typeof(BlindSelectionState)))
             {
@@ -320,7 +322,16 @@ namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
             
             for (int i = 0; i < BoosterContainer.BoosterPackSlots; i++)
             {
-                var selectedPackType = SelectWeightedBoosterPack(appearanceRates.GetAllBoosterPackWeights());
+                BoosterPackType selectedPackType;
+                // Enforce a buffoon pack if it's the first shop of the game
+                if (!GameContext.PersistentState.FirstShopHasBeenVisited && i == 0)
+                {
+                    selectedPackType = BoosterPackType.BuffoonNormal;
+                }
+                else
+                {
+                    selectedPackType = SelectWeightedBoosterPack(appearanceRates.GetAllBoosterPackWeights());
+                }
                 var boosterPack = new BoosterPack { BoosterPackType = selectedPackType };
                 BoosterContainer.AddPack(boosterPack);
             }
@@ -355,6 +366,11 @@ namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
             }
             
             VoucherContainer.Vouchers.Add(CurrentAnteVoucher);
+        }
+        
+        private void CreateBlindsIfNewAnte()
+        {
+            throw new NotImplementedException();
         }
         
         private void ValidatePossibleAction(ShopAction action)

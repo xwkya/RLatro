@@ -87,8 +87,7 @@ namespace Balatro.Core.GameEngine
 
         private bool IsGameOver()
         {
-            // Simple game over condition - you can expand this
-            return GameContext?.PersistentState?.Round > 10; // End after 10 rounds for demo
+            return GameContext?.PersistentState?.Ante > 8 || GameContext?.IsGameOver == true;
         }
 
         public void HandleSingleAction(BasePlayerAction action)

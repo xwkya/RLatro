@@ -6,7 +6,6 @@ using Balatro.Core.CoreObjects.Pools;
 using Balatro.Core.GameEngine.Contracts;
 using Balatro.Core.GameEngine.GameStateController.EventBus;
 using Balatro.Core.GameEngine.GameStateController.PersistentStates;
-using Balatro.Core.GameEngine.GameStateController.PhaseStates;
 using Balatro.Core.GameEngine.PseudoRng;
 
 namespace Balatro.Core.GameEngine.GameStateController
@@ -25,6 +24,12 @@ namespace Balatro.Core.GameEngine.GameStateController
         public GameEventBus GameEventBus { get; set; }
         public CoreObjectsFactory CoreObjectsFactory { get; set; }
         public Dictionary<Type, IGamePhaseState> GamePhaseStates = new Dictionary<Type, IGamePhaseState>();
+        public bool IsGameOver { get; private set; }
+
+        public void NotifyLoss()
+        {
+            IsGameOver = true;
+        }
 
         public int GetHandSize()
         {

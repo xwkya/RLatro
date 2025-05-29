@@ -32,9 +32,9 @@ namespace Balatro.Core.CoreObjects
             return id;
         }
         
-        public JokerObject CreateJoker(int jokerStaticId)
+        public JokerObject CreateJoker(int jokerStaticId, Edition edition = Edition.None)
         {
-            var joker = JokerRegistry.CreateInstance(jokerStaticId, NextId);
+            var joker = JokerRegistry.CreateInstance(jokerStaticId, NextId, edition);
             NextId++;
             return joker;
         }

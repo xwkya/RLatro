@@ -77,6 +77,7 @@ namespace Balatro.Core.CoreObjects.Pools
         {
             var rarity = CalculateJokerRarity();
             var jokerStaticId = JokerPoolManager.GetRandomStaticId(rarity, RngController, actionType);
+            var edition = GetJokerEdition();
             GameContext.GameEventBus.PublishJokerAddedToContext(jokerStaticId);
             
             var runtimeId = GameContext.CoreObjectsFactory.GetNextRuntimeId();
@@ -85,8 +86,17 @@ namespace Balatro.Core.CoreObjects.Pools
                 Id = runtimeId,
                 StaticId = jokerStaticId,
                 Type = ShopItemType.Joker,
-                Edition = Edition.None,
+                Edition = edition,
             };
+        }
+
+        public JokerObject GenerateJoker(RngActionType actionType, JokerRarity rarity)
+        {
+            var jokerStaticId = JokerPoolManager.GetRandomStaticId(rarity, RngController, actionType);
+            var edition = GetJokerEdition();
+            var joker = GameContext.CoreObjectsFactory.CreateJoker(jokerStaticId, edition: edition);
+            GameContext.GameEventBus.PublishJokerAddedToContext(jokerStaticId);
+            return joker;
         }
 
         public ShopItem GenerateShopItem()
@@ -165,6 +175,40 @@ namespace Balatro.Core.CoreObjects.Pools
             }
 
             return JokerRarity.Rare;
+        }
+
+        private Edition GetJokerEdition()
+        {
+            var randomValue = RngController.GetRandomProbability(RngActionType.JokerEdition);
+            float runningSum = GameContext.PersistentState.AppearanceRates.PolychromeJokerRate;
+            if (randomValue <= runningSum)
+            {
+                return Edition.Poly;
+            }
+            
+            runningSum += GameContext.PersistentState.AppearanceRates.FoilJokerRate;
+            
+            if (randomValue <= runningSum)
+            {
+                return Edition.Foil;
+            }
+            
+            runningSum += GameContext.PersistentState.AppearanceRates.HoloJokerRate;
+            
+            if (randomValue <= runningSum)
+            {
+                return Edition.Holo;
+            }
+
+            runningSum += GameContext.PersistentState.AppearanceRates.NegativeJokerRate;
+
+
+            if (randomValue <= runningSum)
+            {
+                return Edition.Negative;
+            }
+
+            return Edition.None;
         }
     }
 }

@@ -17,6 +17,7 @@
         RandomShopConsumable,
         RandomPackConsumable,
         ShopItemType,
+        TopUpTagJokerPoll,
         JokerRarity,
         ShopCardBase,
         PackCardBase,
@@ -26,6 +27,7 @@
         PackCardEdition,
         ShopCardSeal,
         PackCardSeal,
+        JokerEdition,
     }
     
     static class RngActionTypeExt
