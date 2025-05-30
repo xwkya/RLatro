@@ -6,6 +6,7 @@
         BuyBoosterPack,
         BuyVoucher,
         Roll,
+        NextPhase,
     }
     
     public sealed class ShopAction : BasePlayerAction

@@ -19,7 +19,8 @@ namespace Balatro.Core.Display.Components
             DisplayVouchers(sb, gameContext, shopState.VoucherContainer);
             
             sb.AppendLine();
-            sb.AppendLine("Commands: 'r' (roll), 'bi [index]' (buy item), 'bp [index]' (buy pack), 'bv [index]' (buy voucher)");
+            sb.AppendLine(
+                "Commands: 'r' (roll), 'bi [index]' (buy item), 'bp [index]' (buy pack), 'bv [index]' (buy voucher), 'n' (next phase)");
             sb.AppendLine();
         }
 
@@ -105,7 +106,7 @@ namespace Balatro.Core.Display.Components
             {
                 return item.Type switch
                 {
-                    ShopItemType.Joker => JokerRegistry.GetType(item.StaticId).Name,
+                    ShopItemType.Joker => $"{JokerRegistry.GetType(item.StaticId).Name} (edition: {item.Edition})",
                     ShopItemType.TarotCard or ShopItemType.PlanetCard or ShopItemType.SpectralCard 
                         => ConsumableRegistry.GetType(item.StaticId).Name,
                     ShopItemType.PlayingCard => "PlayingCard",

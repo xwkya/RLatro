@@ -18,14 +18,15 @@ namespace Balatro.Core.GameEngine.GameStateController
     public class GameContextBuilder : IGameContextFactory
     {
         private GameContext GameContext { get; set; }
+
         private GameContextBuilder()
         {
         }
-        
+
         public static GameContextBuilder Create(string seed)
         {
             var gameEventBus = new GameEventBus();
-            
+
             var persistentState = new PersistentState()
             {
                 Discards = 4,
@@ -42,7 +43,7 @@ namespace Balatro.Core.GameEngine.GameStateController
             {
                 GameEventBus = gameEventBus,
                 JokerContainer = new JokerContainer(),
-                ConsumableContainer = new ConsumableContainer(),
+                ConsumableContainer = new ConsumableContainer { Capacity = 2 },
                 DiscardPile = new DiscardPile(),
                 PlayContainer = new PlayContainer(),
                 Hand = new Hand(),
@@ -52,21 +53,20 @@ namespace Balatro.Core.GameEngine.GameStateController
                 CoreObjectsFactory = new CoreObjectsFactory(),
                 TagHandler = new TagHandler(),
             };
-            
+
             // Wire up the event bus
             gameContext.GlobalPoolManager = new GlobalPoolManager(gameContext);
 
             persistentState.Subscribe(gameEventBus);
             gameContext.GlobalPoolManager.Subscribe(gameEventBus);
-            
-            
-            
+
+
             return new GameContextBuilder()
             {
                 GameContext = gameContext,
             };
         }
-        
+
         public GameContextBuilder WithDeck(IDeckFactory deckFactory)
         {
             GameContext.Deck = deckFactory.CreateDeck(GameContext.CoreObjectsFactory);
@@ -79,7 +79,7 @@ namespace Balatro.Core.GameEngine.GameStateController
             GameContext.JokerContainer.Jokers.Add(joker);
             return this;
         }
-        
+
         public GameContextBuilder WithJokers(List<JokerObject> jokers)
         {
             GameContext.JokerContainer.Jokers.AddRange(jokers);
@@ -91,17 +91,17 @@ namespace Balatro.Core.GameEngine.GameStateController
             GameContext.Hand.AddMany(CollectionsMarshal.AsSpan(cardsInHand));
             return this;
         }
-        
+
         public GameContext CreateGameContext()
         {
             if (GameContext.Hand is null)
             {
                 throw new InvalidOperationException($"Provide a deck factory with {nameof(WithDeck)} is not set.");
             }
-            
+
             GameContext.GlobalPoolManager.InitializePools();
 
-            
+
             return GameContext;
         }
     }

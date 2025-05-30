@@ -39,14 +39,6 @@ namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
             return true;
         }
         
-        public override void OnEnterPhase()
-        {
-            if (GameContext.PersistentState.Round % 3 == 1)
-            {
-                GenerateAnteTags();
-            }
-        }
-        
         public override IGamePhaseState GetNextPhaseState()
         {
             if (PackToOpen is null || PackCount <= 0)
@@ -153,7 +145,7 @@ namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
             throw new ApplicationException("Unhandled pack type: " + PackToOpen);
         }
 
-        private void GenerateAnteTags()
+        public void GenerateAnteTags()
         {
             for (int i = 0; i < 3; i++)
             {

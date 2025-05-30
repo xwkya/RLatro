@@ -78,8 +78,8 @@ namespace Balatro.Core.Input
                         "sj" => CreateSellJokerAction(parts, gameContext),
                         "sc" => CreateSellConsumableAction(parts, gameContext),
                         "uc" => CreateUseConsumableAction(parts, gameContext),
-                        "exit" or "e" => new ShopAction { ActionIntent = ShopActionIntent.Roll }, // Placeholder to exit shop
-                        _ => throw new ArgumentException("Invalid command. Use: r (roll), bi/bp/bv [index] (buy), sj/sc [index] (sell), uc [index] [targets] (use)")
+                        "n" => new ShopAction { ActionIntent = ShopActionIntent.NextPhase },
+                        _ => throw new ArgumentException("Invalid command. Use: r (roll), bi/bp/bv [index] (buy), sj/sc [index] (sell), uc [index] [targets] (use), n (next phase)")
                     };
                 }
                 catch (Exception ex)

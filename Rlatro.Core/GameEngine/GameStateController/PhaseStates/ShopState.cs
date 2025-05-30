@@ -59,6 +59,8 @@ namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
                     return ExecuteBuyFromShop(shopAction.ShopIndex);
                 case ShopActionIntent.BuyBoosterPack:
                     return ExecuteBuyBoosterPack(shopAction.BoosterPackIndex);
+                case ShopActionIntent.NextPhase:
+                    return true;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(shopAction), shopAction, null);
             }
@@ -370,7 +372,12 @@ namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
         
         private void CreateBlindsIfNewAnte()
         {
-            throw new NotImplementedException();
+            // TODO: Create boss blind if it's a new ante
+            if (GameContext.PersistentState.Round % 3 == 1)
+            {
+                var blindState = (BlindSelectionState)GameContext.GamePhaseStates[typeof(BlindSelectionState)];
+                blindState.GenerateAnteTags();
+            }
         }
         
         private void ValidatePossibleAction(ShopAction action)
