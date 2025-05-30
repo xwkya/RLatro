@@ -122,11 +122,18 @@ namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
             GameContext.PlayContainer.MoveAllTo(GameContext.DiscardPile); // play -> discard
             GameContext.PersistentState.NumberOfHandsPlayed += Hands;
             
+            // Handle game over condition
+            if (Hands == 0 && CurrentChipsScore < CurrentChipsRequirement)
+            {
+                GameContext.NotifyLoss();
+            }
+            
+            // Handle transition to the next phase
             var isPhaseOver = IsPhaseOver;
 
             if (!isPhaseOver)
             {
-                DrawCards();
+                DrawCards(); // We DO NOT DRAW if we won
             }
 
             return isPhaseOver;

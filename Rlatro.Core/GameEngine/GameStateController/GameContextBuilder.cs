@@ -7,6 +7,7 @@ using Balatro.Core.CoreObjects.Consumables.ConsumablesContainer;
 using Balatro.Core.CoreObjects.Jokers.Joker;
 using Balatro.Core.CoreObjects.Jokers.JokersContainer;
 using Balatro.Core.CoreObjects.Pools;
+using Balatro.Core.CoreObjects.Tags;
 using Balatro.Core.GameEngine.Contracts;
 using Balatro.Core.GameEngine.GameStateController.EventBus;
 using Balatro.Core.GameEngine.GameStateController.PersistentStates;
@@ -49,6 +50,7 @@ namespace Balatro.Core.GameEngine.GameStateController
                 PersistentState = persistentState,
                 RngController = new RngController(seed),
                 CoreObjectsFactory = new CoreObjectsFactory(),
+                TagHandler = new TagHandler(),
             };
             
             // Wire up the event bus

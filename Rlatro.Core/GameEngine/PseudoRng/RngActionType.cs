@@ -28,6 +28,7 @@
         ShopCardSeal,
         PackCardSeal,
         JokerEdition,
+        GetNewAnteSkipTags
     }
     
     static class RngActionTypeExt
