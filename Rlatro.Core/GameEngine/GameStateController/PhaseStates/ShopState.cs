@@ -60,6 +60,7 @@ namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
                 case ShopActionIntent.BuyBoosterPack:
                     return ExecuteBuyBoosterPack(shopAction.BoosterPackIndex);
                 case ShopActionIntent.NextPhase:
+                    NextPhase = GamePhase.BlindSelection;
                     return true;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(shopAction), shopAction, null);
@@ -427,7 +428,8 @@ namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
                         throw new InvalidOperationException("Not enough gold to buy booster pack.");
                     }
                     break;
-                
+                case ShopActionIntent.NextPhase:
+                    break;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(action.ActionIntent), action.ActionIntent, null);
             }

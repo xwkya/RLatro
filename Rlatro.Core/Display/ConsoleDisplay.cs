@@ -44,7 +44,7 @@ namespace Balatro.Core.Display
                     SimplePackDisplayComponent.DisplayCardPackState(sb, gameContext, currentState as CardPackState);
                     break;
                 case GamePhase.BlindSelection:
-                    DisplayBlindSelectionState(sb, gameContext, currentState as BlindSelectionState);
+                    SimpleBlindSelectionDisplayComponent.DisplayBlindSelectionState(sb, gameContext, currentState as BlindSelectionState);
                     break;
                 default:
                     sb.AppendLine($"[{currentState.Phase} - display not implemented]");
@@ -101,13 +101,6 @@ namespace Balatro.Core.Display
             sb.AppendLine($"Deck: {gameContext.Deck.Count} | Discard: {gameContext.DiscardPile.Count}");
             sb.AppendLine();
             sb.AppendLine("Commands: 'p [indices]' (play), 'd [indices]' (discard), 'sj [index]' (sell joker), 'sc [index]' (sell consumable), 'uc [index] [targets]' (use consumable)");
-            sb.AppendLine();
-        }
-
-        private void DisplayBlindSelectionState(StringBuilder sb, GameContext gameContext, BlindSelectionState blindSelectionState)
-        {
-            sb.AppendLine("=== BLIND SELECTION ===");
-            sb.AppendLine("Choose your blind! (Not implemented - continuing to next round)");
             sb.AppendLine();
         }
 

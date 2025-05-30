@@ -3,7 +3,6 @@ using Balatro.Core.GameEngine.Contracts;
 using Balatro.Core.GameEngine.GameStateController;
 using Balatro.Core.GameEngine.GameStateController.PhaseActions;
 using Balatro.Core.GameEngine.GameStateController.PhaseActions.ActionIntents;
-using Balatro.Core.GameEngine.GameStateController.PhaseStates;
 using Balatro.Core.GameEngine.StateController;
 
 namespace Balatro.Core.Input
@@ -21,7 +20,7 @@ namespace Balatro.Core.Input
                 GamePhase.PlanetPack => GetPackAction(gameContext, "Planet"),
                 GamePhase.JokerPack => GetPackAction(gameContext, "Joker"),
                 GamePhase.CardPack => GetPackAction(gameContext, "Standard"),
-                GamePhase.BlindSelection => GetBlindSelectionAction(),
+                GamePhase.BlindSelection => GetBlindSelectionAction(gameContext),
                 _ => throw new NotImplementedException($"Input handling for {currentState.Phase} not implemented")
             };
         }
@@ -149,11 +148,47 @@ namespace Balatro.Core.Input
             }
         }
 
-        private BasePlayerAction GetBlindSelectionAction()
+        private BasePlayerAction GetBlindSelectionAction(GameContext gameContext)
         {
-            Console.WriteLine("Blind selection not implemented - auto-continuing...");
-            Console.ReadKey();
-            return new RoundAction { ActionIntent = RoundActionIntent.Play, CardIndexes = new int[0] }; // Placeholder
+            while (true)
+            {
+                Console.Write("Blind Selection> ");
+                var input = Console.ReadLine()?.Trim().ToLower();
+                if (string.IsNullOrEmpty(input)) continue;
+
+                try
+                {
+                    var parts = input.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+                    var command = parts[0];
+
+                    return command switch
+                    {
+                        "p" => new BlindSelectionAction { Intent = BlindSelectionActionIntent.Play },
+                        "s" => CreateSkipBlindAction(gameContext),
+                        "sj" => CreateSellJokerAction(parts, gameContext),
+                        "sc" => CreateSellConsumableAction(parts, gameContext),
+                        "uc" => CreateUseConsumableAction(parts, gameContext),
+                        _ => throw new ArgumentException("Invalid command. Use: p (play blind), s (skip blind), sj/sc [index] (sell), uc [index] [targets] (use)")
+                    };
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error: {ex.Message}");
+                }
+            }
+        }
+        
+        private BlindSelectionAction CreateSkipBlindAction(GameContext gameContext)
+        {
+            var roundType = (gameContext.PersistentState.Round - 1) % 3;
+            
+            // Check if this is a boss blind (cannot be skipped)
+            if (roundType == 2)
+            {
+                throw new ArgumentException("Boss blinds cannot be skipped!");
+            }
+
+            return new BlindSelectionAction { Intent = BlindSelectionActionIntent.Skip };
         }
 
         // Action creation methods
