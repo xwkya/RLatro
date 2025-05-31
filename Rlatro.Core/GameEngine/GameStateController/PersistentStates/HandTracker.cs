@@ -85,6 +85,46 @@ namespace Balatro.Core.GameEngine.GameStateController.PersistentStates
             };
         }
 
+        /// <summary>
+        /// Upgrades a hand by increasing its level and associated chips/mult values
+        /// </summary>
+        /// <param name="handRank">The hand rank to upgrade</param>
+        public void UpgradeHand(HandRank handRank)
+        {
+            if (HandsStatistics.TryGetValue(handRank, out var handStatistics))
+            {
+                handStatistics.Level++;
+                
+                // Add the scaling values for this hand rank
+                var scaling = Scaling[handRank];
+                handStatistics.Chips += scaling.chips;
+                handStatistics.Mult += scaling.mult;
+            }
+        }
+
+        /// <summary>
+        /// Upgrades a hand by a specific number of levels
+        /// </summary>
+        /// <param name="handRank">The hand rank to upgrade</param>
+        /// <param name="levels">Number of levels to upgrade</param>
+        public void UpgradeHand(HandRank handRank, int levels)
+        {
+            for (int i = 0; i < levels; i++)
+            {
+                UpgradeHand(handRank);
+            }
+        }
+
+        /// <summary>
+        /// Gets the current level of a hand
+        /// </summary>
+        /// <param name="handRank">The hand rank to check</param>
+        /// <returns>The current level of the hand</returns>
+        public int GetHandLevel(HandRank handRank)
+        {
+            return HandsStatistics.TryGetValue(handRank, out var handStatistics) ? handStatistics.Level : 1;
+        }
+
         private void OnHandPlayed(ReadOnlySpan<CardView> playedCardsViews, HandRank handRank)
         {
             if (HandsStatistics.TryGetValue(handRank, out var handStatistics))
@@ -92,7 +132,5 @@ namespace Balatro.Core.GameEngine.GameStateController.PersistentStates
                 handStatistics.PlayedCount++;
             }
         }
-        
-        // TODO: Do the same when a consumable is used
     }
 }
