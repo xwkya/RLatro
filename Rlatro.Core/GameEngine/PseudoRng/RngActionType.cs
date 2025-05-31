@@ -31,6 +31,18 @@
         GetNewAnteSkipTags,
         TheHighPriestess,
         Judgement,
+        SpectralFamiliar,
+        SpectralGrim,
+        SpectralIncantation,
+        SpectralAura,
+        SpectralWraith,
+        SpectralSigil,
+        SpectralOuija,
+        SpectralEctoplasm,
+        SpectralImmolate,
+        SpectralAnkh,
+        SpectralHex,
+        SpectralTheSoul
     }
     
     static class RngActionTypeExt

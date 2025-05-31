@@ -1,7 +1,6 @@
 ﻿using Balatro.Core.CoreObjects.Cards.CardObject;
 using Balatro.Core.CoreObjects.Consumables.ConsumableObject;
 using Balatro.Core.CoreObjects.CoreEnums;
-using Balatro.Core.CoreObjects.Registries;
 using Balatro.Core.GameEngine.GameStateController;
 using Balatro.Core.GameEngine.PseudoRng;
 
@@ -393,8 +392,7 @@ namespace Balatro.Core.ObjectsImplementations.Consumables
         
         Card64 TransformCardInto(Card64 card, Card64 targetCard)
         {
-            return Card64.Create(card.Id, targetCard.GetRank(), targetCard.GetSuit(), targetCard.GetEnh(),
-                targetCard.GetSeal(), targetCard.GetEdition());
+            return Card64.Create(raw: targetCard.GetRaw(), id: card.Id).WithChipsUpgrade(targetCard.GetChipsUpgrade());
         }
 
         public override void Apply(GameContext context, int[] targetCards)

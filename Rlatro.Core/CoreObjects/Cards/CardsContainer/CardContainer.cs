@@ -54,6 +54,11 @@ namespace Balatro.Core.CoreObjects.Cards.CardsContainer
             }
         }
 
+        public void Remove(int index)
+        {
+            Cards.RemoveAt(index);
+        }
+
         public void Remove(ReadOnlySpan<int> indices)
         {
             if (indices.IsEmpty) return;

@@ -26,6 +26,7 @@ namespace Balatro.Core.GameEngine.GameStateController.PersistentStates
         public int UnusedDiscards { get; set; }
         public int NumberOfHandsPlayed { get; set; }
         public int NumberOfTarotCardsUsed { get; set; }
+        public int EctoplasmUsageCount { get; set; }
 
         public PersistentState()
         {
@@ -48,6 +49,8 @@ namespace Balatro.Core.GameEngine.GameStateController.PersistentStates
             UnusedDiscards = 0;
             NumberOfHandsPlayed = 0;
             NumberOfTarotCardsUsed = 0;
+            EctoplasmUsageCount = 0;
+
             ResetOwnedVouchers();
         }
 

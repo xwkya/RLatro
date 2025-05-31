@@ -79,7 +79,7 @@ namespace Balatro.Core.ObjectsImplementations.Consumables
     [ConsumableStaticDescription(54, ConsumableType.Planet, HandRank.Straight)]
     public class Saturn : Consumable
     {
-        public Satrun(int staticId, uint runtimeId, bool isNegative = false) : base(staticId, runtimeId, isNegative)
+        public Saturn(int staticId, uint runtimeId, bool isNegative = false) : base(staticId, runtimeId, isNegative)
         {
         }
 

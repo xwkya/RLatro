@@ -61,6 +61,7 @@ namespace Balatro.Core.CoreObjects.Cards.CardObject
         public Edition GetEdition() => (Edition)((Raw & EditionMask) >> EditionShift);
         public uint GetChipsUpgrade() => (Raw & ChipsUpgradeMask) >> ChipsUpgradeShift;
         public uint GetTotalChipsValue() => (GetRank().GetRankChips() + GetChipsUpgrade());
+        public uint GetRaw() => Raw;
 
         // -- readonly setters --
         public Card64 WithRank(Rank r)
