@@ -18,27 +18,15 @@ namespace Balatro.Core.GameEngine.GameStateController
     public class GameContextBuilder : IGameContextFactory
     {
         private GameContext GameContext { get; set; }
-
-        private GameContextBuilder()
-        {
-        }
-
-        public static GameContextBuilder Create(string seed)
+        private IDeckFactory DeckFactory { get; set; }
+        private List<JokerObject> Jokers { get; set; } = new();
+        private List<Card64> CardsInHand { get; set; }
+        
+        public static GameContextBuilder Create()
         {
             var gameEventBus = new GameEventBus();
-
-            var persistentState = new PersistentState()
-            {
-                Discards = 4,
-                Hands = 4,
-                HandSize = 8,
-                HandTracker = new HandTracker(),
-                Round = 1,
-            };
-            var startingGold = 10;
-            var economyHandler = new EconomyHandler(persistentState, startingGold);
-            persistentState.EconomyHandler = economyHandler;
-
+            var persistentState = new PersistentState();
+            
             var gameContext = new GameContext()
             {
                 GameEventBus = gameEventBus,
@@ -49,60 +37,97 @@ namespace Balatro.Core.GameEngine.GameStateController
                 Hand = new Hand(),
                 Deck = new Deck(),
                 PersistentState = persistentState,
-                RngController = new RngController(seed),
+                RngController = new RngController(),
                 CoreObjectsFactory = new CoreObjectsFactory(),
                 TagHandler = new TagHandler(),
             };
 
             // Wire up the event bus
             gameContext.GlobalPoolManager = new GlobalPoolManager(gameContext);
-
             persistentState.Subscribe(gameEventBus);
             gameContext.GlobalPoolManager.Subscribe(gameEventBus);
-
 
             return new GameContextBuilder()
             {
                 GameContext = gameContext,
             };
         }
-
+        
         public GameContextBuilder WithDeck(IDeckFactory deckFactory)
         {
-            GameContext.Deck = deckFactory.CreateDeck(GameContext.CoreObjectsFactory);
-            GameContext.JokerContainer.Slots = deckFactory.JokerSlots();
+            DeckFactory = deckFactory ?? throw new ArgumentNullException(nameof(deckFactory), "Deck factory cannot be null.");
+            
             return this;
         }
 
         public GameContextBuilder WithJoker(JokerObject joker)
         {
-            GameContext.JokerContainer.Jokers.Add(joker);
-            return this;
-        }
-
-        public GameContextBuilder WithJokers(List<JokerObject> jokers)
-        {
-            GameContext.JokerContainer.Jokers.AddRange(jokers);
+            Jokers.Add(joker);
             return this;
         }
 
         public GameContextBuilder WithHand(List<Card64> cardsInHand)
         {
-            GameContext.Hand.AddMany(CollectionsMarshal.AsSpan(cardsInHand));
+            CardsInHand = cardsInHand;
             return this;
         }
 
-        public GameContext CreateGameContext()
+        public GameContext CreateGameContext(string seed)
         {
-            if (GameContext.Hand is null)
+            if (DeckFactory is null)
             {
                 throw new InvalidOperationException($"Provide a deck factory with {nameof(WithDeck)} is not set.");
             }
-
-            GameContext.GlobalPoolManager.InitializePools();
-
+            
+            GameContext.InitializeStateCache();
+            ResetGameContext(seed);
 
             return GameContext;
+        }
+        
+        private void ResetGameContext(string seed)
+        {
+            // Initialize the rng controller with the provided seed
+            GameContext.CoreObjectsFactory.Reset();
+            GameContext.RngController.Initialize(seed);
+            
+            // Unsubscribe and clear owned jokers
+            for (int i = 0; i < GameContext.JokerContainer.Jokers.Count; i++)
+            {
+                GameContext.JokerContainer.RemoveJoker(GameContext, i);
+            }
+            GameContext.JokerContainer.Slots = DeckFactory.Configuration.JokerSlots;
+            
+            // Clear all consumables
+            GameContext.ConsumableContainer.Consumables.Clear();
+            GameContext.ConsumableContainer.Capacity = 2;
+            
+            // Clear all containers
+            GameContext.Hand.Clear();
+            GameContext.DiscardPile.Clear();
+            GameContext.PlayContainer.Clear();
+            
+            // Reinitialize the global pool manager
+            GameContext.GlobalPoolManager.InitializePools();
+            
+            // Reset the persistent state
+            GameContext.PersistentState.Reset(DeckFactory.Configuration);
+            
+            // Reinitialize the phase states
+            GameContext.ResetPhaseStates();
+            
+            // Build the deck
+            DeckFactory.InitializeDeck(GameContext.Deck, GameContext.CoreObjectsFactory);
+            
+            // Add the jokers if any were provided
+            Jokers.ForEach(j =>
+            {
+                GameContext.JokerContainer.AddJoker(GameContext, j);
+                GameContext.GameEventBus.PublishJokerAddedToContext(j.StaticId); // We need to publish as it was never in the context before
+            });
+            
+            // Add the cards in hand if any were provided
+            GameContext.Hand.AddMany(CollectionsMarshal.AsSpan(CardsInHand));
         }
     }
 }

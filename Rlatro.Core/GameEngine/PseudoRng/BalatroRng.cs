@@ -29,13 +29,9 @@
             => NextInt(a.Key(), min, max);
 
         /// <summary>
-        /// shuffle index span in place assuming indexes is 0, 1, 2,
+        /// Shuffle index span in place assuming indexes is a permutation of [0, 1, ..., n-1].
         /// </summary>
-        /// <param name="indexes">Indexes to shuffle </param>
-        /// <param name="keys">Keys to sort the array</param>
-        /// <param name="key">Action type</param>
-        /// <exception cref="ArgumentException"></exception>
-        public void Shuffle(in Span<int> indexes, uint[] keys, RngActionType key)
+        public void ShuffleContiguous(in Span<int> indexes, uint[] keys, RngActionType key)
         {
             if (indexes.Length != keys.Length)
             {
@@ -70,6 +66,63 @@
                 (indexes[i], indexes[j]) = (indexes[j], indexes[i]);
             }
         }
+        
+        /// <summary>
+        /// Returns a random index from the provided list of indexes assuming indexes is a permutation of [0, 1, ..., n-1].
+        /// </summary>
+        public int RandomIndexContiguous(in Span<int> indexes, uint[] keys, RngActionType key)
+        {
+            if (indexes.Length != keys.Length)
+            {
+                throw new ArgumentException("list and keys Spans must have the same length.");
+            }
+            
+            indexes.Sort((indexA, indexB) => keys[indexA].CompareTo(keys[indexB]));
+            var rng = RawRng(key.ToString());
+            int randomIndex = (int)rng.Next((ulong)indexes.Length) - 1;
+            
+            return indexes[randomIndex];
+        }
+        
+        /// <summary>
+        /// Returns a random index from the provided list of indexes assuming indexes may be out of bounds for keys.
+        /// Indexes and keys must still be of the same length.
+        /// </summary>
+        public int RandomIndexNonContiguous(in Span<int> indexes, uint[] keys, RngActionType key)
+        {
+            if (indexes.Length != keys.Length)
+            {
+                throw new ArgumentException("list and keys Spans must have the same length.");
+            }
+            
+            // Create a contiguous index array
+            Span<int> contiguousIndexes = stackalloc int[indexes.Length];
+            for (int i = 0; i < indexes.Length; i++)
+            {
+                contiguousIndexes[i] = i;
+            }
+            
+            // Sort the contiguous array of indexes
+            contiguousIndexes.Sort((indexA, indexB) => keys[indexA].CompareTo(keys[indexB]));
+            var rng = RawRng(key.ToString());
+            int randomIndex = (int)rng.Next((ulong)contiguousIndexes.Length) - 1;
+            
+            // Return the use index
+            return indexes[randomIndex];
+        }
+        
+        /// <summary>
+        /// Random element without keys (sample from the provided element span as-is)
+        /// </summary>
+        public int RandomElement(in Span<int> elements, RngActionType key)
+        {
+            elements.Sort();
+            var rng = RawRng(key.ToString());
+            int randomIndex = (int)rng.Next((ulong)elements.Length) - 1;
+            
+            return elements[randomIndex];
+        }
+        
 
         private void InitializeLuaRandoms()
         {

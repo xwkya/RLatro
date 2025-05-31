@@ -19,7 +19,6 @@ namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
         private BoosterPackType? OpenedPackType { get; set; }
         public override GamePhase Phase => GamePhase.Shop;
         public override bool ShouldInitializeNextState => true;
-
         private VoucherType CurrentAnteVoucher { get; set; }
 
         public ShopState(GameContext ctx) : base(ctx)
@@ -27,7 +26,6 @@ namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
             ShopContainer = new ShopContainer(2); // TODO: Use vouchers for this
             VoucherContainer = new VoucherContainer();
             BoosterContainer = new BoosterContainer();
-            CurrentAnteVoucher = ctx.GlobalPoolManager.GetNewAnteVoucher();
         }
         
         /// <summary>
@@ -53,7 +51,7 @@ namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
             {
                 case ShopActionIntent.Roll:
                     return ExecuteRoll();
-                case ShopActionIntent.BuyVoucher:
+                case ShopActionIntent.BuyVoucher:   
                     return ExecuteBuyVoucher(shopAction.VoucherIndex);
                 case ShopActionIntent.BuyFromShop:
                     return ExecuteBuyFromShop(shopAction.ShopIndex);
@@ -67,8 +65,24 @@ namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
             }
         }
 
+        protected override void ResetPhaseSpecificState()
+        {
+            NumberOfRollsPaidThisTurn = 0;
+            NumberOfFreeRolls = 0;
+            OpenedPackType = null;
+            NextPhase = GamePhase.BlindSelection; // Default next phase
+            ShopContainer.ClearItems(GameContext);
+            BoosterContainer.BoosterPacks.Clear();
+            VoucherContainer.Vouchers.Clear();
+            CurrentAnteVoucher = GameContext.GlobalPoolManager.GetNewAnteVoucher();
+        }
+
         public override void OnEnterPhase()
         {
+            NumberOfRollsPaidThisTurn = 0;
+            NumberOfFreeRolls = 0; // Reset free rolls at the start of the shop phase
+            
+            // TODO: NumberOfFreeRolls = GameContext.JokerContainer.Jokers.Any(x => x.StaticId == JokerRegistry.GetStaticId(typeof(ChaosTheClown)));
             FillShopContainer();
             FillBoosterPackContainer();
             FillVoucherContainer();
@@ -91,16 +105,7 @@ namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
                     
             if (NextPhase == GamePhase.ArcanaPack)
             {
-                ArcanaPackState arcanaPackState;
-                if (GameContext.GamePhaseStates.ContainsKey(typeof(ArcanaPackState)))
-                {
-                    arcanaPackState = (ArcanaPackState)GameContext.GamePhaseStates[typeof(ArcanaPackState)];
-                }
-                else
-                {
-                    arcanaPackState = new ArcanaPackState(GameContext);
-                    GameContext.GamePhaseStates[typeof(ArcanaPackState)] = arcanaPackState;
-                }
+                var arcanaPackState = GameContext.GetPhase<ArcanaPackState>();
 
                 arcanaPackState.SetIncomingState(this)
                     .SetPackType(OpenedPackType!.Value);
@@ -110,16 +115,7 @@ namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
             
             if (NextPhase == GamePhase.JokerPack)
             {
-                JokerPackState jokerPackState;
-                if (GameContext.GamePhaseStates.ContainsKey(typeof(JokerPackState)))
-                {
-                    jokerPackState = (JokerPackState)GameContext.GamePhaseStates[typeof(JokerPackState)];
-                }
-                else
-                {
-                    jokerPackState = new JokerPackState(GameContext);
-                    GameContext.GamePhaseStates[typeof(JokerPackState)] = jokerPackState;
-                }
+                var jokerPackState = GameContext.GetPhase<JokerPackState>();
 
                 jokerPackState.SetIncomingState(this)
                     .SetPackType(OpenedPackType!.Value);
@@ -129,16 +125,7 @@ namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
 
             if (NextPhase == GamePhase.PlanetPack)
             {
-                PlanetPackState planetPackState;
-                if (GameContext.GamePhaseStates.ContainsKey(typeof(PlanetPackState)))
-                {
-                    planetPackState = (PlanetPackState)GameContext.GamePhaseStates[typeof(PlanetPackState)];
-                }
-                else
-                {
-                    planetPackState = new PlanetPackState(GameContext);
-                    GameContext.GamePhaseStates[typeof(PlanetPackState)] = planetPackState;
-                }
+                var planetPackState = GameContext.GetPhase<PlanetPackState>();
 
                 planetPackState.SetIncomingState(this)
                     .SetPackType(OpenedPackType!.Value);
@@ -148,16 +135,7 @@ namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
             
             if (NextPhase == GamePhase.SpectralPack)
             {
-                SpectralPackState spectralPackState;
-                if (GameContext.GamePhaseStates.ContainsKey(typeof(SpectralPackState)))
-                {
-                    spectralPackState = (SpectralPackState)GameContext.GamePhaseStates[typeof(SpectralPackState)];
-                }
-                else
-                {
-                    spectralPackState = new SpectralPackState(GameContext);
-                    GameContext.GamePhaseStates[typeof(SpectralPackState)] = spectralPackState;
-                }
+                var spectralPackState = GameContext.GetPhase<SpectralPackState>();
 
                 spectralPackState.SetIncomingState(this)
                     .SetPackType(OpenedPackType!.Value);
@@ -167,16 +145,7 @@ namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
 
             if (NextPhase == GamePhase.CardPack)
             {
-                CardPackState cardPackState;
-                if (GameContext.GamePhaseStates.ContainsKey(typeof(CardPackState)))
-                {
-                    cardPackState = (CardPackState)GameContext.GamePhaseStates[typeof(CardPackState)];
-                }
-                else
-                {
-                    cardPackState = new CardPackState(GameContext);
-                    GameContext.GamePhaseStates[typeof(CardPackState)] = cardPackState;
-                }
+                var cardPackState = GameContext.GetPhase<CardPackState>();
 
                 cardPackState.SetIncomingState(this)
                     .SetPackType(OpenedPackType!.Value);
@@ -185,18 +154,7 @@ namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
             }
 
             // Otherwise we use a round state
-            BlindSelectionState blindSelectionState;
-            if (GameContext.GamePhaseStates.ContainsKey(typeof(BlindSelectionState)))
-            {
-                blindSelectionState = (BlindSelectionState)GameContext.GamePhaseStates[typeof(BlindSelectionState)];
-            }
-            else
-            {
-                blindSelectionState = new BlindSelectionState(GameContext);
-                GameContext.GamePhaseStates[typeof(BlindSelectionState)] = blindSelectionState;
-            }
-
-            return blindSelectionState;
+            return GameContext.GetPhase<BlindSelectionState>();
         }
 
         private bool ExecuteRoll()
@@ -376,7 +334,7 @@ namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
             // TODO: Create boss blind if it's a new ante
             if (GameContext.PersistentState.Round % 3 == 1)
             {
-                var blindState = (BlindSelectionState)GameContext.GamePhaseStates[typeof(BlindSelectionState)];
+                var blindState = GameContext.GetPhase<BlindSelectionState>();
                 blindState.GenerateAnteTags();
             }
         }

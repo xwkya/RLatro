@@ -15,7 +15,9 @@ namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
         {
             
         }
-        
+
+        protected override void ResetPhaseSpecificState() { }
+
         public T SetIncomingState(IGamePhaseState incomingState)
         {
             IncomingState = incomingState;

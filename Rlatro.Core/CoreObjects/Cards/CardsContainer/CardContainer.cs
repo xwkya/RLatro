@@ -28,6 +28,11 @@ namespace Balatro.Core.CoreObjects.Cards.CardsContainer
                 Add(c);
             }
         }
+        
+        public void Clear()
+        {
+            Cards.Clear();
+        }
 
         /// <summary>
         /// Will transform a card by creating a copy of it.
@@ -48,6 +53,24 @@ namespace Balatro.Core.CoreObjects.Cards.CardsContainer
                 Cards.RemoveAt(i); // Tail-shifting
             }
         }
+
+        public void Remove(ReadOnlySpan<int> indices)
+        {
+            if (indices.IsEmpty) return;
+            
+            // ensure descending order so RemoveAt doesn't re-index earlier picks
+            Span<int> tmp = indices.Length <= 32
+                ? stackalloc int[indices.Length]
+                : new int[indices.Length];
+            
+            for (int i = 0; i < indices.Length; i++)
+                tmp[i] = indices[i];
+            
+            tmp.Sort();
+            tmp.Reverse();
+            
+            RemoveSortedDescending(tmp);
+        }
         
         public void MoveCardTo(int index, CardContainer target)
         {
@@ -62,18 +85,7 @@ namespace Balatro.Core.CoreObjects.Cards.CardsContainer
             foreach (byte i in indices)
                 target.Add(Cards[i]);
             
-            // ensure descending order so RemoveAt doesn't re-index earlier picks
-            Span<int> tmp = indices.Length <= 32
-                ? stackalloc int[indices.Length]
-                : new int[indices.Length];
-            
-            for (int i = 0; i < indices.Length; i++)
-                tmp[i] = indices[i];
-            
-            tmp.Sort();
-            tmp.Reverse();
-            
-            RemoveSortedDescending(tmp);
+            Remove(indices);
         }
         
         public void MoveAllTo(CardContainer target)
@@ -138,7 +150,7 @@ namespace Balatro.Core.CoreObjects.Cards.CardsContainer
                 runtimeIds[i] = Span[i].Id;
             }
             
-            rngController.GetShuffle(indexSpan, runtimeIds, RngActionType.Shuffle);
+            rngController.GetShuffleContiguous(indexSpan, runtimeIds, RngActionType.Shuffle);
             
             // Reorder the Cards based on the shuffled indexes
             ApplyPermutationInPlace(indexSpan);

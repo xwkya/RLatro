@@ -99,11 +99,9 @@ namespace Balatro.Core.CoreObjects.Pools
                 }
             }
             
-            // Shuffle the available vouchers
-            rng.GetShuffle(availableVouchers, RngActionType.GetSingleVoucher);
-            
-            // Get the voucher type from the shuffled list
-            return (VoucherType)availableVouchers[0];
+            // Sample 1 random element (the vouchers are already sorted)
+            var voucher = rng.GetRandomElement(availableVouchers, RngActionType.GetSingleVoucher);
+            return (VoucherType)voucher;
         }
 
         private void OnVoucherBought(VoucherType type)

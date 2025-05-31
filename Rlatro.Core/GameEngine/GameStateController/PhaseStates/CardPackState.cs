@@ -21,7 +21,7 @@ namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
         }
 
         public override GamePhase Phase => GamePhase.CardPack;
-        
+
         protected override bool HandleStateSpecificAction(BasePlayerAction action)
         {
             if (action is not PackAction packAction)

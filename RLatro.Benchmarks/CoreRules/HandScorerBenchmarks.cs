@@ -31,15 +31,15 @@ namespace RLatro.Benchmarks.CoreRules
         private void FullHouseState(IEnumerable<Card64> hand, IEnumerable<JokerObject> jokers)
         {
             var seed = "ABCDEF";
-            var contextBuilder = GameContextBuilder.Create(seed);
-            contextBuilder.WithDeck(new DefaultDeckFactory());
+            var contextBuilder = GameContextBuilder.Create();
+            contextBuilder.WithDeck(new RedDeckFactory());
             contextBuilder.WithHand(hand.ToList());
             foreach (var j in jokers)
             {
                 contextBuilder.WithJoker(j);
             }
 
-            GameContextFullHouse = contextBuilder.CreateGameContext();
+            GameContextFullHouse = contextBuilder.CreateGameContext(seed);
             RoundStateFullHouse = new RoundState(GameContextFullHouse);
             GameContextFullHouse.Hand.MoveMany([0, 1, 2, 3, 4], GameContextFullHouse.PlayContainer);
         }
@@ -47,15 +47,15 @@ namespace RLatro.Benchmarks.CoreRules
         private void PairState(IEnumerable<Card64> hand, IEnumerable<JokerObject> jokers)
         {
             var seed = "ABCDEF";
-            var contextBuilder = GameContextBuilder.Create(seed);
-            contextBuilder.WithDeck(new DefaultDeckFactory());
+            var contextBuilder = GameContextBuilder.Create();
+            contextBuilder.WithDeck(new RedDeckFactory());
             contextBuilder.WithHand(hand.ToList());
             foreach (var j in jokers)
             {
                 contextBuilder.WithJoker(j);
             }
 
-            GameContextPair = contextBuilder.CreateGameContext();
+            GameContextPair = contextBuilder.CreateGameContext(seed);
             RoundStatePair = new RoundState(GameContextPair);
             GameContextPair.Hand.MoveMany([0, 1], GameContextPair.PlayContainer);
         }

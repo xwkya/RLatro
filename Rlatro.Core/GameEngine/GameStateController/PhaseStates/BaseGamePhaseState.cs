@@ -28,6 +28,11 @@ namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
         
         protected abstract bool HandleStateSpecificAction(BasePlayerAction action);
 
+        public void Reset()
+        {
+            ResetPhaseSpecificState();
+        }
+
         public virtual void OnEnterPhase()
         {
         }
@@ -72,10 +77,11 @@ namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
         private bool ExecuteUseConsumable(BasePlayerAction action)
         {
             var consumable = GameContext.ConsumableContainer.Consumables[action.ConsumableIndex];
+            GameContext.ConsumableContainer.RemoveConsumable(action.ConsumableIndex);
             consumable.Apply(GameContext, action.CardIndexes);
             
+            // Only publish after in case it is the emperor
             GameContext.GameEventBus.PublishConsumableRemovedFromContext(consumable.StaticId);
-            GameContext.ConsumableContainer.RemoveConsumable(action.ConsumableIndex);
 
             return false;
         }
@@ -118,5 +124,7 @@ namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
                     break;
             }
         }
+
+        protected abstract void ResetPhaseSpecificState();
     }
 }

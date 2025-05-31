@@ -13,6 +13,7 @@ namespace Balatro.Core.GameEngine.GameStateController.EventBus
     public delegate void OnJokerRemovedFromContext(int staticId);
     public delegate void OnConsumableAddedToContext(int staticId);
     public delegate void OnConsumableRemovedFromContext(int staticId);
+    public delegate void OnConsumableUsed(int staticId);
 
     /// <summary>
     /// Main event bus for the game instance. This verbose pattern is used to pass stack-allocated data.
@@ -28,6 +29,7 @@ namespace Balatro.Core.GameEngine.GameStateController.EventBus
         private OnJokerRemovedFromContext OnJokerRemovedFromContext;
         private OnConsumableAddedToContext OnConsumableAddedToContext;
         private OnConsumableRemovedFromContext OnConsumableRemovedFromContext;
+        private OnConsumableUsed OnConsumableUsed;
         
         #region HandPlayed
 
@@ -177,6 +179,25 @@ namespace Balatro.Core.GameEngine.GameStateController.EventBus
         public void PublishConsumableRemovedFromContext(int staticId)
         {
             OnConsumableRemovedFromContext?.Invoke(staticId);
+        }
+        
+        #endregion
+        
+        #region ConsumableUsed
+        
+        public void SubscribeToConsumableUsed(OnConsumableUsed onConsumableUsed)
+        {
+            OnConsumableUsed += onConsumableUsed;
+        }
+        
+        public void UnsubscribeToConsumableUsed(OnConsumableUsed onConsumableUsed)
+        {
+            OnConsumableUsed -= onConsumableUsed;
+        }
+        
+        public void PublishConsumableUsed(int staticId)
+        {
+            OnConsumableUsed?.Invoke(staticId);
         }
         
         #endregion

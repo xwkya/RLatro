@@ -98,6 +98,11 @@ namespace Balatro.Core.GameEngine.GameStateController.PersistentStates
             PersistentState = persistentState;
             RecomputeAppearanceRates(0); // Initialization of the rates
         }
+
+        public void Reset()
+        {
+            RecomputeAppearanceRates(0);
+        }
         
         public void Subscribe(GameEventBus eventBus)
         {

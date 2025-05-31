@@ -13,6 +13,7 @@ namespace Balatro.Core.GameEngine
         public IGamePhaseState GamePhaseState { get; private set; }
         private readonly IGameDisplay Display;
         private readonly IInputManager InputManager;
+        private GameContextBuilder GameContextBuilder { get; set; }
         
         public GameController(IGameDisplay display, IInputManager inputManager)
         {
@@ -20,12 +21,17 @@ namespace Balatro.Core.GameEngine
             InputManager = inputManager;
         }
 
-        public void NewGame(IGameContextFactory gameContextFactory)
+        public void NewGame(IGameContextFactory gameContextFactory, string seed)
         {
-            GameContext = gameContextFactory.CreateGameContext();
+            GameContextBuilder = GameContextBuilder;
+            GameContext = gameContextFactory.CreateGameContext(seed);
             
             GameContext.Deck.Shuffle(GameContext.RngController);
-            GamePhaseState = new RoundState(GameContext);
+            
+            // Initialize the blind state
+            var initialPhase = GameContext.GetPhase<BlindSelectionState>();
+            initialPhase.GenerateAnteTags();
+            GamePhaseState = initialPhase;
             GamePhaseState.OnEnterPhase();
             
             Display.DisplayMessage("New game started!");

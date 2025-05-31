@@ -57,5 +57,10 @@ namespace Balatro.Core.CoreObjects
             var consumable = ConsumableRegistry.CreateInstance(item.StaticId, item.Id);
             return consumable;
         }
+
+        public void Reset()
+        {
+            NextId = 0;
+        }
     }
 }

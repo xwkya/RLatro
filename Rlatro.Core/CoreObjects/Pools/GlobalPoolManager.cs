@@ -90,9 +90,14 @@ namespace Balatro.Core.CoreObjects.Pools
             };
         }
 
-        public JokerObject GenerateJoker(RngActionType actionType, JokerRarity rarity)
+        public JokerObject GenerateJoker(RngActionType actionType, JokerRarity? rarity = null)
         {
-            var jokerStaticId = JokerPoolManager.GetRandomStaticId(rarity, RngController, actionType);
+            if (rarity == null)
+            {
+                rarity = CalculateJokerRarity();
+            }
+            
+            var jokerStaticId = JokerPoolManager.GetRandomStaticId(rarity.Value, RngController, actionType);
             var edition = GetJokerEdition();
             var joker = GameContext.CoreObjectsFactory.CreateJoker(jokerStaticId, edition: edition);
             GameContext.GameEventBus.PublishJokerAddedToContext(jokerStaticId);

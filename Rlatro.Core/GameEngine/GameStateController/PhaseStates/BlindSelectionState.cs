@@ -38,27 +38,26 @@ namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
             // The play action was selected, move to the round state
             return true;
         }
-        
+
+        protected override void ResetPhaseSpecificState()
+        {
+            PackToOpen = null;
+            PackCount = 0;
+            GenerateAnteTags();
+        }
+
         public override IGamePhaseState GetNextPhaseState()
         {
             if (PackToOpen is null || PackCount <= 0)
             {
-                return GameContext.GamePhaseStates[typeof(RoundState)];
+                return GameContext.GetPhase<RoundState>();
             }
             
+            PackCount--;
             
             if (PackToOpen == BoosterPackType.ArcanaMega)
             {
-                ArcanaPackState arcanaPackState;
-                if (GameContext.GamePhaseStates.ContainsKey(typeof(ArcanaPackState)))
-                {
-                    arcanaPackState = (ArcanaPackState)GameContext.GamePhaseStates[typeof(ArcanaPackState)];
-                }
-                else
-                {
-                    arcanaPackState = new ArcanaPackState(GameContext);
-                    GameContext.GamePhaseStates[typeof(ArcanaPackState)] = arcanaPackState;
-                }
+                var arcanaPackState = GameContext.GetPhase<ArcanaPackState>();
 
                 arcanaPackState.SetIncomingState(this)
                     .SetPackType(PackToOpen.Value);
@@ -68,16 +67,7 @@ namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
             
             if (PackToOpen == BoosterPackType.BuffoonMega)
             {
-                JokerPackState jokerPackState;
-                if (GameContext.GamePhaseStates.ContainsKey(typeof(JokerPackState)))
-                {
-                    jokerPackState = (JokerPackState)GameContext.GamePhaseStates[typeof(JokerPackState)];
-                }
-                else
-                {
-                    jokerPackState = new JokerPackState(GameContext);
-                    GameContext.GamePhaseStates[typeof(JokerPackState)] = jokerPackState;
-                }
+                var jokerPackState = GameContext.GetPhase<JokerPackState>();
 
                 jokerPackState.SetIncomingState(this)
                     .SetPackType(PackToOpen.Value);
@@ -87,16 +77,7 @@ namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
 
             if (PackToOpen == BoosterPackType.CelestialMega)
             {
-                PlanetPackState planetPackState;
-                if (GameContext.GamePhaseStates.ContainsKey(typeof(PlanetPackState)))
-                {
-                    planetPackState = (PlanetPackState)GameContext.GamePhaseStates[typeof(PlanetPackState)];
-                }
-                else
-                {
-                    planetPackState = new PlanetPackState(GameContext);
-                    GameContext.GamePhaseStates[typeof(PlanetPackState)] = planetPackState;
-                }
+                var planetPackState = GameContext.GetPhase<PlanetPackState>();
 
                 planetPackState.SetIncomingState(this)
                     .SetPackType(PackToOpen.Value);
@@ -106,16 +87,7 @@ namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
             
             if (PackToOpen == BoosterPackType.SpectralNormal)
             {
-                SpectralPackState spectralPackState;
-                if (GameContext.GamePhaseStates.ContainsKey(typeof(SpectralPackState)))
-                {
-                    spectralPackState = (SpectralPackState)GameContext.GamePhaseStates[typeof(SpectralPackState)];
-                }
-                else
-                {
-                    spectralPackState = new SpectralPackState(GameContext);
-                    GameContext.GamePhaseStates[typeof(SpectralPackState)] = spectralPackState;
-                }
+                var spectralPackState = GameContext.GetPhase<SpectralPackState>();
 
                 spectralPackState.SetIncomingState(this)
                     .SetPackType(PackToOpen.Value);
@@ -125,16 +97,7 @@ namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
 
             if (PackToOpen == BoosterPackType.StandardMega)
             {
-                CardPackState cardPackState;
-                if (GameContext.GamePhaseStates.ContainsKey(typeof(CardPackState)))
-                {
-                    cardPackState = (CardPackState)GameContext.GamePhaseStates[typeof(CardPackState)];
-                }
-                else
-                {
-                    cardPackState = new CardPackState(GameContext);
-                    GameContext.GamePhaseStates[typeof(CardPackState)] = cardPackState;
-                }
+                var cardPackState = GameContext.GetPhase<CardPackState>();
 
                 cardPackState.SetIncomingState(this)
                     .SetPackType(PackToOpen.Value);
@@ -147,7 +110,7 @@ namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
 
         public void GenerateAnteTags()
         {
-            for (int i = 0; i < 3; i++)
+            for (int i = 0; i < 2; i++)
             {
                 var numberOfTags = Enum.GetValues<TagEffect>().Length;
                 AnteTags[i] = (TagEffect)GameContext.RngController.RandomInt(

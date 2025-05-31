@@ -7,6 +7,7 @@ using Balatro.Core.CoreObjects.Tags;
 using Balatro.Core.GameEngine.Contracts;
 using Balatro.Core.GameEngine.GameStateController.EventBus;
 using Balatro.Core.GameEngine.GameStateController.PersistentStates;
+using Balatro.Core.GameEngine.GameStateController.PhaseStates;
 using Balatro.Core.GameEngine.PseudoRng;
 
 namespace Balatro.Core.GameEngine.GameStateController
@@ -25,7 +26,7 @@ namespace Balatro.Core.GameEngine.GameStateController
         public GameEventBus GameEventBus { get; set; }
         public CoreObjectsFactory CoreObjectsFactory { get; set; }
         public TagHandler TagHandler { get; set; }
-        public Dictionary<Type, IGamePhaseState> GamePhaseStates = new Dictionary<Type, IGamePhaseState>();
+        private Dictionary<Type, IGamePhaseState> GamePhaseStates = new Dictionary<Type, IGamePhaseState>();
         public bool IsGameOver { get; private set; }
 
         public void NotifyLoss()
@@ -46,6 +47,31 @@ namespace Balatro.Core.GameEngine.GameStateController
         public int GetHands()
         {
             return PersistentState.Hands;
+        }
+
+        public T GetPhase<T>()
+        {
+            return (T)GamePhaseStates[typeof(T)];
+        }
+        
+        public void InitializeStateCache()
+        {
+            GamePhaseStates[typeof(RoundState)] = new RoundState(this);
+            GamePhaseStates[typeof(BlindSelectionState)] = new BlindSelectionState(this);
+            GamePhaseStates[typeof(ShopState)] = new ShopState(this);
+            GamePhaseStates[typeof(ArcanaPackState)] = new ArcanaPackState(this);
+            GamePhaseStates[typeof(CardPackState)] = new CardPackState(this);
+            GamePhaseStates[typeof(JokerPackState)] = new JokerPackState(this);
+            GamePhaseStates[typeof(PlanetPackState)] = new PlanetPackState(this);
+            GamePhaseStates[typeof(SpectralPackState)] = new SpectralPackState(this);
+        }
+
+        public void ResetPhaseStates()
+        {
+            foreach (var phaseState in GamePhaseStates.Values)
+            {
+                phaseState.Reset();
+            }
         }
     }
 }

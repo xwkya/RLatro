@@ -6,11 +6,27 @@ using Balatro.Core.CoreObjects.CoreEnums;
 
 namespace Balatro.Core.ObjectsImplementations.Decks
 {
-    public class DefaultDeckFactory : IDeckFactory
+    public record InitialConfiguration
     {
-        public Deck CreateDeck(CoreObjectsFactory objectsFactory)
+        public int JokerSlots { get; init; } = 5;
+        public int Hands { get; init; } = 4;
+        public int Discards { get; init; } = 3;
+        public int HandSize { get; init; } = 8;
+        public int StartingGold { get; init; } = 4;
+    }
+    
+    public class RedDeckFactory : IDeckFactory
+    {
+        private static readonly InitialConfiguration Configurations = new InitialConfiguration
         {
-            var deck = new Deck();
+            Discards = 4
+        };
+        
+        public InitialConfiguration Configuration => Configurations;
+
+        public void InitializeDeck(Deck deck, CoreObjectsFactory objectsFactory)
+        {
+            deck.Clear();
             foreach (Rank rank in Enum.GetValues<Rank>())
             {
                 foreach (Suit suit in Enum.GetValues<Suit>())
@@ -19,28 +35,27 @@ namespace Balatro.Core.ObjectsImplementations.Decks
                     deck.Add(card);
                 }
             }
-
-            return deck;
         }
     }
 
     public class CheckeredDeckFactory : IDeckFactory
     {
-        public Deck CreateDeck(CoreObjectsFactory objectsFactory)
+        private static readonly InitialConfiguration Configurations = new InitialConfiguration();
+        
+        public InitialConfiguration Configuration => Configurations;
+
+        public void InitializeDeck(Deck deck, CoreObjectsFactory objectsFactory)
         {
-            var deck = new Deck();
             foreach (Rank rank in Enum.GetValues<Rank>())
             {
                 var heart = objectsFactory.CreateCard(rank, Suit.Heart);
                 var spade = objectsFactory.CreateCard(rank, Suit.Spade);
-                
+
                 deck.Add(heart);
                 deck.Add(heart);
                 deck.Add(spade);
                 deck.Add(spade);
             }
-
-            return deck;
         }
     }
 }

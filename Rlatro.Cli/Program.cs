@@ -23,17 +23,24 @@ namespace Rlatro.Cli
             // Create game controller
             var gameController = new GameController(display, inputManager);
             
+            var contextBuilder = GetGameContextBuilder();
+            
             // Start the game
-            gameController.NewGame(GetGameContextBuilder("DEMO"));
+            gameController.NewGame(contextBuilder, "DEMO");
             gameController.RunGameLoop();
             
             Console.WriteLine("Thanks for playing!");
         }
         
-        private static GameContextBuilder GetGameContextBuilder(string seed)
+        private static string RandomSeed()
         {
-            return GameContextBuilder.Create(seed)
-                .WithDeck(new DefaultDeckFactory());
+            return Guid.NewGuid().ToString();
+        }
+        
+        private static GameContextBuilder GetGameContextBuilder()
+        {
+            return GameContextBuilder.Create()
+                .WithDeck(new RedDeckFactory());
         }
     }
 }

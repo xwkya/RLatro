@@ -20,16 +20,19 @@ namespace RLatro.Test.CoreRules
         public void SetUpTestState(IEnumerable<Card64> hand, IEnumerable<JokerObject> jokers)
         {
             var seed = "ABCDEF";
-            var contextBuilder = GameContextBuilder.Create(seed);
-            contextBuilder.WithDeck(new DefaultDeckFactory());
+            var contextBuilder = GameContextBuilder.Create();
+            contextBuilder.WithDeck(new RedDeckFactory());
             contextBuilder.WithHand(hand.ToList());
             foreach (var j in jokers)
             {
                 contextBuilder.WithJoker(j);
             }
 
-            GameContext = contextBuilder.CreateGameContext();
-            RoundState = new RoundState(GameContext);
+            GameContext = contextBuilder.CreateGameContext(seed);
+            RoundState = new RoundState(GameContext)
+            {
+                Hands = 1,
+            };
         }
         
         [TestCaseSource(nameof(HandTestData))]

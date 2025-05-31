@@ -11,5 +11,6 @@ namespace Balatro.Core.GameEngine.Contracts
         public void OnEnterPhase() {}
         public void OnExitPhase() {}
         IGamePhaseState GetNextPhaseState();
+        public void Reset();
     }
 }

@@ -4,6 +4,6 @@ namespace Balatro.Core.GameEngine.Contracts
 {
     public interface IGameContextFactory
     {
-        public GameContext CreateGameContext();
+        public GameContext CreateGameContext(string seed);
     }
 }

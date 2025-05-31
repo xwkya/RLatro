@@ -14,6 +14,7 @@ namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
         public JokerPackState(GameContext ctx) : base(ctx)
         {
         }
+        
 
         public List<ShopItem> GetJokerObjects()
         {

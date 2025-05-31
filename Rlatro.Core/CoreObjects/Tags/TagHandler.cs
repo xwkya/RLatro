@@ -68,7 +68,6 @@ namespace Balatro.Core.CoreObjects.Tags
 
         private void TriggerPackTag(TagEffect effect, int count, GameContext ctx)
         {
-            BlindSelectionState selectionState = (BlindSelectionState)ctx.GamePhaseStates[typeof(BlindSelectionState)];
             var packType = effect switch
             {
                 TagEffect.StandardTag => BoosterPackType.StandardMega,
@@ -79,6 +78,7 @@ namespace Balatro.Core.CoreObjects.Tags
                 _ => throw new ArgumentOutOfRangeException(nameof(effect), effect, null)
             };
             
+            var selectionState = ctx.GetPhase<BlindSelectionState>();
             selectionState.RegisterPackOpening(packType, count);
         }
 

@@ -10,7 +10,7 @@ namespace Balatro.Core.CoreObjects.Jokers.JokersContainer
     {
         public List<JokerObject> Jokers { get; } = new();
         public int Slots { get; set; }
-
+        
         public void RemoveJoker(GameContext ctx, int jokerIndex)
         {
             Jokers[jokerIndex].OnRemove(ctx);

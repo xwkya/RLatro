@@ -1,5 +1,6 @@
 ﻿using Balatro.Core.CoreObjects.CoreEnums;
 using Balatro.Core.CoreRules.CanonicalViews;
+using Balatro.Core.CoreRules.Scaling;
 using Balatro.Core.CoreRules.Scoring;
 using Balatro.Core.GameEngine.Contracts;
 using Balatro.Core.GameEngine.GameStateController.PhaseActions;
@@ -15,7 +16,7 @@ namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
     {
         public override GamePhase Phase => GamePhase.Round;
         public override bool ShouldInitializeNextState => true;
-
+        
         public int Hands { get; set; }
         public int Discards { get; set; }
         public uint CurrentChipsScore { get; set; }  // TODO: This will be a problem for hands above 4T chips
@@ -23,18 +24,16 @@ namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
         public bool IsPhaseOver => (CurrentChipsScore >= CurrentChipsRequirement) || (Hands == 0) || (GameContext.GetHandSize() <= 0);
         private HandRank? LastPlayedHand { get; set; }
 
-        public RoundState(GameContext ctx) : base(ctx)
-        {
-            CurrentChipsScore = 0;
-            Hands = GameContext.GetHands();
-            Discards = GameContext.GetDiscards();
-        }
+        public RoundState(GameContext ctx) : base(ctx) { }
 
         public override void OnEnterPhase()
         {
             base.OnEnterPhase();
+            CurrentChipsScore = 0;
+            Hands = GameContext.GetHands();
+            Discards = GameContext.GetDiscards();
             DrawCards();
-            CurrentChipsRequirement = 300;
+            CurrentChipsRequirement = ScoreRequirement.GetChipsRequirement(GameContext.PersistentState.Ante, GameContext.PersistentState.Round);
         }
 
         public override void OnExitPhase()
@@ -52,6 +51,9 @@ namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
             // Move up one round
             GameContext.PersistentState.Round++;
         }
+        
+        // No need to reset anything
+        protected override void ResetPhaseSpecificState() { }
 
         protected override bool HandleStateSpecificAction(BasePlayerAction action)
         {
@@ -72,14 +74,7 @@ namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
 
         public override IGamePhaseState GetNextPhaseState()
         {
-            if (GameContext.GamePhaseStates.ContainsKey(typeof(ShopState)))
-            {
-                return GameContext.GamePhaseStates[typeof(ShopState)];
-            }
-
-            var shopState = new ShopState(GameContext);
-            GameContext.GamePhaseStates[typeof(ShopState)] = shopState;
-            return shopState;
+            return GameContext.GetPhase<ShopState>();
         }
 
         /// <summary>
@@ -120,7 +115,7 @@ namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
             LastPlayedHand = scoreContext.HandRank;
             CurrentChipsScore += scoreContext.Chips * scoreContext.MultNumerator / scoreContext.MultDenominator;
             GameContext.PlayContainer.MoveAllTo(GameContext.DiscardPile); // play -> discard
-            GameContext.PersistentState.NumberOfHandsPlayed += Hands;
+            GameContext.PersistentState.NumberOfHandsPlayed += 1;
             
             // Handle game over condition
             if (Hands == 0 && CurrentChipsScore < CurrentChipsRequirement)

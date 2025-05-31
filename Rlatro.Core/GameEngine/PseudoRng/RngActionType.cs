@@ -28,7 +28,9 @@
         ShopCardSeal,
         PackCardSeal,
         JokerEdition,
-        GetNewAnteSkipTags
+        GetNewAnteSkipTags,
+        TheHighPriestess,
+        Judgement,
     }
     
     static class RngActionTypeExt

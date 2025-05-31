@@ -5,6 +5,7 @@ using Balatro.Core.CoreObjects.Jokers.Joker;
 using Balatro.Core.CoreObjects.Registries;
 using Balatro.Core.CoreObjects.Shop.ShopObjects;
 using Balatro.Core.CoreObjects.Vouchers;
+using Balatro.Core.ObjectsImplementations.Decks;
 
 namespace Balatro.Core.GameEngine.GameStateController.PersistentStates
 {
@@ -31,10 +32,15 @@ namespace Balatro.Core.GameEngine.GameStateController.PersistentStates
         private int CurrentGold { get; set; }
         private int MinGold { get; set; } = 0;
 
-        public EconomyHandler(PersistentState persistentState, int startingGold)
+        public EconomyHandler(PersistentState persistentState)
         {
             PersistentState = persistentState;
+        }
+
+        public void Reset(int startingGold)
+        {
             CurrentGold = startingGold;
+            MinGold = 0;
         }
 
         public int GetCurrentGold()

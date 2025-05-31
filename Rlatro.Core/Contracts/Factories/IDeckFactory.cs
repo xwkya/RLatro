@@ -1,11 +1,12 @@
 ﻿using Balatro.Core.CoreObjects;
 using Balatro.Core.CoreObjects.Cards.CardsContainer;
+using Balatro.Core.ObjectsImplementations.Decks;
 
 namespace Balatro.Core.Contracts.Factories
 {
     public interface IDeckFactory
     {
-        public Deck CreateDeck(CoreObjectsFactory objectsFactory);
-        public int JokerSlots() => 5;
+        public void InitializeDeck(Deck deck, CoreObjectsFactory objectsFactory);
+        public InitialConfiguration Configuration { get; }
     }
 }
