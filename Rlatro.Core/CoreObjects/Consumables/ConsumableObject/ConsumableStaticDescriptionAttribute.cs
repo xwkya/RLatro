@@ -21,6 +21,12 @@ namespace Balatro.Core.CoreObjects.Consumables.ConsumableObject
 
         public HandRank? UpgradedRank { get; } // Only meaningful if HasUpgradedRank is true
         public HandRank? SoftLockRank { get; } // Only meaningful if HasSoftLockRank is true
+        
+        /// <summary>
+        /// If true, this consumable can only be found in booster packs and never in regular generation
+        /// (shop, Sixth Sense, Séance, etc.)
+        /// </summary>
+        public bool PackOnly { get; init; } = false;
 
         public ConsumableStaticDescriptionAttribute(int staticId,
             ConsumableType type)

@@ -544,7 +544,7 @@ namespace Balatro.Core.ObjectsImplementations.Consumables
         }
     }
     
-    [ConsumableStaticDescription(116, ConsumableType.Spectral)]
+    [ConsumableStaticDescription(116, ConsumableType.Spectral, PackOnly = true)]
     public class TheSoul : Consumable
     {
         public TheSoul(int staticId, uint runtimeId, bool isNegative = false) : base(staticId, runtimeId, isNegative)
@@ -564,7 +564,7 @@ namespace Balatro.Core.ObjectsImplementations.Consumables
         }
     }
 
-    [ConsumableStaticDescription(117, ConsumableType.Spectral)]
+    [ConsumableStaticDescription(117, ConsumableType.Spectral, PackOnly = true)]
     public class BlackHole : Consumable
     {
         public BlackHole(int staticId, uint runtimeId, bool isNegative = false) : base(staticId, runtimeId, isNegative)
