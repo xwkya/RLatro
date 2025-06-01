@@ -73,7 +73,8 @@ namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
         {
             for (var i = 0; i < PackSize; i++)
             {
-                var card = GameContext.GlobalPoolManager.GenerateShopConsumable(RngActionType.RandomPackConsumable,
+                // Use pack generation logic which can include Black Hole (0.3% chance)
+                var card = GameContext.GlobalPoolManager.GeneratePackShopConsumable(RngActionType.RandomPackConsumable,
                     ConsumableType.Planet);
                 PlanetCards.Add(card);
             }

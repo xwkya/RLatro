@@ -74,10 +74,15 @@ namespace Balatro.Core.CoreObjects.Pools
                 counts[staticId]++;
             }
         }
-
+        
         public int GetRandomStaticId(ConsumableType type, RngController rng, RngActionType actionType)
         {
-            var masterStaticIdList = ConsumableRegistry.GetMasterOrderedStaticIds(type);
+            return GetRandomStaticId(type, rng, actionType, includePackOnly: false);
+        }
+
+        public int GetRandomStaticId(ConsumableType type, RngController rng, RngActionType actionType, bool includePackOnly)
+        {
+            var masterStaticIdList = ConsumableRegistry.GetMasterOrderedStaticIds(type, includePackOnly);
             
             if (GameContext.JokerContainer.Showman())
             {

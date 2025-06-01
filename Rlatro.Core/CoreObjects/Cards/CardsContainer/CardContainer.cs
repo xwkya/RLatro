@@ -13,6 +13,7 @@ namespace Balatro.Core.CoreObjects.Cards.CardsContainer
         
         // Fast helpers
         public Span<Card64> Span => CollectionsMarshal.AsSpan(Cards);
+        public IReadOnlyList<Card64> List => Cards;
         public int   Count      => Cards.Count;
         public bool  IsEmpty    => Cards.Count == 0;
 

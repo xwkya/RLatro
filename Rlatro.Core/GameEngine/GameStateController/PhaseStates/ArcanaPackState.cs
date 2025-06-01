@@ -84,7 +84,7 @@ namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
         {
             for (var i = 0; i < PackSize; i++)
             {
-                var card = GameContext.GlobalPoolManager.GenerateConsumable(RngActionType.RandomPackConsumable, ConsumableType.Tarot);
+                var card = GameContext.GlobalPoolManager.GeneratePackConsumable(RngActionType.RandomPackConsumable, ConsumableType.Tarot);
                 ArcanaCards.Add(card);
             }
         }

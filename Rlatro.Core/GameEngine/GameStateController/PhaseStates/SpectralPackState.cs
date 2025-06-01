@@ -85,7 +85,8 @@ namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
         {
             for (var i = 0; i < PackSize; i++)
             {
-                var card = GameContext.GlobalPoolManager.GenerateConsumable(RngActionType.RandomPackConsumable, ConsumableType.Spectral);
+                // Use pack generation logic which can include The Soul (0.3% chance)
+                var card = GameContext.GlobalPoolManager.GeneratePackConsumable(RngActionType.RandomPackConsumable, ConsumableType.Spectral);
                 SpectralCards.Add(card);
             }
         }

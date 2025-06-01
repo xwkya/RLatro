@@ -30,6 +30,7 @@
         JokerEdition,
         GetNewAnteSkipTags,
         TheHighPriestess,
+        TheEmperor,
         Judgement,
         SpectralFamiliar,
         SpectralGrim,
@@ -42,7 +43,9 @@
         SpectralImmolate,
         SpectralAnkh,
         SpectralHex,
-        SpectralTheSoul
+        SpectralTheSoul,
+        PackBlackHoleGeneration,
+        PackTheSoulGeneration
     }
     
     static class RngActionTypeExt

@@ -68,7 +68,6 @@ namespace Balatro.Core.ObjectsImplementations.Consumables
             var consumable = context.GlobalPoolManager
                 .GenerateConsumable(RngActionType.TheHighPriestess, ConsumableType.Planet);
             context.ConsumableContainer.AddConsumable(consumable);
-            context.GameEventBus.PublishConsumableAddedToContext(consumable.StaticId);
             
             var availableSpace = context.ConsumableContainer.Capacity - context.ConsumableContainer.Consumables.Count;
             if (availableSpace < 1)
@@ -79,7 +78,6 @@ namespace Balatro.Core.ObjectsImplementations.Consumables
             var generateConsumable = context.GlobalPoolManager
                 .GenerateConsumable(RngActionType.TheHighPriestess, ConsumableType.Planet);
             context.ConsumableContainer.AddConsumable(generateConsumable);
-            context.GameEventBus.PublishConsumableAddedToContext(generateConsumable.StaticId);
         }
 
         public override bool IsUsable(GameContext ctx, int[] targetCards)
@@ -125,9 +123,8 @@ namespace Balatro.Core.ObjectsImplementations.Consumables
         public override void Apply(GameContext context, int[] targetCards)
         {
             var consumable = context.GlobalPoolManager
-                .GenerateConsumable(RngActionType.TheHighPriestess, ConsumableType.Tarot);
+                .GenerateConsumable(RngActionType.TheEmperor, ConsumableType.Tarot);
             context.ConsumableContainer.AddConsumable(consumable);
-            context.GameEventBus.PublishConsumableAddedToContext(consumable.StaticId);
             
             var availableSpace = context.ConsumableContainer.Capacity - context.ConsumableContainer.Consumables.Count;
             if (availableSpace < 1)
@@ -136,9 +133,8 @@ namespace Balatro.Core.ObjectsImplementations.Consumables
             }
             
             var generateConsumable = context.GlobalPoolManager
-                .GenerateConsumable(RngActionType.TheHighPriestess, ConsumableType.Tarot);
+                .GenerateConsumable(RngActionType.TheEmperor, ConsumableType.Tarot);
             context.ConsumableContainer.AddConsumable(generateConsumable);
-            context.GameEventBus.PublishConsumableAddedToContext(generateConsumable.StaticId);
         }
 
         public override bool IsUsable(GameContext ctx, int[] targetCards)

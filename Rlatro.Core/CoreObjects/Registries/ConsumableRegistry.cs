@@ -6,8 +6,11 @@ namespace Balatro.Core.CoreObjects.Registries
 {
     public static class ConsumableRegistry
     {
-        // ConsumableType -> Ordered List of StaticIds for that type
+        // ConsumableType -> Ordered List of StaticIds for that type (including pack-only)
         private static readonly Dictionary<ConsumableType, IReadOnlyList<int>> MasterOrderedStaticIdsByType = new();
+        
+        // ConsumableType -> Ordered List of StaticIds for that type (excluding pack-only)
+        private static readonly Dictionary<ConsumableType, IReadOnlyList<int>> RegularOrderedStaticIdsByType = new();
 
         private static readonly Dictionary<int, ConsumableStaticDescriptionAttribute> AttributesByStaticId = new();
 
@@ -22,6 +25,7 @@ namespace Balatro.Core.CoreObjects.Registries
         static ConsumableRegistry()
         {
             var tempStaticIdsByType = new Dictionary<ConsumableType, List<int>>();
+            var tempRegularStaticIdsByType = new Dictionary<ConsumableType, List<int>>();
 
             var types = Assembly.GetExecutingAssembly().GetTypes()
                 .Where(t => t.IsSubclassOf(typeof(Consumable)) && !t.IsAbstract);
@@ -51,13 +55,24 @@ namespace Balatro.Core.CoreObjects.Registries
                     HandRankToStaticId[attr.UpgradedRank.Value] = attr.StaticId;
                 }
 
-                if (!tempStaticIdsByType.TryGetValue(attr.Type, out var list))
+                // Add to master list (includes all consumables)
+                if (!tempStaticIdsByType.TryGetValue(attr.Type, out var masterList))
                 {
-                    list = new List<int>();
-                    tempStaticIdsByType[attr.Type] = list;
+                    masterList = new List<int>();
+                    tempStaticIdsByType[attr.Type] = masterList;
                 }
+                masterList.Add(attr.StaticId);
 
-                list.Add(attr.StaticId);
+                // Add to regular list only if not pack-only
+                if (!attr.PackOnly)
+                {
+                    if (!tempRegularStaticIdsByType.TryGetValue(attr.Type, out var regularList))
+                    {
+                        regularList = new List<int>();
+                        tempRegularStaticIdsByType[attr.Type] = regularList;
+                    }
+                    regularList.Add(attr.StaticId);
+                }
 
                 var ctorInfo = type.GetConstructor(new[] { typeof(int), typeof(uint), typeof(bool) });
                 if (ctorInfo != null)
@@ -80,16 +95,36 @@ namespace Balatro.Core.CoreObjects.Registries
                 }
             }
 
+            // Sort and freeze both lists
             foreach (var cType in tempStaticIdsByType.Keys)
             {
-                var sortedList = tempStaticIdsByType[cType];
-                sortedList.Sort(); // Sort by StaticId
-                MasterOrderedStaticIdsByType[cType] = sortedList.AsReadOnly();
+                var sortedMasterList = tempStaticIdsByType[cType];
+                sortedMasterList.Sort();
+                MasterOrderedStaticIdsByType[cType] = sortedMasterList.AsReadOnly();
+            }
+
+            foreach (var cType in tempRegularStaticIdsByType.Keys)
+            {
+                var sortedRegularList = tempRegularStaticIdsByType[cType];
+                sortedRegularList.Sort();
+                RegularOrderedStaticIdsByType[cType] = sortedRegularList.AsReadOnly();
             }
         }
 
         public static IReadOnlyList<int> GetMasterOrderedStaticIds(ConsumableType type) =>
-            MasterOrderedStaticIdsByType.TryGetValue(type, out var list) ? list : Array.Empty<int>();
+            GetMasterOrderedStaticIds(type, includePackOnly: true);
+
+        public static IReadOnlyList<int> GetMasterOrderedStaticIds(ConsumableType type, bool includePackOnly)
+        {
+            if (includePackOnly)
+            {
+                return MasterOrderedStaticIdsByType.TryGetValue(type, out var masterList) ? masterList : Array.Empty<int>();
+            }
+            else
+            {
+                return RegularOrderedStaticIdsByType.TryGetValue(type, out var regularList) ? regularList : Array.Empty<int>();
+            }
+        }
 
         public static ConsumableStaticDescriptionAttribute GetAttribute(int staticId) =>
             AttributesByStaticId.TryGetValue(staticId, out var attr)

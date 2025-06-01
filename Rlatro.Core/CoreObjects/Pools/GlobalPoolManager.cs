@@ -1,11 +1,13 @@
 ﻿using Balatro.Core.CoreObjects.Consumables.ConsumableObject;
 using Balatro.Core.CoreObjects.CoreEnums;
 using Balatro.Core.CoreObjects.Jokers.Joker;
+using Balatro.Core.CoreObjects.Registries;
 using Balatro.Core.CoreObjects.Shop.ShopObjects;
 using Balatro.Core.CoreObjects.Vouchers;
 using Balatro.Core.GameEngine.GameStateController;
 using Balatro.Core.GameEngine.GameStateController.EventBus;
 using Balatro.Core.GameEngine.PseudoRng;
+using Balatro.Core.ObjectsImplementations.Consumables;
 
 namespace Balatro.Core.CoreObjects.Pools
 {
@@ -16,6 +18,13 @@ namespace Balatro.Core.CoreObjects.Pools
         private JokerPoolManager JokerPoolManager { get; }
         private VoucherPool VoucherPool { get; }
         private ConsumablePoolManager ConsumablePoolManager { get; }
+
+        // Special card static IDs
+        private static readonly int TheSoulStaticId = ConsumableRegistry.GetStaticId(typeof(TheSoul));
+        private static readonly int BlackHoleStaticId = ConsumableRegistry.GetStaticId(typeof(BlackHole));
+        
+        // Special card probabilities (0.3% chance per card)
+        private const float SpecialCardProbability = 0.003f;
 
         public GlobalPoolManager(GameContext ctx)
         {
@@ -42,7 +51,8 @@ namespace Balatro.Core.CoreObjects.Pools
 
         public ShopItem GenerateShopConsumable(RngActionType actionType, ConsumableType type)
         {
-            var consumable = ConsumablePoolManager.GetRandomStaticId(type, RngController, actionType);
+            // Shop consumables never include pack-only cards
+            var consumable = ConsumablePoolManager.GetRandomStaticId(type, RngController, actionType, includePackOnly: false);
             GameContext.GameEventBus.PublishConsumableAddedToContext(consumable);
             
             var runtimeId = GameContext.CoreObjectsFactory.GetNextRuntimeId();
@@ -50,6 +60,43 @@ namespace Balatro.Core.CoreObjects.Pools
             {
                 Id = runtimeId,
                 StaticId = consumable,
+                Type = type.GetShopItemType(),
+                Edition = Edition.None,
+            };
+        }
+
+        /// <summary>
+        /// Generates a shop item for pack opening, with special card logic for The Soul and Black Hole
+        /// </summary>
+        public ShopItem GeneratePackShopConsumable(RngActionType actionType, ConsumableType type)
+        {
+            int consumableStaticId;
+
+            // Check for special cards first based on pack type
+            if (type == ConsumableType.Planet && RngController.ProbabilityCheck(SpecialCardProbability, RngActionType.PackBlackHoleGeneration))
+            {
+                // Celestial/Planet packs can contain Black Hole
+                consumableStaticId = BlackHoleStaticId;
+            }
+            else if ((type == ConsumableType.Tarot || type == ConsumableType.Spectral) && 
+                     RngController.ProbabilityCheck(SpecialCardProbability, RngActionType.PackTheSoulGeneration))
+            {
+                // Arcana and Spectral packs can contain The Soul
+                consumableStaticId = TheSoulStaticId;
+            }
+            else
+            {
+                // Generate normal consumable (excluding pack-only cards)
+                consumableStaticId = ConsumablePoolManager.GetRandomStaticId(type, RngController, actionType, includePackOnly: false);
+            }
+
+            GameContext.GameEventBus.PublishConsumableAddedToContext(consumableStaticId);
+            
+            var runtimeId = GameContext.CoreObjectsFactory.GetNextRuntimeId();
+            return new ShopItem()
+            {
+                Id = runtimeId,
+                StaticId = consumableStaticId,
                 Type = type.GetShopItemType(),
                 Edition = Edition.None,
             };
@@ -67,9 +114,39 @@ namespace Balatro.Core.CoreObjects.Pools
 
         public Consumable GenerateConsumable(RngActionType actionType, ConsumableType type)
         {
-            var consumableStaticId = ConsumablePoolManager.GetRandomStaticId(type, RngController, actionType);
+            // Regular consumable generation excludes pack-only cards
+            var consumableStaticId = ConsumablePoolManager.GetRandomStaticId(type, RngController, actionType, includePackOnly: false);
             GameContext.GameEventBus.PublishConsumableAddedToContext(consumableStaticId);
 
+            return GameContext.CoreObjectsFactory.CreateConsumable(consumableStaticId);
+        }
+
+        /// <summary>
+        /// Generates a consumable for pack opening, with special card logic for The Soul and Black Hole
+        /// </summary>
+        public Consumable GeneratePackConsumable(RngActionType actionType, ConsumableType type)
+        {
+            int consumableStaticId;
+
+            // Check for special cards first based on pack type
+            if (type == ConsumableType.Planet && RngController.ProbabilityCheck(SpecialCardProbability, actionType))
+            {
+                // Celestial/Planet packs can contain Black Hole
+                consumableStaticId = BlackHoleStaticId;
+            }
+            else if ((type == ConsumableType.Tarot || type == ConsumableType.Spectral) && 
+                     RngController.ProbabilityCheck(SpecialCardProbability, actionType))
+            {
+                // Arcana and Spectral packs can contain The Soul
+                consumableStaticId = TheSoulStaticId;
+            }
+            else
+            {
+                // Generate normal consumable (excluding pack-only cards)
+                consumableStaticId = ConsumablePoolManager.GetRandomStaticId(type, RngController, actionType, includePackOnly: false);
+            }
+
+            GameContext.GameEventBus.PublishConsumableAddedToContext(consumableStaticId);
             return GameContext.CoreObjectsFactory.CreateConsumable(consumableStaticId);
         }
 
@@ -87,7 +164,7 @@ namespace Balatro.Core.CoreObjects.Pools
                 StaticId = jokerStaticId,
                 Type = ShopItemType.Joker,
                 Edition = edition,
-            };
+            }; 
         }
 
         public JokerObject GenerateJoker(RngActionType actionType, JokerRarity? rarity = null)
