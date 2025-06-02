@@ -8,6 +8,7 @@ using Balatro.Core.CoreObjects.Jokers.Joker;
 using Balatro.Core.CoreObjects.Jokers.JokersContainer;
 using Balatro.Core.CoreObjects.Pools;
 using Balatro.Core.CoreObjects.Tags;
+using Balatro.Core.CoreRules.Modifiers;
 using Balatro.Core.GameEngine.Contracts;
 using Balatro.Core.GameEngine.GameStateController.EventBus;
 using Balatro.Core.GameEngine.GameStateController.PersistentStates;
@@ -41,11 +42,14 @@ namespace Balatro.Core.GameEngine.GameStateController
                 CoreObjectsFactory = new CoreObjectsFactory(),
                 TagHandler = new TagHandler(),
             };
-
+            
             // Wire up the event bus
             gameContext.GlobalPoolManager = new GlobalPoolManager(gameContext);
+            gameContext.VoucherEffectHandler = new VoucherEffectHandler(gameContext);
+
             persistentState.Subscribe(gameEventBus);
             gameContext.GlobalPoolManager.Subscribe(gameEventBus);
+            gameContext.VoucherEffectHandler.Subscribe(gameEventBus);
 
             return new GameContextBuilder()
             {

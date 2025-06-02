@@ -38,7 +38,7 @@ namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
             consumable.Apply(GameContext, packAction.TargetIndices);
             
             // Remove and cleanup
-            
+            GameContext.GameEventBus.PublishConsumableUsed(consumable.StaticId);
             GameContext.GameEventBus.PublishConsumableRemovedFromContext(consumable.StaticId);
             ArcanaCards.RemoveAt(packAction.CardIndex);
 

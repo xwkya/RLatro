@@ -12,6 +12,7 @@ namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
 {
     public class ShopState : BaseGamePhaseState
     {
+        public const int ShopContainerInitialCapacity = 2;
         public ShopContainer ShopContainer { get; set; }
         public VoucherContainer VoucherContainer { get; set; }
         public BoosterContainer BoosterContainer { get; set; }
@@ -23,7 +24,7 @@ namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
 
         public ShopState(GameContext ctx) : base(ctx)
         {
-            ShopContainer = new ShopContainer(2); // TODO: Use vouchers for this
+            ShopContainer = new ShopContainer(ShopContainerInitialCapacity);
             VoucherContainer = new VoucherContainer();
             BoosterContainer = new BoosterContainer();
         }
@@ -71,6 +72,7 @@ namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
             NumberOfFreeRolls = 0;
             OpenedPackType = null;
             NextPhase = GamePhase.BlindSelection; // Default next phase
+            ShopContainer.Capacity = ShopContainerInitialCapacity;
             ShopContainer.ClearItems(GameContext);
             BoosterContainer.BoosterPacks.Clear();
             VoucherContainer.Vouchers.Clear();
@@ -81,6 +83,7 @@ namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
         {
             NumberOfRollsPaidThisTurn = 0;
             NumberOfFreeRolls = 0; // Reset free rolls at the start of the shop phase
+            ShopContainer.Capacity = GameContext.PersistentState.GetCurrentShopCapacity();
             
             // TODO: NumberOfFreeRolls = GameContext.JokerContainer.Jokers.Any(x => x.StaticId == JokerRegistry.GetStaticId(typeof(ChaosTheClown)));
             FillShopContainer();
@@ -170,7 +173,7 @@ namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
 
             else
             {
-                nextRollPrice = GameContext.PersistentState.StartingRollPrice + NumberOfRollsPaidThisTurn;
+                nextRollPrice = RollPrice();
                 NumberOfRollsPaidThisTurn++;
             }
 
@@ -214,7 +217,7 @@ namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
             return false;
         }
 
-        private int RollPrice()
+        public int RollPrice()
         {
             if (NumberOfFreeRolls > 0)
             {
@@ -271,6 +274,17 @@ namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
         private void FillShopContainer()
         {
             for (int i = 0; i < ShopContainer.Capacity; i++)
+            {
+                var item = GameContext.GlobalPoolManager.GenerateShopItem();
+                ShopContainer.Items.Add(item);
+            }
+        }
+
+        public void OverstockFill(VoucherType voucherType)
+        {
+            // We explicitly set the capacity to prevent the execution of this method before the update of the persistent state
+            ShopContainer.Capacity = voucherType == VoucherType.Overstock ? 3 : 4;
+            for (int i = ShopContainer.Items.Count; i < ShopContainer.Capacity; i++)
             {
                 var item = GameContext.GlobalPoolManager.GenerateShopItem();
                 ShopContainer.Items.Add(item);

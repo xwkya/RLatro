@@ -64,7 +64,7 @@ namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
                     throw new ArgumentOutOfRangeException(nameof(packAction), "Card index is out of range.");
                 }
 
-                if (GameContext.JokerContainer.Slots <= GameContext.JokerContainer.Jokers.Count)
+                if (GameContext.JokerContainer.AvailableSlots <= 0)
                 {
                     throw new ArgumentException("Joker container is full.", nameof(packAction));
                 }

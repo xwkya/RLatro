@@ -51,13 +51,13 @@ namespace Balatro.Core.CoreObjects.Pools
             eventBus.SubscribeToJokerRemovedFromContext(JokerRemovedFromContext);
         }
 
-        public void JokerRemovedFromContext(int staticId)
+        private void JokerRemovedFromContext(int staticId)
         {
             var rarity = JokerRegistry.GetAttribute(staticId).Rarity;
             NumberOfJokersInContextByRarity[rarity][staticId] -= 1;
         }
 
-        public void JokerAddedToContext(int staticId)
+        private void JokerAddedToContext(int staticId)
         {
             var rarity = JokerRegistry.GetAttribute(staticId).Rarity;
             NumberOfJokersInContextByRarity[rarity][staticId] += 1;

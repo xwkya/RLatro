@@ -88,7 +88,7 @@ namespace Balatro.Core.CoreObjects.Tags
             for (int i = 0; i < 2 * count; i++)
             {
                 // Apply until we run out of space
-                if (ctx.JokerContainer.Slots <= ctx.JokerContainer.Jokers.Count) break;
+                if (ctx.JokerContainer.AvailableSlots <= 0) break;
                 
                 var randomCommonJoker = ctx.GlobalPoolManager.GenerateJoker(RngActionType.TopUpTagJokerPoll, JokerRarity.Common);
                 ctx.JokerContainer.AddJoker(ctx, randomCommonJoker);

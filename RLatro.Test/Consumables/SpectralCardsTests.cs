@@ -181,13 +181,13 @@ public class SpectralCardsTests
             SpectralTestHelper.MakeCard(0, Rank.Four, Suit.Heart)
         };
         var ctx = SpectralTestHelper.CreateContext(hand);
-        var sizeBefore = ctx.PersistentState.HandSize;
+        var sizeBefore = ctx.GetHandSize();
         var o = new Ouija(107, 0);
         o.Apply(ctx, System.Array.Empty<int>());
 
         var rank = ctx.Hand.Span[0].GetRank();
         Assert.That(ctx.Hand.List.All(c => c.GetRank() == rank));
-        Assert.That(ctx.PersistentState.HandSize, Is.EqualTo(sizeBefore - 1));
+        Assert.That(ctx.GetHandSize(), Is.EqualTo(sizeBefore - 1));
     }
 
     [Test]
@@ -198,11 +198,11 @@ public class SpectralCardsTests
         var j2 = SpectralTestHelper.MakeJoker(ctx, 1, Edition.Negative);
         ctx.JokerContainer.AddJoker(ctx, j1);
         ctx.JokerContainer.AddJoker(ctx, j2);
-        var sizeBefore = ctx.PersistentState.HandSize;
+        var sizeBefore = ctx.GetHandSize();
         var e = new Ectoplasm(108, 0);
         e.Apply(ctx, System.Array.Empty<int>());
 
-        Assert.That(ctx.PersistentState.HandSize, Is.EqualTo(sizeBefore - 1));
+        Assert.That(ctx.GetHandSize(), Is.EqualTo(sizeBefore - 1));
         Assert.That(ctx.PersistentState.EctoplasmUsageCount, Is.EqualTo(1));
         Assert.That(ctx.JokerContainer.Jokers.All(j => j.Edition == Edition.Negative));
     }

@@ -8,18 +8,24 @@ namespace Balatro.Core.CoreObjects.Jokers.JokersContainer
 {
     public class JokerContainer
     {
-        public List<JokerObject> Jokers { get; } = new();
+        /// <summary>
+        /// Publicly exposed list of jokers.
+        /// </summary>
+        public IReadOnlyList<JokerObject> Jokers => JokersArray;
+        private List<JokerObject> JokersArray { get; } = new();
         public int Slots { get; set; }
+        private int NegativeJokerCount => Jokers.Count(j => j.Edition == Edition.Negative);
+        public int AvailableSlots => Slots + NegativeJokerCount - Jokers.Count;
         
         public void RemoveJoker(GameContext ctx, int jokerIndex)
         {
-            Jokers[jokerIndex].OnRemove(ctx);
-            Jokers.RemoveAt(jokerIndex);
+            JokersArray[jokerIndex].OnRemove(ctx);
+            JokersArray.RemoveAt(jokerIndex);
         }
         
         public void AddJoker(GameContext ctx, JokerObject joker)
         {
-            Jokers.Add(joker);
+            JokersArray.Add(joker);
             joker.OnAcquired(ctx);
         }
         

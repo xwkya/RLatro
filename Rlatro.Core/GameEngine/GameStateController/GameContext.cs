@@ -4,6 +4,7 @@ using Balatro.Core.CoreObjects.Consumables.ConsumablesContainer;
 using Balatro.Core.CoreObjects.Jokers.JokersContainer;
 using Balatro.Core.CoreObjects.Pools;
 using Balatro.Core.CoreObjects.Tags;
+using Balatro.Core.CoreRules.Modifiers;
 using Balatro.Core.GameEngine.Contracts;
 using Balatro.Core.GameEngine.GameStateController.EventBus;
 using Balatro.Core.GameEngine.GameStateController.PersistentStates;
@@ -26,6 +27,7 @@ namespace Balatro.Core.GameEngine.GameStateController
         public GameEventBus GameEventBus { get; set; }
         public CoreObjectsFactory CoreObjectsFactory { get; set; }
         public TagHandler TagHandler { get; set; }
+        public VoucherEffectHandler VoucherEffectHandler { get; set; }
         private Dictionary<Type, IGamePhaseState> GamePhaseStates = new Dictionary<Type, IGamePhaseState>();
         public bool IsGameOver { get; private set; }
 
@@ -36,17 +38,17 @@ namespace Balatro.Core.GameEngine.GameStateController
 
         public int GetHandSize()
         {
-            return PersistentState.HandSize;
+            return PersistentState.GetCurrentHandSize();
         }
 
         public int GetDiscards()
         {
-            return PersistentState.Discards;
+            return PersistentState.GetCurrentDiscards();
         }
 
         public int GetHands()
         {
-            return PersistentState.Hands;
+            return PersistentState.GetCurrentHands();
         }
 
         public T GetPhase<T>()

@@ -200,7 +200,7 @@ namespace Balatro.Core.ObjectsImplementations.Consumables
 
         public override bool IsUsable(GameContext ctx, int[] targetCards)
         {
-            return ctx.JokerContainer.Jokers.Count < ctx.JokerContainer.Slots;
+            return ctx.JokerContainer.AvailableSlots > 0;
         }
     }
 
@@ -257,7 +257,7 @@ namespace Balatro.Core.ObjectsImplementations.Consumables
 
         public override bool IsUsable(GameContext ctx, int[] targetCards)
         {
-            return ctx.Hand.Count > 0 && ctx.PersistentState.HandSize > 1;
+            return ctx.Hand.Count > 0 && ctx.PersistentState.GetCurrentHandSize() > 1;
         }
     }
 
@@ -297,12 +297,11 @@ namespace Balatro.Core.ObjectsImplementations.Consumables
             
             // Decrease hand size (cumulative: current usage count + 1)
             context.PersistentState.EctoplasmUsageCount++;
-            context.PersistentState.HandSize -= context.PersistentState.EctoplasmUsageCount;
         }
 
         public override bool IsUsable(GameContext ctx, int[] targetCards)
         {
-            return ctx.JokerContainer.Jokers.Any(j => j.Edition != Edition.Negative) && ctx.PersistentState.HandSize > 1;
+            return ctx.JokerContainer.Jokers.Any(j => j.Edition != Edition.Negative) && ctx.GetHandSize() > 1;
         }
     }
 
@@ -371,6 +370,7 @@ namespace Balatro.Core.ObjectsImplementations.Consumables
             
             var randomIndex = context.RngController.GetRandomIndexContiguous(jokerIndexes, jokerKeys, RngActionType.SpectralAnkh);
             var jokerToCopy = context.JokerContainer.Jokers[randomIndex];
+            var jokerToCopyRuntimeId = jokerToCopy.Id;
             
             // Create a copy (edition copied except Negative)
             var copyEdition = jokerToCopy.Edition == Edition.Negative ? Edition.None : jokerToCopy.Edition;
@@ -385,13 +385,12 @@ namespace Balatro.Core.ObjectsImplementations.Consumables
             // Remove all jokers except the chosen one
             for (int i = context.JokerContainer.Jokers.Count - 1; i >= 0; i--)
             {
-                if (i != randomIndex)
+                var jokerRuntimeId = context.JokerContainer.Jokers[i].Id;
+                if (jokerRuntimeId != jokerToCopyRuntimeId)
                 {
                     var jokerStaticId = context.JokerContainer.Jokers[i].StaticId;
                     context.JokerContainer.RemoveJoker(context, i);
                     context.GameEventBus.PublishJokerRemovedFromContext(jokerStaticId);
-                    // Adjust the index if we removed a joker before the chosen one
-                    if (i < randomIndex) randomIndex--;
                 }
             }
             
@@ -560,7 +559,7 @@ namespace Balatro.Core.ObjectsImplementations.Consumables
 
         public override bool IsUsable(GameContext ctx, int[] targetCards)
         {
-            return ctx.JokerContainer.Jokers.Count < ctx.JokerContainer.Slots;
+            return ctx.JokerContainer.AvailableSlots > 0;
         }
     }
 

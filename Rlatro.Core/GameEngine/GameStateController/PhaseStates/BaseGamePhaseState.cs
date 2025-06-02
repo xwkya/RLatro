@@ -81,6 +81,7 @@ namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
             consumable.Apply(GameContext, action.CardIndexes);
             
             // Only publish after in case it is the emperor
+            GameContext.GameEventBus.PublishConsumableUsed(consumable.StaticId);
             GameContext.GameEventBus.PublishConsumableRemovedFromContext(consumable.StaticId);
 
             return false;
