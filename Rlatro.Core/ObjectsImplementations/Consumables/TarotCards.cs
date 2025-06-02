@@ -502,7 +502,7 @@ namespace Balatro.Core.ObjectsImplementations.Consumables
         public override bool IsUsable(GameContext ctx, int[] targetCards)
         {
             // The judgement creates a random joker, must have space
-            return ctx.JokerContainer.Jokers.Count < ctx.JokerContainer.Slots;
+            return ctx.JokerContainer.AvailableSlots > 0;
         }
     }
 

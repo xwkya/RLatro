@@ -12,7 +12,7 @@ namespace Balatro.Core.Display.Components
         public static void DisplayShopState(StringBuilder sb, GameContext gameContext, ShopState shopState)
         {
             sb.AppendLine("=== SHOP ===");
-            sb.AppendLine($"Gold: ${gameContext.PersistentState.EconomyHandler.GetCurrentGold()} | Roll Cost: ${GetRollPrice(gameContext, shopState)}");
+            sb.AppendLine($"Gold: ${gameContext.PersistentState.EconomyHandler.GetCurrentGold()} | Roll Cost: ${GetRollPrice(shopState)}");
             
             DisplayShopItems(sb, gameContext, shopState.ShopContainer);
             DisplayBoosterPacks(sb, gameContext, shopState.BoosterContainer);
@@ -119,11 +119,11 @@ namespace Balatro.Core.Display.Components
             }
         }
 
-        private static int GetRollPrice(GameContext gameContext, ShopState shopState)
+        private static int GetRollPrice(ShopState shopState)
         {
             if (shopState.NumberOfFreeRolls > 0)
                 return 0;
-            return gameContext.PersistentState.StartingRollPrice + shopState.NumberOfRollsPaidThisTurn;
+            return shopState.RollPrice();
         }
     }
 }

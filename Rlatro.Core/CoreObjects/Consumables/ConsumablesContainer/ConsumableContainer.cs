@@ -5,7 +5,6 @@ namespace Balatro.Core.CoreObjects.Consumables.ConsumablesContainer
     public class ConsumableContainer
     {
         public int Capacity { get; set; }
-        
         public List<Consumable> Consumables { get; set; } = new List<Consumable>();
 
         public void RemoveConsumable(int index) => Consumables.RemoveAt(index);

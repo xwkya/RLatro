@@ -16,7 +16,7 @@ namespace Balatro.Core.GameEngine.GameStateController.PersistentStates
         public int Hands { get; set; }
         public int HandSize { get; set; }
         public int Round { get; set; }
-        public int StartingRollPrice { get; set; } = 5;
+        public int StartingRollPrice => OwnedVouchers[(int)VoucherType.RerollGlut] ? 1 : OwnedVouchers[(int)VoucherType.RerollSurplus] ? 3 : 5;
         public int? TheFoolStorageStaticId = null;
         public int Ante => 1 + (Round - 1) / 3;
         public AppearanceRates AppearanceRates { get; }
@@ -44,7 +44,6 @@ namespace Balatro.Core.GameEngine.GameStateController.PersistentStates
             Hands = configuration.Hands;
             Discards = configuration.Discards;
             FirstShopHasBeenVisited = false;
-            StartingRollPrice = 5;
             Round = 1;
             UnusedDiscards = 0;
             NumberOfHandsPlayed = 0;

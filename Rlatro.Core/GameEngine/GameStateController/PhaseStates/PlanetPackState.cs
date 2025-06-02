@@ -44,7 +44,8 @@ namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
             var consumableShopItem = PlanetCards[packAction.CardIndex];
             var consumable = CoreObjectsFactory.CreateConsumable(consumableShopItem);
             consumable.Apply(GameContext, TargetCards);
-
+            
+            GameContext.GameEventBus.PublishConsumableUsed(consumable.StaticId);
             GameContext.GameEventBus.PublishConsumableRemovedFromContext(consumable.StaticId);
             PlanetCards.RemoveAt(packAction.CardIndex);
 

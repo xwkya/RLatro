@@ -173,7 +173,7 @@ namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
 
             else
             {
-                nextRollPrice = GameContext.PersistentState.StartingRollPrice + NumberOfRollsPaidThisTurn;
+                nextRollPrice = RollPrice();
                 NumberOfRollsPaidThisTurn++;
             }
 
@@ -217,7 +217,7 @@ namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
             return false;
         }
 
-        private int RollPrice()
+        public int RollPrice()
         {
             if (NumberOfFreeRolls > 0)
             {

@@ -37,6 +37,12 @@ namespace Balatro.Core.CoreRules.Modifiers
                     // Immediate effect: go back 1 ante (reduce round by 3)
                     GameContext.PersistentState.Round = Math.Max(1, GameContext.PersistentState.Round - 3);
                     break;
+                case VoucherType.Antimatter:
+                    GameContext.JokerContainer.Slots++;
+                    break;
+                case VoucherType.CrystalBall:
+                    GameContext.ConsumableContainer.Capacity++;
+                    break;
             }
         }
     }
