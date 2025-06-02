@@ -257,7 +257,7 @@ namespace Balatro.Core.ObjectsImplementations.Consumables
 
         public override bool IsUsable(GameContext ctx, int[] targetCards)
         {
-            return ctx.Hand.Count > 0 && ctx.PersistentState.HandSize > 1;
+            return ctx.Hand.Count > 0 && ctx.PersistentState.GetCurrentHandSize() > 1;
         }
     }
 
@@ -297,12 +297,11 @@ namespace Balatro.Core.ObjectsImplementations.Consumables
             
             // Decrease hand size (cumulative: current usage count + 1)
             context.PersistentState.EctoplasmUsageCount++;
-            context.PersistentState.HandSize -= context.PersistentState.EctoplasmUsageCount;
         }
 
         public override bool IsUsable(GameContext ctx, int[] targetCards)
         {
-            return ctx.JokerContainer.Jokers.Any(j => j.Edition != Edition.Negative) && ctx.PersistentState.HandSize > 1;
+            return ctx.JokerContainer.Jokers.Any(j => j.Edition != Edition.Negative) && ctx.GetHandSize() > 1;
         }
     }
 

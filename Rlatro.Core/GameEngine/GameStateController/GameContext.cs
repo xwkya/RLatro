@@ -36,17 +36,17 @@ namespace Balatro.Core.GameEngine.GameStateController
 
         public int GetHandSize()
         {
-            return PersistentState.HandSize;
+            return PersistentState.GetCurrentHandSize();
         }
 
         public int GetDiscards()
         {
-            return PersistentState.Discards;
+            return PersistentState.GetCurrentDiscards();
         }
 
         public int GetHands()
         {
-            return PersistentState.Hands;
+            return PersistentState.GetCurrentHands();
         }
 
         public T GetPhase<T>()

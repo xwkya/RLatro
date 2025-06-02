@@ -97,7 +97,11 @@ namespace Balatro.Core.CoreObjects.Jokers.Joker
         public virtual void OnAcquired(GameContext ctx)
         {
         }
-
+        
+        /// <summary>
+        /// Effect when card is removed. Can call Events or anything else.
+        /// Called before the joker is actually removed from the <see cref="JokersContainer"/>
+        /// </summary>
         public virtual void OnRemove(GameContext ctx)
         {
         }
