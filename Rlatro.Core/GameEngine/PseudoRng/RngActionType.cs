@@ -45,7 +45,8 @@
         SpectralHex,
         SpectralTheSoul,
         PackBlackHoleGeneration,
-        PackTheSoulGeneration
+        PackTheSoulGeneration,
+        RandomShopCard,
     }
     
     static class RngActionTypeExt

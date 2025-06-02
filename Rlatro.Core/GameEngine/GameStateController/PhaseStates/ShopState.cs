@@ -1,5 +1,6 @@
 ﻿using Balatro.Core.CoreObjects;
 using Balatro.Core.CoreObjects.BoosterPacks;
+using Balatro.Core.CoreObjects.Cards.CardObject;
 using Balatro.Core.CoreObjects.Shop.ShopContainers;
 using Balatro.Core.CoreObjects.Shop.ShopObjects;
 using Balatro.Core.CoreObjects.Vouchers;
@@ -173,7 +174,7 @@ namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
 
             else
             {
-                nextRollPrice = RollPrice();
+                nextRollPrice = GameContext.PersistentState.StartingRollPrice + NumberOfRollsPaidThisTurn;
                 NumberOfRollsPaidThisTurn++;
             }
 
@@ -211,7 +212,8 @@ namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
                     GameContext.JokerContainer.AddJoker(GameContext, CoreObjectsFactory.CreateJoker(shopItem));
                     break;
                 case ShopItemType.PlayingCard:
-                    throw new NotImplementedException("Buyable playing cards not yet added");
+                    GameContext.Deck.Add(Card64.Create(raw: shopItem.Card64Raw, id: shopItem.Id));
+                    break;
             }
 
             return false;

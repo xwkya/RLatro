@@ -125,6 +125,23 @@ namespace Balatro.Core.GameEngine.GameStateController.PersistentStates
             return HandsStatistics.TryGetValue(handRank, out var handStatistics) ? handStatistics.Level : 1;
         }
 
+        public HandRank GetMostPlayedHand()
+        {
+            var mostPlayedHand = HandRank.HighCard;
+            int maxPlayedCount = 0;
+            
+            foreach (var handRank in Enum.GetValues<HandRank>())
+            {
+                if (HandsStatistics.TryGetValue(handRank, out var handStatistics) && handStatistics.PlayedCount > maxPlayedCount)
+                {
+                    mostPlayedHand = handRank;
+                    maxPlayedCount = handStatistics.PlayedCount;
+                }
+            }
+            
+            return mostPlayedHand;
+        }
+
         private void OnHandPlayed(ReadOnlySpan<CardView> playedCardsViews, HandRank handRank)
         {
             if (HandsStatistics.TryGetValue(handRank, out var handStatistics))

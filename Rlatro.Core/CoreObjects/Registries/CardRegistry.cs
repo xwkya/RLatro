@@ -1,5 +1,6 @@
 ﻿using Balatro.Core.CoreObjects.Cards.CardObject;
 using Balatro.Core.CoreObjects.CoreEnums;
+using Balatro.Core.CoreObjects.Vouchers;
 using Balatro.Core.GameEngine.GameStateController;
 using Balatro.Core.GameEngine.GameStateController.PersistentStates;
 using Balatro.Core.GameEngine.PseudoRng;
@@ -18,9 +19,17 @@ namespace Balatro.Core.CoreObjects.Registries
             var rank = GetRandomRank(ctx.RngController, cardPollActionType, suffix);
             var suit = GetRandomSuit(ctx.RngController, cardPollActionType, suffix);
             
-            var edition = PollEdition(ctx.PersistentState.AppearanceRates, ctx.RngController, editionActionType, suffix);
-            var enhancement = PollEnhancement(ctx.PersistentState.AppearanceRates, ctx.RngController, enhancementActionType, suffix);
-            var seal = PollSeal(ctx.PersistentState.AppearanceRates, ctx.RngController, sealActionType, suffix);
+            // If the card is from the shop, it cannot have an edition, enhancement or seal unless illusion is bought
+            // Illusion is currently bugged and seals are not supported even if the voucher is owned
+            var illusionOwned = ctx.PersistentState.OwnedVouchers[(int)VoucherType.Illusion];
+            
+            var shouldPollEdition = fromPack || illusionOwned;
+            var shouldPollEnhancement = fromPack || illusionOwned;
+            var shouldPollSeal = fromPack;
+            
+            var edition = shouldPollEdition ? PollEdition(ctx.PersistentState.AppearanceRates, ctx.RngController, editionActionType, suffix) : Edition.None;
+            var enhancement = shouldPollEnhancement ? PollEnhancement(ctx.PersistentState.AppearanceRates, ctx.RngController, enhancementActionType, suffix) : Enhancement.None;
+            var seal = shouldPollSeal ? PollSeal(ctx.PersistentState.AppearanceRates, ctx.RngController, sealActionType, suffix) : Seal.None;
 
             return ctx.CoreObjectsFactory.CreateCard(rank, suit, enhancement, seal, edition);
         }

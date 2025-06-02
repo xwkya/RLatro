@@ -28,8 +28,9 @@ namespace Balatro.Core.GameEngine.GameStateController
         public CoreObjectsFactory CoreObjectsFactory { get; set; }
         public TagHandler TagHandler { get; set; }
         public VoucherEffectHandler VoucherEffectHandler { get; set; }
-        private Dictionary<Type, IGamePhaseState> GamePhaseStates = new Dictionary<Type, IGamePhaseState>();
         public bool IsGameOver { get; private set; }
+        
+        private Dictionary<Type, IGamePhaseState> GamePhaseStates = new Dictionary<Type, IGamePhaseState>();
 
         public void NotifyLoss()
         {

@@ -64,6 +64,21 @@ namespace Balatro.Core.CoreObjects.Pools
                 Edition = Edition.None,
             };
         }
+        
+        public ShopItem GeneratePlanetShopItem(int staticId)
+        {
+            // Shop consumables never include pack-only cards
+            GameContext.GameEventBus.PublishConsumableAddedToContext(staticId);
+            
+            var runtimeId = GameContext.CoreObjectsFactory.GetNextRuntimeId();
+            return new ShopItem()
+            {
+                Id = runtimeId,
+                StaticId = staticId,
+                Type = ShopItemType.PlanetCard,
+                Edition = Edition.None,
+            };
+        }
 
         /// <summary>
         /// Generates a shop item for pack opening, with special card logic for The Soul and Black Hole
@@ -167,6 +182,12 @@ namespace Balatro.Core.CoreObjects.Pools
             }; 
         }
 
+        public ShopItem GenerateCardShopItem(RngActionType actionType)
+        {
+            var card = CardRegistry.CreateCard(GameContext, false, GameContext.PersistentState.Ante.ToString());
+            return ShopItem.FromCard(card);
+        }
+
         public JokerObject GenerateJoker(RngActionType actionType, JokerRarity? rarity = null)
         {
             if (rarity == null)
@@ -191,7 +212,7 @@ namespace Balatro.Core.CoreObjects.Pools
 
             if (itemType == ShopItemType.PlayingCard)
             {
-                throw new NotImplementedException("Playing cards in shop are not yet implemented");
+                return GenerateCardShopItem(RngActionType.RandomShopCard);
             }
             
             // Consumables

@@ -1,6 +1,8 @@
 ﻿using Balatro.Core.CoreObjects;
 using Balatro.Core.CoreObjects.Consumables.ConsumableObject;
+using Balatro.Core.CoreObjects.Registries;
 using Balatro.Core.CoreObjects.Shop.ShopObjects;
+using Balatro.Core.CoreObjects.Vouchers;
 using Balatro.Core.GameEngine.GameStateController.PhaseActions;
 using Balatro.Core.GameEngine.GameStateController.PhaseActions.ActionIntents;
 using Balatro.Core.GameEngine.PseudoRng;
@@ -74,6 +76,14 @@ namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
         {
             for (var i = 0; i < PackSize; i++)
             {
+                // If Telescope voucher is active, we will enforce the first card to be the most played hand
+                if (i == 0 && GameContext.PersistentState.OwnedVouchers[(int)VoucherType.Telescope])
+                {
+                    var mostPlayedPlanet = GenerateMostPlayedPlanetCard();
+                    PlanetCards.Add(mostPlayedPlanet);
+                    continue;
+                }
+                
                 // Use pack generation logic which can include Black Hole (0.3% chance)
                 var card = GameContext.GlobalPoolManager.GeneratePackShopConsumable(RngActionType.RandomPackConsumable,
                     ConsumableType.Planet);
@@ -89,6 +99,13 @@ namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
             }
 
             PlanetCards.Clear();
+        }
+
+        private ShopItem GenerateMostPlayedPlanetCard()
+        {
+            var mostPlayedHand = GameContext.PersistentState.HandTracker.GetMostPlayedHand();
+            var staticId = ConsumableRegistry.GetHandRankPlanetStaticId(mostPlayedHand);
+            return GameContext.GlobalPoolManager.GeneratePlanetShopItem(staticId);
         }
     }
 }

@@ -171,8 +171,7 @@ namespace Balatro.Core.GameEngine.GameStateController.PersistentStates
             }
             
             // Playing cards appearance rate
-            var playingCardBonusRate = PersistentState.OwnedVouchers[(int)VoucherType.MagicTrick] ? 8 :
-                PersistentState.OwnedVouchers[(int)VoucherType.Illusion] ? 4 : 0;
+            var playingCardBonusRate = PersistentState.OwnedVouchers[(int)VoucherType.MagicTrick] ? 8 : 0;
 
             PlayingCardRate = playingCardBonusRate;
         }
