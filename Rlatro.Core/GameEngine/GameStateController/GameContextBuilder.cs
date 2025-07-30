@@ -89,7 +89,7 @@ namespace Balatro.Core.GameEngine.GameStateController
             return GameContext;
         }
         
-        private void ResetGameContext(string seed)
+        public void ResetGameContext(string seed)
         {
             // Initialize the rng controller with the provided seed
             GameContext.CoreObjectsFactory.Reset();
