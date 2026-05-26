@@ -15,6 +15,11 @@ namespace Balatro.Core.GameEngine.GameStateController.PersistentStates
         public int Discards { get; set; }
         public int Hands { get; set; }
         public int HandSize { get; set; }
+        
+        /// <summary>
+        /// Current round number (1, 2, 3, 4, ..).
+        /// Starts at 1 and increments at the end of each round.
+        /// </summary>
         public int Round { get; set; }
         public int StartingRollPrice => OwnedVouchers[(int)VoucherType.RerollGlut] ? 1 : OwnedVouchers[(int)VoucherType.RerollSurplus] ? 3 : 5;
         public int? TheFoolStorageStaticId = null;
@@ -52,7 +57,7 @@ namespace Balatro.Core.GameEngine.GameStateController.PersistentStates
 
             ResetOwnedVouchers();
         }
-
+        
         
         public ScoreContext GetHandScore(HandRank rank)
         {

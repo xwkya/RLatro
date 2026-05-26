@@ -33,6 +33,14 @@ namespace Balatro.Core.CoreObjects.Registries
 
             return ctx.CoreObjectsFactory.CreateCard(rank, suit, enhancement, seal, edition);
         }
+
+        public static Card64 CreateCardWithoutModifiers(GameContext ctx, RngActionType baseCardActionType, string suffix = "")
+        {
+            var rank = GetRandomRank(ctx.RngController, baseCardActionType, suffix);
+            var suit = GetRandomSuit(ctx.RngController, baseCardActionType, suffix);
+
+            return ctx.CoreObjectsFactory.CreateCard(rank, suit);
+        }
         
         private static Rank GetRandomRank(RngController rngController, RngActionType actionType, string suffix = "")
         {

@@ -6,29 +6,58 @@ using Balatro.Core.GameEngine.PseudoRng;
 
 namespace Balatro.Core.CoreObjects.Tags
 {
+    /// <summary>
+    /// Handles acquisition and effects of tags. When a tag is acquired, it is either applied immediately or stored for later use depending on the tag type.
+    /// </summary>
     public class TagHandler
     {
-        private List<TagEffect> TagEffectsQueue { get; set; }
+        private int[] TagEffects { get; set; }
+        private int NumberOfDoubleTags { get; set; }
         
         public TagHandler()
         {
-            TagEffectsQueue = new List<TagEffect>();
+            int numberOfEffects = Enum.GetValues(typeof(TagEffect)).Length;
+            TagEffects = new int[numberOfEffects];
+            NumberOfDoubleTags = 0;
         }
-
-        public void GetTag(TagEffect effect, GameContext ctx)
+        
+        public void Reset()
         {
+            int numberOfEffects = Enum.GetValues(typeof(TagEffect)).Length;
+            TagEffects = new int[numberOfEffects];
+            NumberOfDoubleTags = 0;
+        }
+        
+        public void AcquireTag(TagEffect effect, GameContext ctx)
+        {
+            if (effect == TagEffect.DoubleTag)
+            {
+                NumberOfDoubleTags++;
+                return;
+            }
+            
             if (IsEffectImmediate.TryGetValue(effect, out bool isImmediate) && isImmediate)
             {
-                var count = GetTagTriggerCount();
-                ApplyTagEffect(effect, count, ctx);
+                ApplyImmediateTagEffect(effect, NumberOfDoubleTags + 1, ctx);
             }
             else
             {
-                TagEffectsQueue.Add(effect);
+                TagEffects[(int)effect] += NumberOfDoubleTags + 1;
+                NumberOfDoubleTags = 0;
             }
         }
         
-        private void ApplyTagEffect(TagEffect effect, int count, GameContext ctx)
+        public void RemoveTag(TagEffect effect)
+        {
+            if (TagEffects[(int)effect] > 0) TagEffects[(int)effect]--;
+        }
+        
+        public int GetTagCount(TagEffect effect)
+        {
+            return TagEffects[(int)effect];
+        }
+        
+        private void ApplyImmediateTagEffect(TagEffect effect, int count, GameContext ctx)
         {
             switch (effect)
             {
@@ -52,18 +81,6 @@ namespace Balatro.Core.CoreObjects.Tags
                     break;
                 // TODO: Add the rest ffs
             }
-        }
-        
-        private int GetTagTriggerCount()
-        {
-            int count = 1;
-            while(TagEffectsQueue.Count > 0 && TagEffectsQueue[^1] == TagEffect.DoubleTag)
-            {
-                count += 1;
-                TagEffectsQueue.RemoveAt(TagEffectsQueue.Count - 1);
-            }
-
-            return count;
         }
 
         private void TriggerPackTag(TagEffect effect, int count, GameContext ctx)
@@ -95,7 +112,7 @@ namespace Balatro.Core.CoreObjects.Tags
             }
         }
         
-
+        
         private static readonly Dictionary<TagEffect, bool> IsEffectImmediate = new()
         {
             { TagEffect.UncommonTag, false },

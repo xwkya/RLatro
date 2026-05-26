@@ -31,6 +31,8 @@ namespace Balatro.Core.GameEngine.GameStateController.PersistentStates
 
         private int CurrentGold { get; set; }
         private int MinGold { get; set; } = 0;
+        private bool FreeShopItems { get; set; }
+        private bool FreeBoosterPacks { get; set; }
 
         public EconomyHandler(PersistentState persistentState)
         {
@@ -41,6 +43,8 @@ namespace Balatro.Core.GameEngine.GameStateController.PersistentStates
         {
             CurrentGold = startingGold;
             MinGold = 0;
+            FreeShopItems = false;
+            FreeBoosterPacks = false;
         }
 
         public int GetCurrentGold()
@@ -119,9 +123,34 @@ namespace Balatro.Core.GameEngine.GameStateController.PersistentStates
                 _ => 0,
             };
         }
+        
+        public void MarkShopItemsFree()
+        {
+            FreeShopItems = true;
+        }
+        
+        public void MarkBoosterPacksFree()
+        {
+            FreeBoosterPacks = true;
+        }
+        
+        public void MarkShopItemsPaid()
+        {
+            FreeShopItems = false;
+        }
+        
+        public void MarkBoosterPacksPaid()
+        {
+            FreeBoosterPacks = false;
+        }
 
         public int GetShopItemPrice(ShopItem item)
         {
+            if (FreeShopItems)
+            {
+                return 0;
+            }
+            
             var basePrice = GetShopItemBasePrice(item);
             var editionBonus = GetEditionBonusValue(item.Edition);
             var discountedPrice = GetDiscountedPrice(basePrice + editionBonus);
@@ -130,6 +159,11 @@ namespace Balatro.Core.GameEngine.GameStateController.PersistentStates
 
         public int GetBoosterPackPrice(BoosterPackType type)
         {
+            if (FreeBoosterPacks)
+            {
+                return 0;
+            }
+            
             return GetDiscountedPrice(type.GetPackPrice());
         }
 

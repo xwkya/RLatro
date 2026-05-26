@@ -3,6 +3,7 @@ using Balatro.Core.CoreObjects.BoosterPacks;
 using Balatro.Core.CoreObjects.Cards.CardObject;
 using Balatro.Core.CoreObjects.Shop.ShopContainers;
 using Balatro.Core.CoreObjects.Shop.ShopObjects;
+using Balatro.Core.CoreObjects.Tags;
 using Balatro.Core.CoreObjects.Vouchers;
 using Balatro.Core.GameEngine.Contracts;
 using Balatro.Core.GameEngine.GameStateController.PhaseActions;
@@ -29,31 +30,31 @@ namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
             VoucherContainer = new VoucherContainer();
             BoosterContainer = new BoosterContainer();
         }
-        
+
         /// <summary>
         /// Gets the number of rolls the player has paid -> Chaos free roll should not increment this counter.
         /// </summary>
         public int NumberOfRollsPaidThisTurn { get; set; }
-        
+
         /// <summary>
         /// Gets the number of free rolls the player has (e.g. from Chaos or tags that grant free rolls).
         /// </summary>
         public int NumberOfFreeRolls { get; set; }
-        
+
         protected override bool HandleStateSpecificAction(BasePlayerAction action)
         {
             if (action is not ShopAction shopAction)
             {
                 throw new ArgumentException($"Action {action} is not a {nameof(ShopAction)}.");
             }
-            
+
             ValidatePossibleAction(shopAction);
-            
+
             switch (shopAction.ActionIntent)
             {
                 case ShopActionIntent.Roll:
                     return ExecuteRoll();
-                case ShopActionIntent.BuyVoucher:   
+                case ShopActionIntent.BuyVoucher:
                     return ExecuteBuyVoucher(shopAction.VoucherIndex);
                 case ShopActionIntent.BuyFromShop:
                     return ExecuteBuyFromShop(shopAction.ShopIndex);
@@ -85,8 +86,9 @@ namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
             NumberOfRollsPaidThisTurn = 0;
             NumberOfFreeRolls = 0; // Reset free rolls at the start of the shop phase
             ShopContainer.Capacity = GameContext.PersistentState.GetCurrentShopCapacity();
-            
+
             // TODO: NumberOfFreeRolls = GameContext.JokerContainer.Jokers.Any(x => x.StaticId == JokerRegistry.GetStaticId(typeof(ChaosTheClown)));
+            ApplyCouponTags();
             FillShopContainer();
             FillBoosterPackContainer();
             FillVoucherContainer();
@@ -98,15 +100,19 @@ namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
             ShopContainer.ClearItems(GameContext);
             BoosterContainer.BoosterPacks.Clear();
             GameContext.PersistentState.FirstShopHasBeenVisited = true;
+            
+            // Remove coupon tag effect
+            GameContext.PersistentState.EconomyHandler.MarkBoosterPacksPaid();
+            GameContext.PersistentState.EconomyHandler.MarkShopItemsPaid();
         }
-        
+
         public override IGamePhaseState GetNextPhaseState()
         {
             // Internal verification
             if (NextPhase != GamePhase.BlindSelection && !OpenedPackType.HasValue)
                 throw new ApplicationException(
                     "Next phase is a pack opening but the pack type has not been set. This is a bug.");
-                    
+
             if (NextPhase == GamePhase.ArcanaPack)
             {
                 var arcanaPackState = GameContext.GetPhase<ArcanaPackState>();
@@ -116,7 +122,7 @@ namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
 
                 return arcanaPackState;
             }
-            
+
             if (NextPhase == GamePhase.JokerPack)
             {
                 var jokerPackState = GameContext.GetPhase<JokerPackState>();
@@ -136,7 +142,7 @@ namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
 
                 return planetPackState;
             }
-            
+
             if (NextPhase == GamePhase.SpectralPack)
             {
                 var spectralPackState = GameContext.GetPhase<SpectralPackState>();
@@ -164,7 +170,7 @@ namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
         private bool ExecuteRoll()
         {
             int nextRollPrice;
-            
+
             // Book-keep the roll prices
             if (NumberOfFreeRolls > 0)
             {
@@ -180,18 +186,21 @@ namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
 
             GameContext.PersistentState.EconomyHandler.SpendGold(nextRollPrice);
             
+            // Mark items as paid in case coupon tag was active
+            GameContext.PersistentState.EconomyHandler.MarkShopItemsPaid();
+
             // Perform the roll
             ShopContainer.ClearItems(GameContext);
             FillShopContainer();
-            
+
             return false;
         }
-        
+
         public bool ExecuteBuyVoucher(int voucherIndex)
         {
             var voucher = VoucherContainer.Vouchers[voucherIndex];
             VoucherContainer.Vouchers.RemoveAt(voucherIndex);
-            
+
             var voucherPrice = GameContext.PersistentState.EconomyHandler.GetVoucherPrice();
             GameContext.PersistentState.EconomyHandler.SpendGold(voucherPrice);
             GameContext.GameEventBus.PublishVoucherBought(voucher);
@@ -201,6 +210,11 @@ namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
         public bool ExecuteBuyFromShop(int shopIndex)
         {
             var shopItem = ShopContainer.Items[shopIndex];
+            GameContext.PersistentState.EconomyHandler.SpendGold(GameContext.PersistentState.EconomyHandler.GetShopItemPrice(shopItem));
+
+            // Do not remove the item from the context as it will be placed in the player's inventory
+            ShopContainer.Items.RemoveAt(shopIndex);
+
             switch (shopItem.Type)
             {
                 case ShopItemType.TarotCard:
@@ -225,21 +239,21 @@ namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
             {
                 return 0; // Free roll
             }
-            
+
             return GameContext.PersistentState.StartingRollPrice + NumberOfRollsPaidThisTurn;
         }
-        
+
         private bool ExecuteBuyBoosterPack(int boosterPackIndex)
         {
             var packType = BoosterContainer.BoosterPacks[boosterPackIndex].BoosterPackType;
-            
+
             GameContext.PersistentState.EconomyHandler.SpendGold(GameContext.PersistentState.EconomyHandler.GetBoosterPackPrice(packType));
             OpenedPackType = packType;
             NextPhase = GetBoosterPackPhase(packType);
             BoosterContainer.BoosterPacks.RemoveAt(boosterPackIndex);
             return true;
         }
-        
+
         private GamePhase GetBoosterPackPhase(BoosterPackType packType)
         {
             switch (packType)
@@ -248,28 +262,28 @@ namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
                 case BoosterPackType.ArcanaJumbo:
                 case BoosterPackType.ArcanaMega:
                     return GamePhase.ArcanaPack;
-                
+
                 case BoosterPackType.CelestialNormal:
                 case BoosterPackType.CelestialJumbo:
                 case BoosterPackType.CelestialMega:
                     return GamePhase.PlanetPack;
-                
+
                 case BoosterPackType.BuffoonNormal:
                 case BoosterPackType.BuffoonJumbo:
                 case BoosterPackType.BuffoonMega:
                     return GamePhase.JokerPack;
-                
+
                 case BoosterPackType.SpectralNormal:
                 case BoosterPackType.SpectralJumbo:
                 case BoosterPackType.SpectralMega:
                     return GamePhase.SpectralPack;
-                
+
                 case BoosterPackType.StandardNormal:
                 case BoosterPackType.StandardJumbo:
                 case BoosterPackType.StandardMega:
                     return GamePhase.CardPack;
             }
-            
+
             throw new ArgumentOutOfRangeException(nameof(packType), packType, null);
         }
 
@@ -296,7 +310,7 @@ namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
         private void FillBoosterPackContainer()
         {
             var appearanceRates = GameContext.PersistentState.AppearanceRates;
-            
+
             for (int i = 0; i < BoosterContainer.BoosterPackSlots; i++)
             {
                 BoosterPackType selectedPackType;
@@ -313,11 +327,11 @@ namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
                 BoosterContainer.AddPack(boosterPack);
             }
         }
-        
+
         private BoosterPackType SelectWeightedBoosterPack(IReadOnlyDictionary<BoosterPackType, float> weights)
         {
             var randomValue = GameContext.RngController.GetRandomProbability(RngActionType.RandomPack);
-            
+
             float currentWeight = 0f;
             foreach (var kvp in weights)
             {
@@ -331,20 +345,31 @@ namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
             throw new ApplicationException("Failed to select a weighted booster pack. This should never happen.");
         }
 
+        private void ApplyCouponTags()
+        {
+            var couponTags = GameContext.TagHandler.GetTagCount(TagEffect.CouponTag);
+            if (couponTags > 0)
+            {
+                GameContext.PersistentState.EconomyHandler.MarkBoosterPacksFree();
+                GameContext.PersistentState.EconomyHandler.MarkShopItemsFree();
+                GameContext.TagHandler.RemoveTag(TagEffect.CouponTag);
+            }
+        }
+
         private void FillVoucherContainer()
         {
             // Clear all to prevent vouchers from tags to persist
             VoucherContainer.Vouchers.Clear();
-            
+
             // Create a new voucher if it's round 1
             if (GameContext.PersistentState.Round % 3 == 1)
             {
                 CurrentAnteVoucher = GameContext.GlobalPoolManager.GetNewAnteVoucher();
             }
-            
+
             VoucherContainer.Vouchers.Add(CurrentAnteVoucher);
         }
-        
+
         private void CreateBlindsIfNewAnte()
         {
             // TODO: Create boss blind if it's a new ante
@@ -354,7 +379,7 @@ namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
                 blindState.GenerateAnteTags();
             }
         }
-        
+
         private void ValidatePossibleAction(ShopAction action)
         {
             switch (action.ActionIntent)
@@ -365,7 +390,7 @@ namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
                         throw new InvalidOperationException("Not enough gold to roll.");
                     }
                     break;
-                
+
                 case ShopActionIntent.BuyFromShop:
                     if (ShopContainer.Items.Count <= action.ShopIndex)
                     {
@@ -377,7 +402,7 @@ namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
                         throw new InvalidOperationException("Not enough gold to buy item.");
                     }
                     break;
-                
+
                 case ShopActionIntent.BuyVoucher:
                     if (VoucherContainer.Vouchers.Count <= action.VoucherIndex)
                     {
@@ -389,7 +414,7 @@ namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
                         throw new InvalidOperationException("Not enough gold to buy voucher.");
                     }
                     break;
-                
+
                 case ShopActionIntent.BuyBoosterPack:
                     if (BoosterContainer.BoosterPacks.Count <= action.BoosterPackIndex)
                     {

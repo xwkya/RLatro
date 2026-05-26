@@ -116,6 +116,7 @@ namespace Balatro.Core.GameEngine.GameStateController
             
             // Reset the persistent state
             GameContext.PersistentState.Reset(DeckFactory.Configuration);
+            GameContext.TagHandler.Reset();
             
             // Reinitialize the phase states
             GameContext.ResetPhaseStates();

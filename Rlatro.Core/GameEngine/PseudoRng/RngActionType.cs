@@ -47,6 +47,7 @@
         PackBlackHoleGeneration,
         PackTheSoulGeneration,
         RandomShopCard,
+        MarbleJokerCard,
     }
     
     static class RngActionTypeExt

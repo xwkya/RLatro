@@ -17,19 +17,31 @@ namespace Rlatro.Cli
             Console.WriteLine();
 
             // Setup dependencies
-            IGameDisplay display = new ConsoleGameDisplay();
+            var consoleDisplay = new ConsoleGameDisplay();
+            var fileLogger = new FileLoggerDisplay("game-log.txt");
+            var compositeDisplay = new CompositeDisplay(consoleDisplay, fileLogger);
+            
             IInputManager inputManager = new ConsoleInputManager();
             
             // Create game controller
-            var gameController = new GameController(display, inputManager);
+            var gameController = new FirstRoundGameController(compositeDisplay, inputManager);
             
             var contextBuilder = GetGameContextBuilder();
             
-            // Start the game
-            gameController.NewGame(contextBuilder, "DEMO");
-            gameController.RunGameLoop();
+            try
+            {
+                // Start the game
+                gameController.NewGame(contextBuilder, "DEMO");
+                gameController.RunGameLoop();
+            }
+            finally
+            {
+                // Clean up file resources
+                compositeDisplay.Dispose();
+            }
             
             Console.WriteLine("Thanks for playing!");
+            Console.WriteLine("Game states have been logged to: game-log.txt");
         }
         
         private static string RandomSeed()

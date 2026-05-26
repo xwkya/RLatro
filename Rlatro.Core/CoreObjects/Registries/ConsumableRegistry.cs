@@ -8,7 +8,7 @@ namespace Balatro.Core.CoreObjects.Registries
     {
         // ConsumableType -> Ordered List of StaticIds for that type (including pack-only)
         private static readonly Dictionary<ConsumableType, IReadOnlyList<int>> MasterOrderedStaticIdsByType = new();
-        
+
         // ConsumableType -> Ordered List of StaticIds for that type (excluding pack-only)
         private static readonly Dictionary<ConsumableType, IReadOnlyList<int>> RegularOrderedStaticIdsByType = new();
 
@@ -19,7 +19,7 @@ namespace Balatro.Core.CoreObjects.Registries
 
         private static readonly Dictionary<Type, int> TypeToStaticId = new Dictionary<Type, int>();
         private static readonly Dictionary<int, Type> StaticIdToType = new Dictionary<int, Type>();
-        
+
         private static readonly Dictionary<HandRank, int> HandRankToStaticId = new Dictionary<HandRank, int>();
 
         static ConsumableRegistry()
@@ -141,7 +141,7 @@ namespace Balatro.Core.CoreObjects.Registries
                 ? id
                 : throw new KeyNotFoundException(
                     $"No StaticId found for Consumable Type {type.Name}. Is it registered with an attribute?");
-        
+
         public static int GetHandRankPlanetStaticId(HandRank rank) =>
             HandRankToStaticId.TryGetValue(rank, out var staticId)
                 ? staticId

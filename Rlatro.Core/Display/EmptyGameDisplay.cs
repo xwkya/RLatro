@@ -1,5 +1,4 @@
-﻿using Balatro.Core.Contracts;
-using Balatro.Core.Contracts.Display;
+﻿using Balatro.Core.Contracts.Display;
 using Balatro.Core.GameEngine.Contracts;
 using Balatro.Core.GameEngine.GameStateController;
 

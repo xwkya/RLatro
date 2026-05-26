@@ -1,4 +1,5 @@
 ﻿using Balatro.Core.CoreObjects.CoreEnums;
+using Balatro.Core.CoreObjects.Tags;
 using Balatro.Core.CoreRules.CanonicalViews;
 using Balatro.Core.CoreRules.Scaling;
 using Balatro.Core.CoreRules.Scoring;
@@ -14,6 +15,7 @@ namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
     /// </summary>
     public class RoundState : BaseGamePhaseState
     {
+        private const int BonusHandSizePerJuggleTag = 3;
         public override GamePhase Phase => GamePhase.Round;
         public override bool ShouldInitializeNextState => true;
         
@@ -23,12 +25,16 @@ namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
         public uint CurrentChipsRequirement { get; set; }
         public bool IsPhaseOver => (CurrentChipsScore >= CurrentChipsRequirement) || (Hands == 0) || (GameContext.GetHandSize() <= 0);
         private HandRank? LastPlayedHand { get; set; }
+        private int BonusHandSizeThisRound { get; set; }
 
         public RoundState(GameContext ctx) : base(ctx) { }
 
         public override void OnEnterPhase()
         {
             base.OnEnterPhase();
+            var numberOfJuggleTags = GameContext.TagHandler.GetTagCount(TagEffect.JuggleTag);
+            BonusHandSizeThisRound = BonusHandSizePerJuggleTag * numberOfJuggleTags;
+            
             CurrentChipsScore = 0;
             Hands = GameContext.GetHands();
             Discards = GameContext.GetDiscards();
@@ -82,7 +88,7 @@ namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
         /// </summary>
         private void DrawCards()
         {
-            int need = GameContext.GetHandSize() - GameContext.Hand.Count;
+            int need = GameContext.GetHandSize() + BonusHandSizeThisRound - GameContext.Hand.Count;
             if (need > 0)
             {
                 int draw = Math.Min(need, GameContext.Deck.Count);

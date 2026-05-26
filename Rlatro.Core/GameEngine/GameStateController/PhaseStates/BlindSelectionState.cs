@@ -30,7 +30,7 @@ namespace Balatro.Core.GameEngine.GameStateController.PhaseStates
             if (blindSelectionAction.Intent == BlindSelectionActionIntent.Skip &&
                 GameContext.PersistentState.Round % 3 != 0)
             {
-                GameContext.TagHandler.GetTag(AnteTags[GameContext.PersistentState.Round % 2 - 1], GameContext);
+                GameContext.TagHandler.AcquireTag(AnteTags[GameContext.PersistentState.Round % 2 - 1], GameContext);
                 GameContext.PersistentState.Round++;
                 return PackToOpen > 0;
             }
